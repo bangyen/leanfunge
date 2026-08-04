@@ -23,4 +23,21 @@ example {p q r : Program w h} (hpq : Program.equiv p q) (hqr : Program.equiv q r
     Program.equiv p r :=
   Program.equiv_trans hpq hqr
 
+example {p q : Program w h} (h : Program.equiv p q) :
+    Program.observational_equiv p q :=
+  Program.equiv_observational_equiv h
+
+example (p : Program w h) : Program.observational_equiv p p :=
+  Program.observational_equiv_refl p
+
+example {p q : Program w h} (h : Program.observational_equiv p q) :
+    Program.observational_equiv q p :=
+  Program.observational_equiv_symm h
+
+example {p q r : Program w h}
+    (hpq : Program.observational_equiv p q)
+    (hqr : Program.observational_equiv q r) :
+    Program.observational_equiv p r :=
+  Program.observational_equiv_trans hpq hqr
+
 end LeanFunge.Tests

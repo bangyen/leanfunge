@@ -227,6 +227,28 @@ theorem step_prependSpaceState_push_right (s : State w h) (n : Int)
   simp [prependSpaceState, stepState, hdir, stepPos,
     Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt (Nat.succ_lt_succ hx)]
 
+/-- A right-moving addition step commutes with leading-space state padding
+    before the original playfield boundary. -/
+theorem step_prependSpaceState_add_right (s : State w h)
+    (hdir : s.dir = .right) (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .add)
+    (hx : s.pc.1 + 1 < w) :
+    step (prependSpaceState s) = some (prependSpaceState (stepState s .add)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell : (prependSpaceState s).grid.get
+      (prependSpaceState s).pc.1 (prependSpaceState s).pc.2 =
+      s.grid.get s.pc.1 s.pc.2 := prependSpaceState_cell s hpc
+  have hdecode' : decodeChar ((prependSpaceState s).grid.get
+      (prependSpaceState s).pc.1 (prependSpaceState s).pc.2) = .add := by
+    rw [hcell]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (prependSpaceState s).stringMode = false := hm
+  rw [hdecode', hm']
+  simp [prependSpaceState, stepState, hdir, stepPos,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt (Nat.succ_lt_succ hx)]
+
 /-- Relate optional run results under a state simulation. -/
 def option_state_related (R : State w h → State w' h' → Prop) :
     Option (State w h) → Option (State w' h') → Prop

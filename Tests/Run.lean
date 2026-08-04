@@ -37,4 +37,12 @@ example {w h : ℕ} (s : State w h) (n : ℕ) (result : Option (State w h))
     (h : run n s = result) : runRel n s result :=
   run_refines_runRel n s result h
 
+example {w h : ℕ} (s : State w h) (result : Option (State w h)) :
+    runRel 1 s result ↔ stepRel s result :=
+  runRel_one s result
+
+example {w h : ℕ} (s : State w h) {n : ℕ} (h : runRel n s none) (m : ℕ) :
+    runRel (n + m) s none :=
+  runRel_halts_mono s h m
+
 end LeanFunge.Tests

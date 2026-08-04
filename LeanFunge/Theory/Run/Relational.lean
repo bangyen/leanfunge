@@ -57,4 +57,28 @@ theorem run_refines_runRel (n : ℕ) (s : State w h) (result : Option (State w h
             left
             exact ⟨sₙ, ih s (some sₙ) hrun, step_refines_stepRel sₙ s' hstep⟩
 
+/-- A one-step relational run is exactly a `stepRel` transition. -/
+theorem runRel_one (s : State w h) (result : Option (State w h)) :
+    runRel 1 s result ↔ stepRel s result := by
+  constructor
+  · intro h
+    rcases h with ⟨s₀, hs₀, hstep⟩ | ⟨hhalt, hresult⟩
+    · cases hs₀
+      exact hstep
+    · cases hhalt
+  · intro h
+    left
+    exact ⟨s, rfl, h⟩
+
+/-- Once a relational run has halted, every longer bound is also halted. -/
+theorem runRel_halts_mono (s : State w h) {n : ℕ}
+    (h : runRel n s none) (m : ℕ) : runRel (n + m) s none := by
+  induction m with
+  | zero => simpa using h
+  | succ m ih =>
+      rw [Nat.add_succ]
+      change runRel (n + m + 1) s none
+      right
+      exact ⟨ih, rfl⟩
+
 end LeanFunge

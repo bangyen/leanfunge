@@ -17,6 +17,10 @@ def haltLeft : Program 2 1 := Grid.ofRows 2 1 [['@', ' ']]
 
 def haltRight : Program 2 1 := Grid.ofRows 2 1 [[' ', '@']]
 
+def haltRightAfterSpace : State 2 1 :=
+  { State.init haltRight with
+    pc := stepPos 2 1 (State.init haltRight).dir (State.init haltRight).pc }
+
 theorem haltLeft_run_succ (n : ℕ) :
     run (n + 1) (State.init haltLeft) = none := by
   induction n with
@@ -36,13 +40,27 @@ theorem haltRight_run_two_add (n : ℕ) :
       rfl
 
 theorem halt_padded_ordered_equiv : Program.ordered_trace_equiv haltLeft haltRight := by
-  apply Program.ordered_trace_equiv_one_step_prefix
+  apply Program.ordered_trace_equiv_of_nop_continuation
   · rfl
-  · intro n
-    cases n with
-    | zero => rfl
-    | succ n =>
-        rw [haltLeft_run_succ n, haltRight_run_two_add n]
+  · rfl
+  · rfl
+  · apply Program.run_observe_eq_of_finite_prefix
+      (State.init haltLeft) haltRightAfterSpace 1
+    · intro d
+      simpa [Nat.add_comm] using haltLeft_run_succ d
+    · intro d
+      have hrun := Program.run_succ_eq_run_from_step
+        (s := State.init haltRight)
+        (s' := haltRightAfterSpace)
+        (by
+          rw [step_nop (State.init haltRight) rfl rfl]
+          rfl) (d + 1)
+      rw [haltRight_run_two_add d] at hrun
+      simpa [Nat.add_comm] using hrun.symm
+    · intro n hn
+      have : n = 0 := by omega
+      subst this
+      rfl
 
 def arithmeticPaddedLeft : Program 6 1 :=
   Grid.ofRows 6 1 [(String.toList "23+.@ ")]

@@ -9,6 +9,7 @@ import LeanFunge.Examples.Factorial
 import LeanFunge.Examples.HelloWorld
 import LeanFunge.Examples.Input
 import LeanFunge.Examples.PutGet
+import LeanFunge.Examples.SelfMod
 import LeanFunge.Examples.Trampoline
 
 /-!

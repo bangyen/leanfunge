@@ -70,4 +70,19 @@ example : (run 1 negState).map (fun s => Stack.top s.stack) = some (-3) :=
 example : run 2 negState = none :=
   neg_halts
 
+example : (run 8 selfmodState).map (fun s => s.grid.get 8 0) = some '@' :=
+  selfmod_writes
+
+example : run 9 selfmodState = none :=
+  selfmod_halts
+
+example : (run 7 execState).map (fun s => s.grid.get 7 0) = some '1' :=
+  exec_writes
+
+example : (run 9 execState).map (fun s => s.stack) = some [1] :=
+  exec_stack
+
+example : run 10 execState = none :=
+  exec_halts
+
 end LeanFunge.Tests

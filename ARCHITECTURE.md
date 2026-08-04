@@ -130,6 +130,12 @@ no external interpreter is trusted.
 | `PutGet` | `521p21g.@` over a blank row (9×2) | `p` stores `5`, `g` retrieves it, output `5` |
 | `Countdown` | 26×4 loop with cell counter | output `321`, halts after 133 steps |
 | `Factorial` | 26×4 loop with cell counter | computes `3!`, final stack `[6]`, halts |
+| `Input` | `&2+.@`, `&.@`, `&@` (5×1, 3×1, 2×1) | reads `5`→prints `7`, reads `12`→prints `12`, reads `-3` onto the stack |
+| `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
+
+`SelfMod` showcases Befunge's self-modifying playfield: both programs compute
+a character code, store it into an empty cell with `p`, and then let the
+instruction pointer reach and execute the written instruction.
 
 The two looping programs use a common structure: the counter lives in the cell
 `(0, 0)`, the loop check is `00g!|` (fetch, logical-not, vertical branch), and

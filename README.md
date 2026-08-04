@@ -77,6 +77,8 @@ the Lean kernel:
   and the counter in a cell, multiplied with `*` each iteration.
 - `Input`: `&2+.@` reads `5` and prints `7`; `&.@` reads a multi-digit or
   negative integer (`12`, `-3`) from the input stream.
+- `SelfMod`: `>88*80p  ` writes its own `@` instruction with `p` and then runs
+  into it and halts; `>77*70p  @` writes a `1` instruction and executes it.
 
 ## Roadmap
 
@@ -86,7 +88,7 @@ the Lean kernel:
 | **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | ✅ Done | `Theory.Invariance` proves spaces are no-ops, only `p` modifies the playfield, and `p` stores the addressed cell. |
 | **`?` as true nondeterminism** | ✅ Done | `stepRel` is a relational transition and `Theory.Random` proves the interpreter is a sound refinement, plus all four directions are reachable `?` outcomes. |
 | **Faithful `&` integer input** | ✅ Done | `Core/Parser` implements a decimal parser (sign, spaces, multi-digit) and `Theory/Parser` proves the digits round-trip; `Input` verifies programs reading `5`, `12`, and `-3`. |
-| **Self-modification showcase** | Medium | Verify a program that writes its own `@` (halts by rewriting) or a minimal quine. |
+| **Self-modification showcase** | ✅ Done | `SelfMod` verifies programs that write their own `@` (halting by rewriting) and that write then execute a `1` instruction. |
 | **Befunge-98 extension** (`r`, `k`, `n`, fingerprints) | Low | Large surface area; a separate language dialect rather than a property of Befunge-93. |
 
 ## Design decisions

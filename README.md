@@ -102,7 +102,7 @@ the Lean kernel:
 | **Run-level program equivalence** | ✅ Done | `Theory/Run` proves a grid-preserving program leaves the playfield unchanged across a whole run, and a nop-only run leaves the stack unchanged. |
 | **Complete the instruction set** | ✅ Done | `Theory/StepOps` adds single-step theorems for `/`, `%`, the comparison, `:`, `\`, `$`, `~` (including EOF), and `&` using the existing patterns, completing single-step coverage. |
 | **Verified decimal output routine** | ✅ Done | `DecimalOutput` reads `0`, `5`, `123`, and `12345` with `&` and prints each back as characters via a `div`/`mod` extraction loop and a reverse print loop; `decimal_roundtrip` shows the printed output re-parses to the original number — the first verified "library" program, the dual of the `&` parser. |
-| **Program equivalence** | Medium | Prove two programs behave identically (e.g., under spacing or rotation rewrites), connecting step semantics to whole-program reasoning. |
+| **Program equivalence** | ✅ Done | `Theory/Program` defines strict, observational, and ordered stuttering equivalence; verified examples show that leading-space padding preserves the behavior of `@` and `23+.@`. |
 | **Determinism for `?`** | Medium | `Theory.Random` proves the interpreter is a sound refinement of `stepRel`; add the complementary result that non-`?` programs have a unique successor. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 

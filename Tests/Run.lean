@@ -45,4 +45,9 @@ example {w h : ℕ} (s : State w h) {n : ℕ} (h : runRel n s none) (m : ℕ) :
     runRel (n + m) s none :=
   runRel_halts_mono s h m
 
+example {w h : ℕ} (s s' : State w h) (result : Option (State w h))
+    (n m : ℕ) (h₁ : runRel n s (some s')) (h₂ : runRel m s' result) :
+    runRel (n + m) s result :=
+  runRel_append s s' result n m h₁ h₂
+
 end LeanFunge.Tests

@@ -34,8 +34,16 @@ example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
     step s = some { s with
       dir := if v = 0 then .right else .left,
       stack := rest,
-      pc := stepPos w h s.dir s.pc } :=
+      pc := stepPos w h (if v = 0 then .right else .left) s.pc } :=
   step_chooseH s hm hcell v rest hstack
+
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '!') (v : Int) (rest : Stack)
+    (hstack : s.stack = v :: rest) :
+    step s = some { s with
+      stack := (if v = 0 then 1 else 0) :: rest,
+      pc := stepPos w h s.dir s.pc } :=
+  step_not s hm hcell v rest hstack
 
 example {w h : ℕ} (s : State w h) (hm : s.stringMode = true)
     (hcell : s.grid.get s.pc.1 s.pc.2 = 'a') :

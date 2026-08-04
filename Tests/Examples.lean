@@ -40,4 +40,16 @@ example : (run 8 putState).map (fun s => s.output) = some "5" :=
 example : run 9 putState = none :=
   put_get_halts
 
+example : (run 131 countdownState).map (fun s => s.output) = some "321" :=
+  countdown_output
+
+example : run 133 countdownState = none :=
+  countdown_halts
+
+example : (run 133 factorialState).map (fun s => s.stack) = some [6] :=
+  factorial_stack
+
+example : run 134 factorialState = none :=
+  factorial_halts
+
 end LeanFunge.Tests

@@ -113,6 +113,17 @@ no external interpreter is trusted.
 | `Arithmetic` | `23+.@` (5×1) | stack top `5`, output `5`, halts |
 | `Trampoline` | `12#3+@` (6×1) | `#` skips the `3`; final stack `[3]` |
 | `PutGet` | `521p21g.@` over a blank row (9×2) | `p` stores `5`, `g` retrieves it, output `5` |
+| `Countdown` | 26×4 loop with cell counter | output `321`, halts after 133 steps |
+| `Factorial` | 26×4 loop with cell counter | computes `3!`, final stack `[6]`, halts |
+
+The two looping programs use a common structure: the counter lives in the cell
+`(0, 0)`, the loop check is `00g!|` (fetch, logical-not, vertical branch), and
+the `|` exits upward to `@` when the counter reaches zero while the loop body
+runs downward, multiplies/prints, decrements, and stores the counter back.
+
+Because `run n` evaluations can be deep (130+ steps), the project raises
+`maxRecDepth` to `10000` in `lakefile.toml` so the kernel `decide` tactic can
+verify the loop programs without hitting the default recursion limit.
 
 ## Project Structure
 

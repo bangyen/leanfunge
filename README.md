@@ -67,12 +67,16 @@ the Lean kernel:
 - `Trampoline`: `12#3+@` shows that `#` skips the `3`, so the sum is `3`.
 - `PutGet`: `521p21g.@` stores `5` into the playfield with `p` and retrieves it
   with `g`, demonstrating self-modification.
+- `Countdown`: a loop driven by `|` prints `321` — each iteration fetches,
+  prints, and decrements a counter held in a cell, then exits upward on zero.
+- `Factorial`: a loop computes `3! = 6` — the accumulator lives on the stack
+  and the counter in a cell, multiplied with `*` each iteration.
 
 ## Roadmap
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **Verified looping programs** (countdown, factorial) | High | The current examples are straight-line; a loop stresses the control-flow theorems (`step_chooseH`, `step_chooseV`) and gives a real iteration + termination proof. |
+| **Verified looping programs** (countdown, factorial) | ✅ Done | `Countdown` prints `321` and `Factorial` computes `3! = 6`, both via `|` loops with cells and verified by the kernel. |
 | **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | Medium | Connects the grid algebra to whole-program behavior, e.g. a cell never modified by `p` keeps its value across a run. |
 | **`?` as true nondeterminism** | Medium | Replace the deterministic "keep the current direction" refinement with a relational step and prove the interpreter is a sound refinement. |
 | **Faithful `&` integer input** | Medium | Parse a decimal integer from the input stream instead of pushing `0`, then verify a small `&`-consuming program. |

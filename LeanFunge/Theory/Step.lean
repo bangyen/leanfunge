@@ -20,6 +20,7 @@ import Mathlib.Data.Nat.Notation
 * `step_add`: `+` pushes the sum of the top two values.
 * `step_sub`: `-` pushes the difference of the top two values.
 * `step_mul`: `*` pushes the product of the top two values.
+* `step_not`: `!` pushes `1` when the top is `0` and `0` otherwise.
 * `step_dir_right`: `>` sets the direction of travel to the right.
 * `step_dir_left`: `<` sets the direction of travel to the left.
 * `step_dir_up`: `^` sets the direction of travel up.
@@ -98,31 +99,41 @@ theorem step_mul (s : State w h) (hm : s.stringMode = false)
   unfold step
   simp only [decodeChar, stepState, Stack.applyBinary, hm, hcell, hstack]
 
+/-- `!` pushes `1` when the top is `0` and `0` otherwise. -/
+theorem step_not (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '!') (v : Int) (rest : Stack)
+    (hstack : s.stack = v :: rest) :
+    step s = some { s with
+      stack := (if v = 0 then 1 else 0) :: rest,
+      pc := stepPos w h s.dir s.pc } := by
+  unfold step
+  simp only [decodeChar, stepState, Stack.push, Stack.top, Stack.pop, Stack.drop, hm, hcell, hstack]
+
 /-- `>` sets the direction of travel to the right. -/
 theorem step_dir_right (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = '>') :
-    step s = some { s with dir := .right, pc := stepPos w h s.dir s.pc } := by
+    step s = some { s with dir := .right, pc := stepPos w h .right s.pc } := by
   unfold step
   simp only [decodeChar, stepState, hm, hcell]
 
 /-- `<` sets the direction of travel to the left. -/
 theorem step_dir_left (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = '<') :
-    step s = some { s with dir := .left, pc := stepPos w h s.dir s.pc } := by
+    step s = some { s with dir := .left, pc := stepPos w h .left s.pc } := by
   unfold step
   simp only [decodeChar, stepState, hm, hcell]
 
 /-- `^` sets the direction of travel up. -/
 theorem step_dir_up (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = '^') :
-    step s = some { s with dir := .up, pc := stepPos w h s.dir s.pc } := by
+    step s = some { s with dir := .up, pc := stepPos w h .up s.pc } := by
   unfold step
   simp only [decodeChar, stepState, hm, hcell]
 
 /-- `v` sets the direction of travel down. -/
 theorem step_dir_down (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = 'v') :
-    step s = some { s with dir := .down, pc := stepPos w h s.dir s.pc } := by
+    step s = some { s with dir := .down, pc := stepPos w h .down s.pc } := by
   unfold step
   simp only [decodeChar, stepState, hm, hcell]
 
@@ -133,7 +144,7 @@ theorem step_chooseH (s : State w h) (hm : s.stringMode = false)
     step s = some { s with
       dir := if v = 0 then .right else .left,
       stack := rest,
-      pc := stepPos w h s.dir s.pc } := by
+      pc := stepPos w h (if v = 0 then .right else .left) s.pc } := by
   unfold step
   simp only [decodeChar, stepState, Direction.chooseH, Stack.top, Stack.pop,
     Stack.drop, hm, hcell, hstack]
@@ -145,7 +156,7 @@ theorem step_chooseV (s : State w h) (hm : s.stringMode = false)
     step s = some { s with
       dir := if v = 0 then .down else .up,
       stack := rest,
-      pc := stepPos w h s.dir s.pc } := by
+      pc := stepPos w h (if v = 0 then .down else .up) s.pc } := by
   unfold step
   simp only [decodeChar, stepState, Direction.chooseV, Stack.top, Stack.pop,
     Stack.drop, hm, hcell, hstack]

@@ -12,6 +12,7 @@ relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 5
 maxHeartbeats = 400000
+maxRecDepth = 10000                   # kernel `decide` on deep `run n` evaluations
 
 [[require]]
 name = "mathlib"

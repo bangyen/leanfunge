@@ -34,47 +34,55 @@ def stepString (s : State w h) (ch : Char) : State w h :=
 
 /-- The non-string-mode step for a decoded instruction. -/
 def stepState (s : State w h) (instr : Instruction) : State w h :=
-  let pc' := stepPos w h s.dir s.pc
   match instr with
-  | .push n => { s with stack := Stack.push s.stack n, pc := pc' }
-  | .add => { s with stack := Stack.applyBinary (· + ·) s.stack, pc := pc' }
-  | .sub => { s with stack := Stack.applyBinary (· - ·) s.stack, pc := pc' }
-  | .mul => { s with stack := Stack.applyBinary (· * ·) s.stack, pc := pc' }
-  | .div => { s with stack := Stack.applyBinary (· / ·) s.stack, pc := pc' }
-  | .mod => { s with stack := Stack.applyBinary (· % ·) s.stack, pc := pc' }
+  | .push n => { s with stack := Stack.push s.stack n, pc := stepPos w h s.dir s.pc }
+  | .add => { s with stack := Stack.applyBinary (· + ·) s.stack, pc := stepPos w h s.dir s.pc }
+  | .sub => { s with stack := Stack.applyBinary (· - ·) s.stack, pc := stepPos w h s.dir s.pc }
+  | .mul => { s with stack := Stack.applyBinary (· * ·) s.stack, pc := stepPos w h s.dir s.pc }
+  | .div => { s with stack := Stack.applyBinary (· / ·) s.stack, pc := stepPos w h s.dir s.pc }
+  | .mod => { s with stack := Stack.applyBinary (· % ·) s.stack, pc := stepPos w h s.dir s.pc }
   | .not =>
       let v := Stack.top s.stack
-      { s with stack := Stack.push (Stack.drop s.stack) (if v = 0 then 1 else 0), pc := pc' }
+      { s with
+        stack := Stack.push (Stack.drop s.stack) (if v = 0 then 1 else 0),
+        pc := stepPos w h s.dir s.pc }
   | .greater =>
       let b := Stack.top s.stack
       let a := Stack.top (Stack.drop s.stack)
       { s with
-        stack := Stack.push (Stack.drop (Stack.drop s.stack)) (if a > b then 1 else 0), pc := pc' }
-  | .right => { s with dir := .right, pc := pc' }
-  | .left => { s with dir := .left, pc := pc' }
-  | .up => { s with dir := .up, pc := pc' }
-  | .down => { s with dir := .down, pc := pc' }
+        stack := Stack.push (Stack.drop (Stack.drop s.stack)) (if a > b then 1 else 0),
+        pc := stepPos w h s.dir s.pc }
+  | .right => { s with dir := .right, pc := stepPos w h .right s.pc }
+  | .left => { s with dir := .left, pc := stepPos w h .left s.pc }
+  | .up => { s with dir := .up, pc := stepPos w h .up s.pc }
+  | .down => { s with dir := .down, pc := stepPos w h .down s.pc }
   | .chooseH =>
       let v := Stack.top s.stack
-      { s with dir := Direction.chooseH v, stack := Stack.drop s.stack, pc := pc' }
+      { s with
+        dir := Direction.chooseH v,
+        stack := Stack.drop s.stack,
+        pc := stepPos w h (Direction.chooseH v) s.pc }
   | .chooseV =>
       let v := Stack.top s.stack
-      { s with dir := Direction.chooseV v, stack := Stack.drop s.stack, pc := pc' }
-  | .random => { s with pc := pc' }
-  | .stringMode => { s with stringMode := true, pc := pc' }
-  | .dup => { s with stack := Stack.dup s.stack, pc := pc' }
-  | .swap => { s with stack := Stack.swap s.stack, pc := pc' }
-  | .drop => { s with stack := Stack.drop s.stack, pc := pc' }
+      { s with
+        dir := Direction.chooseV v,
+        stack := Stack.drop s.stack,
+        pc := stepPos w h (Direction.chooseV v) s.pc }
+  | .random => { s with pc := stepPos w h s.dir s.pc }
+  | .stringMode => { s with stringMode := true, pc := stepPos w h s.dir s.pc }
+  | .dup => { s with stack := Stack.dup s.stack, pc := stepPos w h s.dir s.pc }
+  | .swap => { s with stack := Stack.swap s.stack, pc := stepPos w h s.dir s.pc }
+  | .drop => { s with stack := Stack.drop s.stack, pc := stepPos w h s.dir s.pc }
   | .printInt =>
       { s with
         output := s.output ++ toString (Stack.top s.stack),
         stack := Stack.drop s.stack,
-        pc := pc' }
+        pc := stepPos w h s.dir s.pc }
   | .printChar =>
       { s with
         output := s.output.push (Char.ofNat (Int.toNat (Stack.top s.stack))),
         stack := Stack.drop s.stack,
-        pc := pc' }
+        pc := stepPos w h s.dir s.pc }
   | .put =>
       let (s1, y) := Stack.pop s.stack
       let (s2, x) := Stack.pop s1
@@ -82,24 +90,27 @@ def stepState (s : State w h) (instr : Instruction) : State w h :=
       { s with
         grid := Grid.put s.grid (Int.toNat x) (Int.toNat y) (Char.ofNat (Int.toNat v)),
         stack := s3,
-        pc := pc' }
+        pc := stepPos w h s.dir s.pc }
   | .get =>
       let (s1, y) := Stack.pop s.stack
       let (s2, x) := Stack.pop s1
       { s with
         stack := Stack.push s2 (Int.ofNat (s.grid.get (Int.toNat x) (Int.toNat y)).toNat),
-        pc := pc' }
-  | .inputInt => { s with stack := Stack.push s.stack 0, pc := pc' }
+        pc := stepPos w h s.dir s.pc }
+  | .inputInt => { s with stack := Stack.push s.stack 0, pc := stepPos w h s.dir s.pc }
   | .inputChar =>
       match s.input with
-      | [] => { s with stack := Stack.push s.stack 0, pc := pc' }
+      | [] => { s with stack := Stack.push s.stack 0, pc := stepPos w h s.dir s.pc }
       | c :: rest =>
-          { s with stack := Stack.push s.stack (Int.ofNat c.toNat), input := rest, pc := pc' }
+          { s with
+            stack := Stack.push s.stack (Int.ofNat c.toNat),
+            input := rest,
+            pc := stepPos w h s.dir s.pc }
   | .trampoline =>
       let mid := stepPos w h s.dir s.pc
       { s with pc := stepPos w h s.dir mid }
   | .halt => s
-  | .nop => { s with pc := pc' }
+  | .nop => { s with pc := stepPos w h s.dir s.pc }
 
 /-- Execute one instruction. Returns `none` when the `@` instruction is
     executed (outside string mode), and `some` the resulting state otherwise. -/

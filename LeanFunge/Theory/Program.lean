@@ -219,6 +219,25 @@ theorem ordered_trace_equiv_halt_shift {p q : Program w h}
             · rw [hq n, hp 0]
             · omega
 
+/-- A one-step prefix preserves ordered trace equivalence when the prefixed
+    program's observations are shifted by exactly one step. -/
+theorem ordered_trace_equiv_one_step_prefix {p q : Program w h}
+    (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
+    (hshift : ∀ n, observe (run n (State.init p)) =
+      observe (run (n + 1) (State.init q))) :
+    ordered_trace_equiv p q := by
+  refine ⟨Nat.succ, Nat.pred, ?_, ?_, ?_, ?_⟩
+  · intro a b hab
+    exact Nat.succ_le_succ hab
+  · intro a b hab
+    exact Nat.pred_le_pred hab
+  · intro n
+    exact hshift n
+  · intro n
+    cases n with
+    | zero => exact h₀.symm
+    | succ n => exact (hshift n).symm
+
 /-- A non-string-mode space preserves stack and output for one step. -/
 theorem step_nop_observe_of_decoded (s : State w h) (hm : s.stringMode = false)
     (hnop : decodeChar (s.grid.get s.pc.1 s.pc.2) = .nop) :

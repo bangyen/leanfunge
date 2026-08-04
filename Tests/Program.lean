@@ -169,4 +169,13 @@ example : Program.ordered_trace_equiv haltLeft haltRight := by
   · rfl
   · rfl
 
+example : Program.ordered_trace_equiv haltLeft haltRight := by
+  apply Program.ordered_trace_equiv_one_step_prefix
+  · rfl
+  · intro n
+    cases n with
+    | zero => rfl
+    | succ n =>
+        rw [haltLeft_run_succ n, haltRight_run_two_add n]
+
 end LeanFunge.Tests

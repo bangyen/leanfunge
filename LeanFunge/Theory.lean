@@ -8,6 +8,7 @@ import LeanFunge.Theory.Grid
 import LeanFunge.Theory.Invariance
 import LeanFunge.Theory.Parser
 import LeanFunge.Theory.Random
+import LeanFunge.Theory.Run
 import LeanFunge.Theory.Stack
 import LeanFunge.Theory.Step
 import LeanFunge.Theory.Termination

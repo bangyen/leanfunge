@@ -114,6 +114,10 @@ project convention that `Core` files contain only definitions.
 - `Theory/Parser.lean`: integer input. `parseInt` (in `Core/Parser`) reads a
   signed decimal integer from the input stream; `natDigitsValue_natDigits`
   proves the decimal digits round-trip.
+- `Theory/Run.lean`: run-level invariance. A grid-preserving run leaves the
+  playfield unchanged across the whole run (`run_grid_invariant`), so a cell
+  never written by the put instruction keeps its value; a nop-only run leaves
+  the stack unchanged (`run_stack_invariant`).
 
 ## Verified Example Programs
 

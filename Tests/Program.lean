@@ -363,6 +363,14 @@ example {w h : ℕ} (s t : State w h) (k : ℕ)
     ∀ n, Program.observe (run n s) = Program.observe (run n t) :=
   Program.run_observe_eq_of_finite_prefix s t k hs ht hobs
 
+example (p : Program w h) (q : Program w' h') (k : ℕ)
+    (hp : ∀ d, run (k + d) (State.init p) = none)
+    (hq : ∀ d, run (k + d) (State.init q) = none)
+    (hobs : ∀ n, n < k → Program.observe (run n (State.init p)) =
+      Program.observe (run n (State.init q))) :
+    Program.observational_equiv_between p q :=
+  Program.observational_equiv_between_of_finite_prefix p q k hp hq hobs
+
 open LeanFunge.Examples
 
 example : ¬ Program.ordered_trace_equiv_between
@@ -380,6 +388,10 @@ example {w h : ℕ} (s s' : State w h) (n m : ℕ)
 
 example : Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") :=
   arithmetic_io_behavior
+
+example : Program.observational_equiv_between
+    arithmeticOriginal arithmeticPaddedLeft :=
+  trailing_space_elimination
 
 example : Program.ioBehavior
     ({ State.init readPrintProgram with input := String.toList "5" }) 2 =

@@ -295,6 +295,19 @@ theorem arithmetic_leading_space_bisim_equiv :
       (Program.step_nop_successor (State.init arithmeticLeadingSpace) rfl (by decide))]
     exact arithmetic_padding_continuation_observe n
 
+/-- Eliminating a trailing dead space leaves the arithmetic program's
+    observations unchanged: the space is never executed. -/
+theorem trailing_space_elimination :
+    Program.observational_equiv_between arithmeticOriginal arithmeticPaddedLeft := by
+  apply Program.observational_equiv_between_of_finite_prefix _ _ 5
+  · intro d
+    simpa [Nat.add_comm] using arithmeticOriginal_halts d
+  · intro d
+    simpa [Nat.add_comm] using arithmeticPaddedLeft_halts d
+  · intro n hn
+    have hcases : n = 0 ∨ n = 1 ∨ n = 2 ∨ n = 3 ∨ n = 4 := by omega
+    rcases hcases with rfl | rfl | rfl | rfl | rfl <;> decide
+
 def rotatedArithmeticState : State 1 5 :=
   Program.rotateCWState (State.init arithmeticOriginal)
 

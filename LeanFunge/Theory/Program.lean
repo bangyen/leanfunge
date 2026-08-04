@@ -1192,6 +1192,24 @@ theorem run_observe_eq_of_finite_prefix (s t : State w h) (k : ℕ)
     rcases Nat.le.dest hkn with ⟨d, rfl⟩
     rw [hs d, ht d]
 
+/-- Programs on different playfields are observationally equivalent when their
+    first `k` checkpoints agree and both remain halted afterward. This is the
+    reusable form of dead-no-op elimination. -/
+theorem observational_equiv_between_of_finite_prefix
+    (p : Program w h) (q : Program w' h') (k : ℕ)
+    (hp : ∀ d, run (k + d) (State.init p) = none)
+    (hq : ∀ d, run (k + d) (State.init q) = none)
+    (hobs : ∀ n, n < k → observe (run n (State.init p)) =
+      observe (run n (State.init q))) :
+    observational_equiv_between p q := by
+  intro n
+  by_cases hnk : n < k
+  · exact hobs n hnk
+  · have hkn : k ≤ n := Nat.le_of_not_gt hnk
+    rcases Nat.le.dest hkn with ⟨d, rfl⟩
+    rw [hp d, hq d]
+    rfl
+
 /-- A run whose every reached state executes a no-op preserves its initial
     stack and output, and remains running. -/
 theorem run_nop_observe (s : State w h) (n : ℕ) (s' : State w h)

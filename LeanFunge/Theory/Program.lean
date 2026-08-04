@@ -255,6 +255,19 @@ theorem step_nop_observe (s : State w h) (hm : s.stringMode = false)
   rw [hcell]
   rfl
 
+/-- Running a state for one step and then `n` more steps is the same as
+    starting from the state reached by that first step. -/
+theorem run_succ_eq_run_from_step {s s' : State w h} (hstep : step s = some s')
+    (n : ℕ) : run (n + 1) s = run n s' := by
+  induction n with
+  | zero =>
+      change step s = some s'
+      exact hstep
+  | succ n ih =>
+      change (run (n + 1) s).bind step = run (n + 1) s'
+      rw [ih]
+      rfl
+
 /-- A run whose every reached state executes a no-op preserves its initial
     stack and output, and remains running. -/
 theorem run_nop_observe (s : State w h) (n : ℕ) (s' : State w h)

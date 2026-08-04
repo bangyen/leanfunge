@@ -84,4 +84,8 @@ example {w h : ℕ} (s : State w h) (n : ℕ) (s' : State w h)
     Program.observe (run n s) = some (s.stack, s.output) :=
   Program.run_nop_observe s n s' h hn
 
+example {w h : ℕ} (s s' : State w h) (hstep : step s = some s') (n : ℕ) :
+    run (n + 1) s = run n s' :=
+  Program.run_succ_eq_run_from_step hstep n
+
 end LeanFunge.Tests

@@ -305,4 +305,41 @@ theorem rotated_arithmetic_output :
 theorem rotated_arithmetic_halts : run 5 rotatedArithmeticState = none := by
   decide
 
+def rotateCounter : Program 2 2 :=
+  Grid.ofRows 2 2 [['1', '_'], ['@', ' ']]
+
+theorem rotateCounter_step1 :
+    Program.observe (run 1 (State.init rotateCounter)) = some ([1], "") := by
+  decide
+
+theorem rotateCounterRotated_halts :
+    run 1 (State.init (Grid.rotateCW rotateCounter)) = none := by
+  decide
+
+/-- Clockwise rotation changes the behavior of a program using `_`: the
+    original pushes `1` while the rotated program halts immediately, so
+    rotation is not sound in general. -/
+theorem rotateCounter_not_ordered_equiv :
+    ¬ Program.ordered_trace_equiv_between rotateCounter (Grid.rotateCW rotateCounter) := by
+  intro h
+  rcases h with ⟨f, g, hf, hg, hforward, hbackward⟩
+  have hm := hforward 1
+  rw [rotateCounter_step1] at hm
+  cases h : f 1 with
+  | zero =>
+      have h0 : run 0 (State.init (Grid.rotateCW rotateCounter)) =
+        some (State.init (Grid.rotateCW rotateCounter)) := rfl
+      rw [h, h0] at hm
+      change some ([1], "") = some ([] , "") at hm
+      injection hm with h1
+      injection h1 with h2 h3
+      exact (by decide : ¬ ([1] : Stack) = ([] : Stack)) h2
+  | succ m =>
+      have haltm : run (m + 1) (State.init (Grid.rotateCW rotateCounter)) = none := by
+        simpa [Nat.add_comm] using run_halts_mono
+          (State.init (Grid.rotateCW rotateCounter)) (n := 1) (m := m)
+          rotateCounterRotated_halts
+      rw [h, haltm] at hm
+      cases hm
+
 end LeanFunge.Examples

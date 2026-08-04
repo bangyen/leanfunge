@@ -363,4 +363,10 @@ example {w h : ℕ} (s t : State w h) (k : ℕ)
     ∀ n, Program.observe (run n s) = Program.observe (run n t) :=
   Program.run_observe_eq_of_finite_prefix s t k hs ht hobs
 
+open LeanFunge.Examples
+
+example : ¬ Program.ordered_trace_equiv_between
+    rotateCounter (Grid.rotateCW rotateCounter) :=
+  rotateCounter_not_ordered_equiv
+
 end LeanFunge.Tests

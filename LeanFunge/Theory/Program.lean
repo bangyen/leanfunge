@@ -280,6 +280,20 @@ theorem ordered_trace_equiv_of_step_continuation {p q : Program w h}
   rw [run_succ_eq_run_from_step hstep n]
   exact hcont n
 
+/-- Two states have equal observations at every step when their first `k`
+    checkpoints agree and both runs remain halted afterward. -/
+theorem run_observe_eq_of_finite_prefix (s t : State w h) (k : ℕ)
+    (hs : ∀ d, run (k + d) s = none)
+    (ht : ∀ d, run (k + d) t = none)
+    (hobs : ∀ n, n < k → observe (run n s) = observe (run n t)) :
+    ∀ n, observe (run n s) = observe (run n t) := by
+  intro n
+  by_cases hnk : n < k
+  · exact hobs n hnk
+  · have hkn : k ≤ n := Nat.le_of_not_gt hnk
+    rcases Nat.le.dest hkn with ⟨d, rfl⟩
+    rw [hs d, ht d]
+
 /-- A run whose every reached state executes a no-op preserves its initial
     stack and output, and remains running. -/
 theorem run_nop_observe (s : State w h) (n : ℕ) (s' : State w h)

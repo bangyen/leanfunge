@@ -96,4 +96,11 @@ example {w h : ℕ} {p q : Program w h} (q' : State w h)
     Program.ordered_trace_equiv p q :=
   Program.ordered_trace_equiv_of_step_continuation q' hstep h₀ hcont
 
+example {w h : ℕ} (s t : State w h) (k : ℕ)
+    (hs : ∀ d, run (k + d) s = none)
+    (ht : ∀ d, run (k + d) t = none)
+    (hobs : ∀ n, n < k → Program.observe (run n s) = Program.observe (run n t)) :
+    ∀ n, Program.observe (run n s) = Program.observe (run n t) :=
+  Program.run_observe_eq_of_finite_prefix s t k hs ht hobs
+
 end LeanFunge.Tests

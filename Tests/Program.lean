@@ -197,6 +197,12 @@ example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
     step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .inputChar)) :=
   Program.step_rotateCWState_inputChar_right s hm hdir hdecode hx hy
 
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .trampoline)
+    (hx : s.pc.1 + 2 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .trampoline)) :=
+  Program.step_rotateCWState_trampoline_right s hm hdir hdecode hx hy
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

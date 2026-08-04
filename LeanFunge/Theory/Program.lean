@@ -626,6 +626,32 @@ theorem step_rotateCWState_inputChar_right (s : State w h)
       simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir, h,
         Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
 
+/-- Clockwise rotation maps a right-moving trampoline step to a down-moving
+    trampoline step before either playfield boundary, with room for two
+    horizontal cells. -/
+theorem step_rotateCWState_trampoline_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .trampoline)
+    (hx : s.pc.1 + 2 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .trampoline)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .trampoline := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .trampoline
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  have hmid : (s.pc.1 + 1) % w = s.pc.1 + 1 := by
+    apply Nat.mod_eq_of_lt
+    omega
+  have hnew : (s.pc.1 + 2) % w = s.pc.1 + 2 := Nat.mod_eq_of_lt hx
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    hmid, hnew, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_nop_right (s : State w h)

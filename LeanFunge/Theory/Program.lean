@@ -101,6 +101,12 @@ def prependSpaceState (s : State w h) : State (w + 1) h :=
     grid := Grid.prependSpace s.grid
     pc := (s.pc.1 + 1, s.pc.2) }
 
+/-- Shift a state into a playfield with `k` leading-space columns. -/
+def prependSpacesState (s : State w h) (k : ℕ) : State (w + k) h :=
+  { s with
+    grid := Grid.prependSpaces s.grid k
+    pc := (s.pc.1 + k, s.pc.2) }
+
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
   intro n
@@ -185,6 +191,15 @@ theorem prependSpaceState_cell (s : State w h) (hx : s.pc.1 < w) :
   change (Grid.prependSpace s.grid).get (s.pc.1 + 1) s.pc.2 =
     s.grid.get s.pc.1 s.pc.2
   exact Grid.get_prependSpace_succ s.grid s.pc.1 s.pc.2 hx
+
+/-- Arbitrary leading-space state mapping preserves the fetched cell before the
+    new toroidal boundary. -/
+theorem prependSpacesState_cell (s : State w h) (k : ℕ) (hx : s.pc.1 < w) :
+    (prependSpacesState s k).grid.get (prependSpacesState s k).pc.1
+      (prependSpacesState s k).pc.2 = s.grid.get s.pc.1 s.pc.2 := by
+  change (Grid.prependSpaces s.grid k).get (s.pc.1 + k) s.pc.2 =
+    s.grid.get s.pc.1 s.pc.2
+  exact Grid.get_prependSpaces_add s.grid k s.pc.1 s.pc.2 hx
 
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/

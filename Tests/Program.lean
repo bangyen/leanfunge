@@ -68,6 +68,11 @@ example (s : State w h) (hx : s.pc.1 < w) :
       (Program.prependSpaceState s).pc.2 = s.grid.get s.pc.1 s.pc.2 :=
   Program.prependSpaceState_cell s hx
 
+example (s : State w h) (k : ℕ) (hx : s.pc.1 < w) :
+    (Program.prependSpacesState s k).grid.get (Program.prependSpacesState s k).pc.1
+      (Program.prependSpacesState s k).pc.2 = s.grid.get s.pc.1 s.pc.2 :=
+  Program.prependSpacesState_cell s k hx
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

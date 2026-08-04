@@ -351,6 +351,18 @@ theorem arithmetic_io_behavior :
     Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") := by
   decide
 
+def foldedProgram : Program 3 1 :=
+  Grid.ofRows 3 1 [(String.toList "5.@")]
+
+/-- Constant folding `2 3 +` to `5` is not sound under stack-observational
+    equivalence: the intermediate stack contents are observable and differ. -/
+theorem constant_folding_unsound :
+    ¬ Program.observational_equiv_between arithmeticOriginal foldedProgram := by
+  intro h
+  have h1 := h 1
+  change some ([2], "") = some ([5], "") at h1
+  contradiction
+
 theorem rotateCounter_not_ordered_equiv :
     ¬ Program.ordered_trace_equiv_between rotateCounter (Grid.rotateCW rotateCounter) := by
   intro h

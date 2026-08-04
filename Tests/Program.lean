@@ -393,6 +393,10 @@ example : Program.observational_equiv_between
     arithmeticOriginal arithmeticPaddedLeft :=
   trailing_space_elimination
 
+example : ¬ Program.observational_equiv_between
+    arithmeticOriginal foldedProgram :=
+  constant_folding_unsound
+
 example : Program.ioBehavior
     ({ State.init readPrintProgram with input := String.toList "5" }) 2 =
       some ([], "5") :=

@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import Tests.Direction
 import Tests.Examples
 import Tests.Grid
+import Tests.Invariance
 import Tests.Stack
 import Tests.Step
 

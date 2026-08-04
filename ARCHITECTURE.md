@@ -99,6 +99,10 @@ project convention that `Core` files contain only definitions.
   theorem unfolds `step`, rewrites the cell/stack/string-mode hypotheses, and
   simplifies with the relevant definitions. `run_halts_mono` shows that halting
   is monotone in the step count.
+- `Theory/Invariance.lean`: program-level equivalence. A space is a pure no-op;
+  every instruction except `p` leaves the playfield unchanged; and `p` writes
+  exactly the addressed cell (bridging to `Theory/Grid`). These are the
+  foundational "only `p` mutates the playfield" properties of the language.
 
 ## Verified Example Programs
 

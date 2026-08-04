@@ -56,6 +56,10 @@ The formalization lives in `LeanFunge/Core` and `LeanFunge/Theory`.
   pointer; `_` and `|` branch on the top of the stack; `"` toggles string mode
   (in which characters are pushed as their codes); `#` skips the next cell;
   `p`/`g` store and fetch playfield values; and `.`/`,` write to the output.
+- *Program-level invariance* (`Theory.Invariance`): a space is a pure no-op
+  (`step_nop`), every instruction except `p` leaves the playfield unchanged
+  (`stepState_grid_of_ne_put`), and `p` stores its value at the addressed cell
+  (`step_put_grid`), bridging the instruction semantics to the grid algebra.
 
 **Verified example programs** (`LeanFunge.Examples`)
 
@@ -77,7 +81,7 @@ the Lean kernel:
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
 | **Verified looping programs** (countdown, factorial) | ✅ Done | `Countdown` prints `321` and `Factorial` computes `3! = 6`, both via `|` loops with cells and verified by the kernel. |
-| **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | Medium | Connects the grid algebra to whole-program behavior, e.g. a cell never modified by `p` keeps its value across a run. |
+| **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | ✅ Done | `Theory.Invariance` proves spaces are no-ops, only `p` modifies the playfield, and `p` stores the addressed cell. |
 | **`?` as true nondeterminism** | Medium | Replace the deterministic "keep the current direction" refinement with a relational step and prove the interpreter is a sound refinement. |
 | **Faithful `&` integer input** | Medium | Parse a decimal integer from the input stream instead of pushing `0`, then verify a small `&`-consuming program. |
 | **Self-modification showcase** | Medium | Verify a program that writes its own `@` (halts by rewriting) or a minimal quine. |

@@ -125,7 +125,8 @@ project convention that `Core` files contain only definitions.
   the stack unchanged (`run_stack_invariant`).
 - `Theory/Run/Relational.lean`: multi-step relational semantics. `runRel`
   lifts `stepRel` to finite runs, including halt propagation; deterministic
-  runs refine it, and one-step relational runs coincide with `stepRel`.
+  runs refine it, one-step relational runs coincide with `stepRel`, and both
+  deterministic and relational runs compose across continuations.
 - `Theory/Program.lean`: program equivalence. Strict and observational
   equivalence compare bounded runs; ordered trace equivalence supports
   stuttering step alignments, with reusable no-op-prefix and finite halted-tail

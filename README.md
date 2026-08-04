@@ -107,7 +107,8 @@ the Lean kernel:
 | **Multi-step relational semantics** | ✅ Done | `Theory/Run/Relational` lifts `stepRel` to finite runs, proves deterministic execution is a valid relational trace, identifies one-step runs with `stepRel`, and propagates relational halting. |
 | **Compositional program blocks** | ✅ Done | `run_append` and `runRel_append` compose deterministic and relational executions across continuations, providing the sequencing foundation for block equivalence. |
 | **State simulation relations** | ✅ Done | `Theory/Program` defines dimension-independent bisimulations that preserve observations, halting, and successor states, then lifts them to whole deterministic runs. |
-| **Verified program transformations** | High | Prove spacing, translation, and rotation rewrites preserve observations under explicit coordinate and direction mappings. |
+| **Verified spacing transformations** | ✅ Done | `Grid.prependSpace`, `prependSpaceState`, and the arithmetic bisimulation verify a width-changing leading-space rewrite under explicit no-wrap conditions. |
+| **Verified program transformations** | High | Extend the spacing framework to translation and rotation rewrites with explicit coordinate and direction mappings. |
 | **I/O behavior contracts** | Medium | Define input-consumption and output-production contracts and use them to compose the verified parser and decimal-output routines. |
 | **Verified optimization rewrites** | Medium | Verify local stack-neutral rewrites such as no-op elimination and simple constant folding. |
 | **Generic ranking-function termination API** | Medium | Generalize the decreasing-counter proofs into reusable ranking-function infrastructure for verified loops. |

@@ -141,4 +141,158 @@ theorem arithmetic_leading_space_ordered_equiv :
                           arithmeticLeadingSpace_halts n]
                         rfl
 
+def arithmeticPaddingRelation (s : State 5 1) (t : State 6 1) : Prop :=
+  ∃ n, n < 5 ∧ run n (State.init arithmeticOriginal) = some s ∧
+    run (n + 1) (State.init arithmeticLeadingSpace) = some t
+
+theorem arithmeticOriginal_next_some (n : ℕ) (hn : n < 4) :
+    ∃ s, run (n + 1) (State.init arithmeticOriginal) = some s := by
+  cases n with
+  | zero => exact ⟨_, rfl⟩
+  | succ n =>
+      cases n with
+      | zero => exact ⟨_, rfl⟩
+      | succ n =>
+          cases n with
+          | zero => exact ⟨_, rfl⟩
+          | succ n =>
+              cases n with
+              | zero => exact ⟨_, rfl⟩
+              | succ n => omega
+
+theorem arithmeticLeadingSpace_next_some (n : ℕ) (hn : n < 4) :
+    ∃ t, run (n + 2) (State.init arithmeticLeadingSpace) = some t := by
+  cases n with
+  | zero => exact ⟨_, rfl⟩
+  | succ n =>
+      cases n with
+      | zero => exact ⟨_, rfl⟩
+      | succ n =>
+          cases n with
+          | zero => exact ⟨_, rfl⟩
+          | succ n =>
+              cases n with
+              | zero => exact ⟨_, rfl⟩
+              | succ n => omega
+
+theorem arithmetic_padding_observe (n : ℕ) :
+    Program.observe (run n (State.init arithmeticOriginal)) =
+      Program.observe (run (n + 1) (State.init arithmeticLeadingSpace)) := by
+  cases n with
+  | zero => decide
+  | succ n =>
+      cases n with
+      | zero => decide
+      | succ n =>
+          cases n with
+          | zero => decide
+          | succ n =>
+              cases n with
+              | zero => decide
+              | succ n =>
+                  cases n with
+                  | zero => decide
+                  | succ n =>
+                      rw [arithmeticOriginal_halts n, arithmeticLeadingSpace_halts n]
+                      rfl
+
+theorem arithmetic_padding_state_simulation :
+    Program.state_simulation arithmeticPaddingRelation := by
+  intro s t hst
+  rcases hst with ⟨n, hn, hs, ht⟩
+  have hobs : Program.observe (some s) = Program.observe (some t) := by
+    have hshift := arithmetic_padding_observe n
+    rw [hs, ht] at hshift
+    exact hshift
+  refine ⟨hobs, ?_, ?_, ?_⟩
+  · constructor
+    · intro hhalt
+      by_cases hsmall : n < 4
+      · rcases arithmeticOriginal_next_some n hsmall with ⟨s', hs'⟩
+        rw [run, hs] at hs'
+        change step s = some s' at hs'
+        rw [hhalt] at hs'
+        contradiction
+      · have : n = 4 := by omega
+        subst this
+        have hnone := arithmeticLeadingSpace_halts 0
+        rw [run, ht] at hnone
+        change step t = none at hnone
+        exact hnone
+    · intro hhalt
+      by_cases hsmall : n < 4
+      · rcases arithmeticLeadingSpace_next_some n hsmall with ⟨t', ht'⟩
+        rw [run, ht] at ht'
+        change step t = some t' at ht'
+        rw [hhalt] at ht'
+        contradiction
+      · have : n = 4 := by omega
+        subst this
+        have hnone := arithmeticOriginal_halts 0
+        rw [run, hs] at hnone
+        change step s = none at hnone
+        exact hnone
+  · intro s' hstep
+    have hsmall : n < 4 := by
+      by_contra hnsmall
+      have hn4 : n = 4 := by omega
+      subst n
+      have hnone := arithmeticOriginal_halts 0
+      rw [run, hs] at hnone
+      change step s = none at hnone
+      rw [hstep] at hnone
+      cases hnone
+    rcases arithmeticLeadingSpace_next_some n hsmall with ⟨t', ht'⟩
+    have hnext : step t = some t' := by
+      rw [run, ht] at ht'
+      change step t = some t' at ht'
+      exact ht'
+    refine ⟨t', hnext, ?_⟩
+    refine ⟨n + 1, by omega, ?_, ?_⟩
+    · rw [run, hs]
+      change step s = some s'
+      exact hstep
+    · exact ht'
+  · intro t' hstep
+    have hsmall : n < 4 := by
+      by_contra hnsmall
+      have hn4 : n = 4 := by omega
+      subst n
+      have hnone := arithmeticLeadingSpace_halts 0
+      rw [run, ht] at hnone
+      change step t = none at hnone
+      rw [hstep] at hnone
+      cases hnone
+    rcases arithmeticOriginal_next_some n hsmall with ⟨s', hs'⟩
+    have hnext : step s = some s' := by
+      rw [run, hs] at hs'
+      change step s = some s' at hs'
+      exact hs'
+    refine ⟨s', hnext, ?_⟩
+    refine ⟨n + 1, by omega, ?_, ?_⟩
+    · exact hs'
+    · rw [run, ht]
+      change step t = some t'
+      exact hstep
+
+theorem arithmetic_padding_continuation_observe (n : ℕ) :
+    Program.observe (run n (State.init arithmeticOriginal)) =
+      Program.observe (run n (Program.nop_successor
+        (State.init arithmeticLeadingSpace))) := by
+  apply Program.run_observations_of_state_simulation
+    arithmetic_padding_state_simulation
+  refine ⟨0, by decide, rfl, ?_⟩
+  change step (State.init arithmeticLeadingSpace) =
+    some (Program.nop_successor (State.init arithmeticLeadingSpace))
+  exact Program.step_nop_successor (State.init arithmeticLeadingSpace) rfl (by decide)
+
+theorem arithmetic_leading_space_bisim_equiv :
+    Program.ordered_trace_equiv_between arithmeticOriginal arithmeticLeadingSpace := by
+  apply Program.ordered_trace_equiv_between_one_step_prefix
+  · decide
+  · intro n
+    rw [Program.run_succ_eq_run_from_step
+      (Program.step_nop_successor (State.init arithmeticLeadingSpace) rfl (by decide))]
+    exact arithmetic_padding_continuation_observe n
+
 end LeanFunge.Examples

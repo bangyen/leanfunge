@@ -67,4 +67,44 @@ example {w h : ℕ} (s : State w h) (n : ℕ) (s' : State w h)
     Program.observe (run n s) = some (s.stack, s.output) :=
   Program.run_nop_observe s n s' h hn
 
+def haltLeft : Program 2 1 := Grid.ofRows 2 1 [['@', ' ']]
+
+def haltRight : Program 2 1 := Grid.ofRows 2 1 [[' ', '@']]
+
+theorem haltLeft_run_succ (n : ℕ) :
+    run (n + 1) (State.init haltLeft) = none := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      change (run (n + 1) (State.init haltLeft)).bind step = none
+      rw [ih]
+      rfl
+
+theorem haltRight_run_two_add (n : ℕ) :
+    run (n + 2) (State.init haltRight) = none := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      change (run (n + 2) (State.init haltRight)).bind step = none
+      rw [ih]
+      rfl
+
+example : Program.trace_equiv haltLeft haltRight := by
+  constructor
+  · intro n
+    cases n with
+    | zero => exact ⟨0, rfl⟩
+    | succ n =>
+        refine ⟨2, ?_⟩
+        rw [haltLeft_run_succ, haltRight_run_two_add]
+  · intro n
+    cases n with
+    | zero => exact ⟨0, rfl⟩
+    | succ n =>
+        cases n with
+        | zero => exact ⟨0, rfl⟩
+        | succ n =>
+            refine ⟨1, ?_⟩
+            rw [haltLeft_run_succ, haltRight_run_two_add]
+
 end LeanFunge.Tests

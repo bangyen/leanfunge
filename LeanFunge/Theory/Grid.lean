@@ -76,5 +76,17 @@ theorem get_prependSpace_succ (g : Grid w h) (x y : ℕ) (hx : x < w) :
   rw [hmod]
   simp [Grid.get]
 
+/-- Arbitrary leading-space padding preserves each original cell at its
+    translated coordinate, before the new toroidal boundary. -/
+theorem get_prependSpaces_add (g : Grid w h) (k x y : ℕ) (hx : x < w) :
+    (Grid.prependSpaces g k).get (x + k) y = g.get x y := by
+  unfold Grid.get Grid.prependSpaces
+  dsimp
+  have hmod : (x + k) % (w + k) = x + k :=
+    Nat.mod_eq_of_lt (Nat.add_lt_add_right hx k)
+  rw [hmod]
+  have hnot : ¬ x + k < k := by omega
+  simp [hnot, Grid.get]
+
 end Grid
 end LeanFunge

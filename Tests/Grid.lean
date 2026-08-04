@@ -30,4 +30,8 @@ example (g : Grid w h) (x y : ℕ) (hx : x < w) :
     (Grid.prependSpace g).get (x + 1) y = g.get x y :=
   Grid.get_prependSpace_succ g x y hx
 
+example (g : Grid w h) (k x y : ℕ) (hx : x < w) :
+    (Grid.prependSpaces g k).get (x + k) y = g.get x y :=
+  Grid.get_prependSpaces_add g k x y hx
+
 end LeanFunge.Tests

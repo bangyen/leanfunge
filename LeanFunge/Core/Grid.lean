@@ -48,6 +48,11 @@ def ofRows (w h : ℕ) (rows : List (List Char)) : Grid w h :=
 def prependSpace (g : Grid w h) : Grid (w + 1) h :=
   { cells := fun y x => if x = 0 then ' ' else g.get (x - 1) y }
 
+/-- Add `k` leading space columns, shifting the original playfield right by
+    `k` cells. -/
+def prependSpaces (g : Grid w h) (k : ℕ) : Grid (w + k) h :=
+  { cells := fun y x => if x < k then ' ' else g.get (x - k) y }
+
 end Grid
 
 end LeanFunge

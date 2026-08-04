@@ -105,4 +105,101 @@ theorem digitsValue_natDigits (n : Nat) :
   · unfold natDigitsValue
     exact natDigitsValue_natDigits n
 
+/-- The digit character encoding of a decimal digit. -/
+def digitChar (d : Nat) : Char :=
+  Char.ofNat (d + 48)
+
+/-- A character is a decimal digit. -/
+def isDigitChar (c : Char) : Prop :=
+  48 ≤ c.toNat ∧ c.toNat ≤ 57
+
+/-- `takeDigits` consumes the whole stream when every character is a digit. -/
+theorem takeDigits_all_digits (ds : List Char) :
+    (∀ c ∈ ds, isDigitChar c) → takeDigits ds = (ds, []) := by
+  induction ds with
+  | nil => intro h; rfl
+  | cons c cs ih =>
+      intro h
+      have hc : 48 ≤ c.toNat ∧ c.toNat ≤ 57 := h c (by simp)
+      have hcs : ∀ c ∈ cs, isDigitChar c := by
+        intro c' hc'
+        exact h c' (by simp [hc'])
+      unfold takeDigits
+      rw [if_pos hc]
+      rw [ih hcs]
+
+/-- `skipSpaces` leaves a stream without spaces unchanged. -/
+theorem skipSpaces_no_space (ds : List Char) :
+    (∀ c ∈ ds, c ≠ ' ') → skipSpaces ds = ds := by
+  induction ds with
+  | nil => intro h; rfl
+  | cons c cs ih =>
+      intro h
+      have hc : c ≠ ' ' := h c (by simp)
+      unfold skipSpaces
+      rw [if_neg hc]
+
+/-- Parsing the digit characters of a natural number consumes everything and
+    reconstructs the number. -/
+theorem parseInt_natDigits (n : Nat) :
+    parseInt (natDigits n |>.map digitChar) = ([], (n : Int)) := by
+  have hdigits : ∀ c ∈ natDigits n |>.map digitChar, isDigitChar c := by
+    intro c hc
+    rw [List.mem_map] at hc
+    rcases hc with ⟨d, hd, rfl⟩
+    unfold digitChar
+    have hlt := natDigits_digit_lt n d hd
+    unfold isDigitChar
+    have hvalid : (d + 48).isValidChar := by omega
+    rw [Char.toNat_ofNat]
+    simp [hvalid]
+    omega
+  have hnoSpace : ∀ c ∈ natDigits n |>.map digitChar, c ≠ ' ' := by
+    intro c hc hspace
+    have hb := hdigits c hc
+    rw [hspace] at hb
+    unfold isDigitChar at hb
+    have hb' : ' '.toNat = 32 := by decide
+    rw [hb'] at hb
+    omega
+  unfold parseInt
+  rw [skipSpaces_no_space _ hnoSpace]
+  have htake : takeDigits (natDigits n |>.map digitChar) =
+      (natDigits n |>.map digitChar, []) :=
+    takeDigits_all_digits _ hdigits
+  have hne : natDigits n ≠ [] := by
+    intro h
+    by_cases hn : n < 10
+    · unfold natDigits at h
+      rw [if_pos hn] at h
+      exact (by simp : [n] ≠ []) h
+    · unfold natDigits at h
+      rw [if_neg hn] at h
+      exact (by simp : ¬ natDigits (n / 10) ++ [n % 10] = []) h
+  have hmap_ne : (natDigits n).map digitChar ≠ [] := by
+    intro h
+    have hlen : ((natDigits n).map digitChar).length = (natDigits n).length := by
+      rw [List.length_map]
+    rw [h] at hlen
+    simp at hlen
+    apply hne
+    apply List.eq_nil_of_length_eq_zero
+    omega
+  dsimp
+  cases hc : natDigits n |>.map digitChar with
+  | nil => exact False.elim (hmap_ne hc)
+  | cons c cs =>
+      have hc' : c ≠ '-' := by
+        intro hneg
+        have hb := hdigits c (by simp [hc])
+        rw [hneg] at hb
+        unfold isDigitChar at hb
+        have hb' : '-'.toNat = 45 := by decide
+        rw [hb'] at hb
+        omega
+      simp [hc']
+      rw [← hc, htake]
+      simp
+      simpa [digitChar] using congrArg (fun v : Nat => (v : Int)) (digitsValue_natDigits n)
+
 end LeanFunge

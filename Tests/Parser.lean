@@ -45,4 +45,16 @@ example (n : Nat) :
 example (d : Nat) (hd : d < 10) : digitValue (Char.ofNat (d + 48)) = d :=
   digitValue_ofNat d hd
 
+example (ds : List Char) :
+    (∀ c ∈ ds, isDigitChar c) → takeDigits ds = (ds, []) :=
+  takeDigits_all_digits ds
+
+example (ds : List Char) :
+    (∀ c ∈ ds, c ≠ ' ') → skipSpaces ds = ds :=
+  skipSpaces_no_space ds
+
+example (n : Nat) :
+    parseInt (natDigits n |>.map digitChar) = ([], (n : Int)) :=
+  parseInt_natDigits n
+
 end LeanFunge.Tests

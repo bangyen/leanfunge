@@ -74,6 +74,14 @@ example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
       some (Program.prependSpaceState { s with pc := stepPos w h .right s.pc }) :=
   Program.step_prependSpaceState_nop_right s hdir hm hcell hx
 
+example (s : State w h) (n : Int) (hdir : s.dir = .right)
+    (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .push n)
+    (hx : s.pc.1 + 1 < w) :
+    step (Program.prependSpaceState s) = some (Program.prependSpaceState
+      { s with stack := Stack.push s.stack n, pc := stepPos w h .right s.pc }) :=
+  Program.step_prependSpaceState_push_right s n hdir hm hdecode hx
+
 example {R : State w h → State w' h' → Prop}
     (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
     (hst : R s t) (n : ℕ) :

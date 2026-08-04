@@ -45,4 +45,9 @@ example {w h : ℕ} (s : State w h) (s₁ s₂ : Option (State w h))
     s₁ = s₂ :=
   stepRel_unique_of_not_random s s₁ s₂ hr h₁ h₂
 
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hr : decodeChar (s.grid.get s.pc.1 s.pc.2) = .random) :
+    ¬ ∀ s₁ s₂, stepRel s s₁ → stepRel s s₂ → s₁ = s₂ :=
+  stepRel_not_unique_of_random s hm hr
+
 end LeanFunge.Tests

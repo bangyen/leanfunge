@@ -23,6 +23,8 @@ import Mathlib.Data.Nat.Notation
   with the deterministic step.
 * `stepRel_unique_of_not_random`: Outside a `?`, the relation has at most one
   successor, so every deterministic program has a unique next state.
+* `stepRel_not_unique_of_random`: At a `?`, the relation has distinct
+  successors, so the nondeterminism is genuine.
 -/
 
 namespace LeanFunge
@@ -91,5 +93,20 @@ theorem stepRel_unique_of_not_random (s : State w h) (s₁ s₂ : Option (State 
   rw [stepRel_eq_step_of_not_random s s₁ hr] at h₁
   rw [stepRel_eq_step_of_not_random s s₂ hr] at h₂
   exact h₁.trans h₂.symm
+
+/-- At a `?` outside string mode, the relation has distinct successors. -/
+theorem stepRel_not_unique_of_random (s : State w h) (hm : s.stringMode = false)
+    (hr : decodeChar (s.grid.get s.pc.1 s.pc.2) = .random) :
+    ¬ ∀ s₁ s₂, stepRel s s₁ → stepRel s s₂ → s₁ = s₂ := by
+  intro hunique
+  have heq := hunique
+    (some { s with dir := .up, pc := stepPos w h .up s.pc })
+    (some { s with dir := .down, pc := stepPos w h .down s.pc })
+    (stepRel_random_choice s hm hr .up)
+    (stepRel_random_choice s hm hr .down)
+  have hdir : Direction.up = Direction.down := by
+    have h := congrArg (fun o : Option (State w h) => o.map State.dir) heq
+    simpa only [Option.map] using h
+  cases hdir
 
 end LeanFunge

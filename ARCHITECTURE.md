@@ -156,7 +156,7 @@ no external interpreter is trusted.
 | `Input` | `&2+.@`, `&.@`, `&@` (5×1, 3×1, 2×1) | reads `5`→prints `7`, reads `12`→prints `12`, reads `-3` onto the stack |
 | `DecimalOutput` | 48×10 extraction/print loops | reads `0`, `5`, `123`, `12345` and prints each back as characters; the printed output re-parses to the original number |
 | `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
-| `Program` | `@ ` vs ` @`; `23+.@ ` vs ` 23+.@` | verifies ordered trace equivalence under leading-space padding |
+| `Program` | padded and rotated `23+.@` variants | verifies ordered trace equivalence under leading-space padding; the clockwise state mapping runs the arithmetic program vertically with identical output and halt behavior |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the

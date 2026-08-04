@@ -295,4 +295,14 @@ theorem arithmetic_leading_space_bisim_equiv :
       (Program.step_nop_successor (State.init arithmeticLeadingSpace) rfl (by decide))]
     exact arithmetic_padding_continuation_observe n
 
+def rotatedArithmeticState : State 1 5 :=
+  Program.rotateCWState (State.init arithmeticOriginal)
+
+theorem rotated_arithmetic_output :
+    (run 4 rotatedArithmeticState).map (fun s => s.output) = some "5" := by
+  decide
+
+theorem rotated_arithmetic_halts : run 5 rotatedArithmeticState = none := by
+  decide
+
 end LeanFunge.Examples

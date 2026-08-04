@@ -288,6 +288,45 @@ theorem step_rotateCWState_add_right (s : State w h)
   simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
     Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
 
+/-- Clockwise rotation maps a right-moving integer-output step to a down-moving
+    integer-output step before either playfield boundary. -/
+theorem step_rotateCWState_printInt_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .printInt)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .printInt)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .printInt := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .printInt
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving halt step to a down-moving halt
+    step before either playfield boundary. -/
+theorem step_rotateCWState_halt_right (s : State w h)
+    (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = none := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .halt := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .halt
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_nop_right (s : State w h)

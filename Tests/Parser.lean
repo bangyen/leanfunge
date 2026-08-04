@@ -35,4 +35,14 @@ example : parseInt (String.toList "5x") = (String.toList "x", 5) := by
 example (n : Nat) : natDigitsValue (natDigits n) = n :=
   natDigitsValue_natDigits n
 
+example (n : Nat) : ∀ d ∈ natDigits n, d < 10 :=
+  natDigits_digit_lt n
+
+example (n : Nat) :
+    digitsValue (natDigits n |>.map (fun d => Char.ofNat (d + 48))) = n :=
+  digitsValue_natDigits n
+
+example (d : Nat) (hd : d < 10) : digitValue (Char.ofNat (d + 48)) = d :=
+  digitValue_ofNat d hd
+
 end LeanFunge.Tests

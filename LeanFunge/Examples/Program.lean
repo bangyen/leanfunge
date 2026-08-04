@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Program
+import LeanFunge.Theory.Step
 
 /-!
 # Program Equivalence Examples
@@ -23,21 +24,13 @@ def haltRightAfterSpace : State 2 1 :=
 
 theorem haltLeft_run_succ (n : ℕ) :
     run (n + 1) (State.init haltLeft) = none := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-      change (run (n + 1) (State.init haltLeft)).bind step = none
-      rw [ih]
-      rfl
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init haltLeft) (n := 1) (m := n) (by rfl)
 
 theorem haltRight_run_two_add (n : ℕ) :
     run (n + 2) (State.init haltRight) = none := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-      change (run (n + 2) (State.init haltRight)).bind step = none
-      rw [ih]
-      rfl
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init haltRight) (n := 2) (m := n) (by rfl)
 
 theorem halt_padded_ordered_equiv : Program.ordered_trace_equiv haltLeft haltRight := by
   apply Program.ordered_trace_equiv_of_nop_continuation
@@ -79,21 +72,13 @@ theorem arithmeticPaddedRight_step :
 
 theorem arithmeticPaddedLeft_halts (n : ℕ) :
     run (n + 5) (State.init arithmeticPaddedLeft) = none := by
-  induction n with
-  | zero => decide
-  | succ n ih =>
-      change (run (n + 5) (State.init arithmeticPaddedLeft)).bind step = none
-      rw [ih]
-      rfl
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init arithmeticPaddedLeft) (n := 5) (m := n) (by decide)
 
 theorem arithmeticPaddedRight_halts (n : ℕ) :
     run (n + 6) (State.init arithmeticPaddedRight) = none := by
-  induction n with
-  | zero => decide
-  | succ n ih =>
-      change (run (n + 6) (State.init arithmeticPaddedRight)).bind step = none
-      rw [ih]
-      rfl
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init arithmeticPaddedRight) (n := 6) (m := n) (by decide)
 
 theorem arithmetic_padded_ordered_equiv :
     Program.ordered_trace_equiv arithmeticPaddedLeft arithmeticPaddedRight := by

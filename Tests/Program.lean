@@ -124,4 +124,38 @@ example : Program.trace_equiv haltLeft haltRight := by
             refine ⟨1, ?_⟩
             rw [haltLeft_run_succ, haltRight_run_two_add]
 
+example : Program.ordered_trace_equiv haltLeft haltRight := by
+  let f : ℕ → ℕ := fun n => if n = 0 then 0 else 2
+  let g : ℕ → ℕ := fun n => if n ≤ 1 then 0 else 1
+  refine ⟨f, g, ?_, ?_, ?_, ?_⟩
+  · intro a b hab
+    simp only [f]
+    by_cases ha : a = 0 <;> by_cases hb : b = 0 <;> simp [ha, hb] at *
+  · intro a b hab
+    simp only [g]
+    by_cases ha : a ≤ 1
+    · simp [ha]
+    · have hb : ¬ b ≤ 1 := by
+        intro hb
+        exact ha (Nat.le_trans hab hb)
+      simp [ha, hb]
+  · intro n
+    cases n with
+    | zero => rfl
+    | succ n =>
+        simp only [f]
+        rw [if_neg (Nat.succ_ne_zero n)]
+        rw [haltLeft_run_succ, haltRight_run_two_add]
+  · intro n
+    cases n with
+    | zero => rfl
+    | succ n =>
+        cases n with
+        | zero => rfl
+        | succ n =>
+            simp only [g]
+            rw [if_neg]
+            · rw [haltLeft_run_succ, haltRight_run_two_add]
+            · omega
+
 end LeanFunge.Tests

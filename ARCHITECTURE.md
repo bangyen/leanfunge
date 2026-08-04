@@ -103,6 +103,10 @@ project convention that `Core` files contain only definitions.
   theorem unfolds `step`, rewrites the cell/stack/string-mode hypotheses, and
   simplifies with the relevant definitions. `run_halts_mono` shows that halting
   is monotone in the step count.
+- `Theory/StepOps.lean`: single-step semantics for the remaining instructions —
+  `/`, `%`, the comparison instruction, `:`, `\`, `$`, `~` (including the
+  end-of-input case), and `&` — completing single-step coverage of the
+  instruction set.
 - `Theory/Invariance.lean`: program-level equivalence. A space is a pure no-op;
   every instruction except `p` leaves the playfield unchanged; and `p` writes
   exactly the addressed cell (bridging to `Theory/Grid`). These are the
@@ -154,7 +158,7 @@ verify the loop programs without hitting the default recursion limit.
 
 - `LeanFunge/Core`: Definitions (Direction, Stack, Grid, Instruction, State,
   Semantics).
-- `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step).
+- `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step, StepOps).
 - `LeanFunge/Examples`: Verified example programs.
 - `Tests`: Executable `example` statements that re-assert the theorems.
 - `scripts`: Repository guard checks (naming, imports, copyright, formatting).

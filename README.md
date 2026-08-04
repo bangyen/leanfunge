@@ -51,11 +51,14 @@ The formalization lives in `LeanFunge/Core` and `LeanFunge/Theory`.
 - *Toroidal wrapping* (`Theory.Direction`): moving right from the last column
   wraps to column `0`, moving left from column `0` wraps to the last column,
   and symmetrically for rows.
-- *Step semantics* (`Theory.Step`): the `@` instruction halts; digits push;
-  `+`, `-`, `*` combine the top two values; the direction arrows reorient the
+- *Step semantics* (`Theory.Step`, `Theory.StepOps`): the `@` instruction
+  halts; digits push; `+`, `-`, `*`, `/`, `%` combine the top two values; the
+  comparison pushes `1` when the second-popped value exceeds the top; `:`, `\`,
+  `$` duplicate, swap, and discard the top; the direction arrows reorient the
   pointer; `_` and `|` branch on the top of the stack; `"` toggles string mode
   (in which characters are pushed as their codes); `#` skips the next cell;
-  `p`/`g` store and fetch playfield values; and `.`/`,` write to the output.
+  `p`/`g` store and fetch playfield values; `.`/`,` write to the output; and
+  `~`/`&` read from the input stream.
 - *Program-level invariance* (`Theory.Invariance`): a space is a pure no-op
   (`step_nop`), every instruction except `p` leaves the playfield unchanged
   (`stepState_grid_of_ne_put`), and `p` stores its value at the addressed cell
@@ -91,6 +94,10 @@ the Lean kernel:
 | **Self-modification showcase** | ✅ Done | `SelfMod` verifies programs that write their own `@` (halting by rewriting) and that write then execute a `1` instruction. |
 | **Verified termination analysis** | ✅ Done | `Theory/Termination` proves strictly decreasing counters are bounded and hit zero, and that any decreasing-counter machine halts or reaches zero in finitely many steps, covering the loop examples. |
 | **Run-level program equivalence** | ✅ Done | `Theory/Run` proves a grid-preserving program leaves the playfield unchanged across a whole run, and a nop-only run leaves the stack unchanged. |
+| **Complete the instruction set** | ✅ Done | `Theory/StepOps` adds single-step theorems for `/`, `%`, the comparison, `:`, `\`, `$`, `~` (including EOF), and `&` using the existing patterns, completing single-step coverage. |
+| **Verified decimal output routine** | High | The dual of the `&` parser: a verified loop that prints a multi-digit number as characters, combining loops and `div`/`mod` — the first verified "library" program. |
+| **Program equivalence** | Medium | Prove two programs behave identically (e.g., under spacing or rotation rewrites), connecting step semantics to whole-program reasoning. |
+| **Determinism for `?`** | Medium | `Theory.Random` proves the interpreter is a sound refinement of `stepRel`; add the complementary result that non-`?` programs have a unique successor. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 
 ## Design decisions

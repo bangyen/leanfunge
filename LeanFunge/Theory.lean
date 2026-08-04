@@ -11,6 +11,7 @@ import LeanFunge.Theory.Random
 import LeanFunge.Theory.Run
 import LeanFunge.Theory.Stack
 import LeanFunge.Theory.Step
+import LeanFunge.Theory.StepOps
 import LeanFunge.Theory.Termination
 
 /-!

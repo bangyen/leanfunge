@@ -38,4 +38,8 @@ example (g : Grid w h) (x y : ℕ) (hy : y < h) :
     (Grid.rotateCW g).cells x (h - 1 - y) = g.cells y x :=
   Grid.rotateCW_cell g x y hy
 
+example (g : Grid w h) (x y : ℕ) (hx : x < w) (hy : y < h) :
+    (Grid.rotateCW g).get (h - 1 - y) x = g.get x y :=
+  Grid.get_rotateCW g x y hx hy
+
 end LeanFunge.Tests

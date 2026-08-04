@@ -96,5 +96,17 @@ theorem rotateCW_cell (g : Grid w h) (x y : ℕ) (hy : y < h) :
   have hcoord : h - 1 - (h - 1 - y) = y := by omega
   rw [hcoord]
 
+/-- Clockwise rotation preserves `get` at the rotated coordinates. -/
+theorem get_rotateCW (g : Grid w h) (x y : ℕ) (hx : x < w) (hy : y < h) :
+    (Grid.rotateCW g).get (h - 1 - y) x = g.get x y := by
+  unfold Grid.get Grid.rotateCW
+  dsimp
+  have hnewx : h - 1 - y < h := by omega
+  have hmodx : (h - 1 - y) % h = h - 1 - y := Nat.mod_eq_of_lt hnewx
+  have hmody : x % w = x := Nat.mod_eq_of_lt hx
+  have hmody' : y % h = y := Nat.mod_eq_of_lt hy
+  have hcoord : h - 1 - (h - 1 - y) = y := by omega
+  rw [hmodx, hmody, hcoord, hmody']
+
 end Grid
 end LeanFunge

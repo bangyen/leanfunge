@@ -104,6 +104,13 @@ the Lean kernel:
 | **Verified decimal output routine** | ✅ Done | `DecimalOutput` reads `0`, `5`, `123`, and `12345` with `&` and prints each back as characters via a `div`/`mod` extraction loop and a reverse print loop; `decimal_roundtrip` shows the printed output re-parses to the original number — the first verified "library" program, the dual of the `&` parser. |
 | **Program equivalence** | ✅ Done | `Theory/Program` defines strict, observational, and ordered stuttering equivalence; verified examples show that leading-space padding preserves the behavior of `@` and `23+.@`. |
 | **Determinism for `?`** | ✅ Done | `Theory.Random` proves non-random states have a unique relational successor and `?` states have distinct reachable successors, completing the determinism boundary around the nondeterministic instruction. |
+| **Multi-step relational semantics** | High | Lift `stepRel` to finite runs and prove deterministic execution is a valid relational trace, including branching behavior at `?`. |
+| **Compositional program blocks** | High | Prove equivalence compositionally for sequential blocks and continuations, rather than only for complete fixed playfields. |
+| **Verified program transformations** | High | Prove spacing, translation, and rotation rewrites preserve observations under explicit coordinate and direction mappings. |
+| **I/O behavior contracts** | Medium | Define input-consumption and output-production contracts and use them to compose the verified parser and decimal-output routines. |
+| **Verified optimization rewrites** | Medium | Verify local stack-neutral rewrites such as no-op elimination and simple constant folding. |
+| **Generic ranking-function termination API** | Medium | Generalize the decreasing-counter proofs into reusable ranking-function infrastructure for verified loops. |
+| **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 
 ## Design decisions

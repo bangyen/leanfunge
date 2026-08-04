@@ -68,6 +68,17 @@ the Lean kernel:
 - `PutGet`: `521p21g.@` stores `5` into the playfield with `p` and retrieves it
   with `g`, demonstrating self-modification.
 
+## Roadmap
+
+| Task | Priority | Justification |
+| :--- | :--- | :--- |
+| **Verified looping programs** (countdown, factorial) | High | The current examples are straight-line; a loop stresses the control-flow theorems (`step_chooseH`, `step_chooseV`) and gives a real iteration + termination proof. |
+| **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | Medium | Connects the grid algebra to whole-program behavior, e.g. a cell never modified by `p` keeps its value across a run. |
+| **`?` as true nondeterminism** | Medium | Replace the deterministic "keep the current direction" refinement with a relational step and prove the interpreter is a sound refinement. |
+| **Faithful `&` integer input** | Medium | Parse a decimal integer from the input stream instead of pushing `0`, then verify a small `&`-consuming program. |
+| **Self-modification showcase** | Medium | Verify a program that writes its own `@` (halts by rewriting) or a minimal quine. |
+| **Befunge-98 extension** (`r`, `k`, `n`, fingerprints) | Low | Large surface area; a separate language dialect rather than a property of Befunge-93. |
+
 ## Design decisions
 
 Befunge's specification leaves several behaviors unspecified; LeanFunge makes

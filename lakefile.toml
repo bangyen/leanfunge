@@ -1,0 +1,25 @@
+name = "leanfunge"
+version = "1.0.0"
+description = "Formal Verification of the Befunge Esolang"
+keywords = ["math", "esolang", "formal-verification", "programming-languages"]
+defaultTargets = ["LeanFunge", "Tests"]
+lintDriver = "batteries/runLinter"
+testDriver = "Tests"
+
+[leanOptions]
+pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 5
+maxHeartbeats = 400000
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.28.0"
+
+[[lean_lib]]
+name = "LeanFunge"
+
+[[lean_lib]]
+name = "Tests"

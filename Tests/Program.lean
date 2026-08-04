@@ -49,6 +49,16 @@ example {p : Program w h} {q : Program w' h'}
     Program.ordered_trace_equiv_between p q :=
   Program.observational_equiv_between_ordered_trace_equiv_between h
 
+example {R : State w h → State w' h' → Prop}
+    (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
+    (hst : R s t) : Program.observe (some s) = Program.observe (some t) :=
+  Program.state_simulation_observe hR hst
+
+example {R : State w h → State w' h' → Prop}
+    (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
+    (hst : R s t) : step s = none ↔ step t = none :=
+  Program.state_simulation_halts hR hst
+
 example (p : Program w h) : Program.trace_equiv p p :=
   Program.trace_equiv_refl p
 

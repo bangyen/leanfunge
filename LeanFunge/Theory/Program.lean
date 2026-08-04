@@ -85,6 +85,16 @@ def ordered_trace_equiv_between (p : Program w h) (q : Program w' h') : Prop :=
       (∀ m, observe (run m (State.init q)) =
         observe (run (g m) (State.init p)))
 
+/-- A bisimulation between states on possibly different playfields. Related
+    states have equal observations, agree on halting, and have related
+    successors in both directions. -/
+def state_simulation (R : State w h → State w' h' → Prop) : Prop :=
+  ∀ s t, R s t →
+    observe (some s) = observe (some t) ∧
+      (step s = none ↔ step t = none) ∧
+      (∀ s', step s = some s' → ∃ t', step t = some t' ∧ R s' t') ∧
+      (∀ t', step t = some t' → ∃ s', step s = some s' ∧ R s' t')
+
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
   intro n
@@ -143,6 +153,18 @@ theorem observational_equiv_between_ordered_trace_equiv_between
     exact h n
   · intro m
     exact (h m).symm
+
+/-- A state simulation preserves observations of related states. -/
+theorem state_simulation_observe {R : State w h → State w' h' → Prop}
+    (hR : state_simulation R) {s t} (hst : R s t) :
+    observe (some s) = observe (some t) :=
+  (hR s t hst).1
+
+/-- A state simulation preserves halting at related states. -/
+theorem state_simulation_halts {R : State w h → State w' h' → Prop}
+    (hR : state_simulation R) {s t} (hst : R s t) :
+    step s = none ↔ step t = none :=
+  (hR s t hst).2.1
 
 /-- Trace equivalence is reflexive. -/
 theorem trace_equiv_refl (p : Program w h) : trace_equiv p p := by

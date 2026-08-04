@@ -106,6 +106,7 @@ the Lean kernel:
 | **Determinism for `?`** | ✅ Done | `Theory.Random` proves non-random states have a unique relational successor and `?` states have distinct reachable successors, completing the determinism boundary around the nondeterministic instruction. |
 | **Multi-step relational semantics** | ✅ Done | `Theory/Run/Relational` lifts `stepRel` to finite runs, proves deterministic execution is a valid relational trace, identifies one-step runs with `stepRel`, and propagates relational halting. |
 | **Compositional program blocks** | ✅ Done | `run_append` and `runRel_append` compose deterministic and relational executions across continuations, providing the sequencing foundation for block equivalence. |
+| **State simulation relations** | High | Define dimension-independent state simulations that preserve observations and step behavior, then lift them to whole runs. |
 | **Verified program transformations** | High | Prove spacing, translation, and rotation rewrites preserve observations under explicit coordinate and direction mappings. |
 | **I/O behavior contracts** | Medium | Define input-consumption and output-production contracts and use them to compose the verified parser and decimal-output routines. |
 | **Verified optimization rewrites** | Medium | Verify local stack-neutral rewrites such as no-op elimination and simple constant folding. |

@@ -82,7 +82,7 @@ the Lean kernel:
 | :--- | :--- | :--- |
 | **Verified looping programs** (countdown, factorial) | ✅ Done | `Countdown` prints `321` and `Factorial` computes `3! = 6`, both via `|` loops with cells and verified by the kernel. |
 | **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | ✅ Done | `Theory.Invariance` proves spaces are no-ops, only `p` modifies the playfield, and `p` stores the addressed cell. |
-| **`?` as true nondeterminism** | Medium | Replace the deterministic "keep the current direction" refinement with a relational step and prove the interpreter is a sound refinement. |
+| **`?` as true nondeterminism** | ✅ Done | `stepRel` is a relational transition and `Theory.Random` proves the interpreter is a sound refinement, plus all four directions are reachable `?` outcomes. |
 | **Faithful `&` integer input** | Medium | Parse a decimal integer from the input stream instead of pushing `0`, then verify a small `&`-consuming program. |
 | **Self-modification showcase** | Medium | Verify a program that writes its own `@` (halts by rewriting) or a minimal quine. |
 | **Befunge-98 extension** (`r`, `k`, `n`, fingerprints) | Low | Large surface area; a separate language dialect rather than a property of Befunge-93. |
@@ -99,8 +99,11 @@ the following choices, all documented in `ARCHITECTURE.md`:
   value, matching the Funge-98 convention.
 - **Input**: `~` consumes from an explicit input stream (pushing `0` at EOF);
   `&` is not modeled and pushes `0`.
-- **`?` (random)**: modeled deterministically as "keep the current direction",
-  which is one of the possible outcomes of the nondeterministic instruction.
+- **`?` (random)**: the executable interpreter fixes `?` to "keep the current
+  direction", which is one of the possible outcomes of the nondeterministic
+  instruction. The full nondeterminism is captured by the transition relation
+  `stepRel`, and `Theory.Random` proves the interpreter is a sound refinement
+  of it and that `?` may choose any of the four directions.
 
 ## Installation & Building
 

@@ -20,6 +20,7 @@ import Mathlib.Data.Nat.Notation
 * `step`: The single-step transition function.
 * `run`: Run the interpreter for finitely many steps.
 * `halts`: Whether a program halts.
+* `stepRel`: The nondeterministic transition relation.
 -/
 
 namespace LeanFunge
@@ -131,5 +132,15 @@ def run (n : ℕ) (s : State w h) : Option (State w h) :=
 /-- A program halts if it reaches `none` after finitely many steps. -/
 def halts (s : State w h) : Prop :=
   ∃ n : ℕ, run n s = none
+
+/-- The nondeterministic transition relation: a step is either the
+    deterministic one, or — at a `?` outside string mode — any of the four
+    directions may be chosen. The deterministic interpreter is a sound
+    refinement of this relation (see `LeanFunge.Theory.Random`). -/
+def stepRel (s : State w h) (s' : Option (State w h)) : Prop :=
+  s' = step s ∨
+    (∃ d : Direction, ¬ s.stringMode ∧
+      decodeChar (s.grid.get s.pc.1 s.pc.2) = .random ∧
+      s' = some { s with dir := d, pc := stepPos w h d s.pc })
 
 end LeanFunge

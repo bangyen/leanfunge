@@ -72,10 +72,12 @@ step s =
 and `halts s` asserts that some finite `run` reaches `none`.
 
 > [!NOTE]
-> `?` (random direction) is modeled deterministically as "keep the current
-> direction", which is one of the possible outcomes of the nondeterministic
-> instruction. The interpreter is therefore a sound refinement of Befunge's
-> nondeterministic semantics, and every verified example is deterministic.
+> The full nondeterminism of `?` is captured by the transition relation
+> `stepRel : State w h → Option (State w h) → Prop`, which allows any of the
+> four directions at a `?` outside string mode. The executable interpreter
+> fixes `?` to "keep the current direction" — one of the relation's possible
+> outcomes — and `Theory.Random` proves this interpreter is a sound refinement
+> of `stepRel`. Every verified example is deterministic.
 
 > [!NOTE]
 > `~` consumes the head of the input stream and pushes its code (`0` at EOF).
@@ -103,6 +105,10 @@ project convention that `Core` files contain only definitions.
   every instruction except `p` leaves the playfield unchanged; and `p` writes
   exactly the addressed cell (bridging to `Theory/Grid`). These are the
   foundational "only `p` mutates the playfield" properties of the language.
+- `Theory/Random.lean`: nondeterminism. The transition relation `stepRel`
+  allows any direction at `?`; `step_refines_stepRel` shows the deterministic
+  interpreter is a sound refinement, and `stepRel_random_four` shows all four
+  directions are reachable `?` outcomes.
 
 ## Verified Example Programs
 

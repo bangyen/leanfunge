@@ -81,8 +81,10 @@ and `halts s` asserts that some finite `run` reaches `none`.
 
 > [!NOTE]
 > `~` consumes the head of the input stream and pushes its code (`0` at EOF).
-> `&` is not modeled and pushes `0`; the integer-input instruction is out of
-> scope for the current verification.
+> `&` parses a decimal integer from the input stream: leading spaces are
+> skipped, an optional `-` sign is honored, and a maximal run of digits is
+> consumed (`Core/Parser`). `Theory/Parser` proves that interpreting a
+> number's decimal digits reconstructs the number.
 
 ## The Theory Layer
 
@@ -109,6 +111,9 @@ project convention that `Core` files contain only definitions.
   allows any direction at `?`; `step_refines_stepRel` shows the deterministic
   interpreter is a sound refinement, and `stepRel_random_four` shows all four
   directions are reachable `?` outcomes.
+- `Theory/Parser.lean`: integer input. `parseInt` (in `Core/Parser`) reads a
+  signed decimal integer from the input stream; `natDigitsValue_natDigits`
+  proves the decimal digits round-trip.
 
 ## Verified Example Programs
 

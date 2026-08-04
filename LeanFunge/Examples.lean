@@ -7,6 +7,7 @@ import LeanFunge.Examples.Arithmetic
 import LeanFunge.Examples.Countdown
 import LeanFunge.Examples.Factorial
 import LeanFunge.Examples.HelloWorld
+import LeanFunge.Examples.Input
 import LeanFunge.Examples.PutGet
 import LeanFunge.Examples.Trampoline
 

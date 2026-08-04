@@ -75,6 +75,8 @@ the Lean kernel:
   prints, and decrements a counter held in a cell, then exits upward on zero.
 - `Factorial`: a loop computes `3! = 6` — the accumulator lives on the stack
   and the counter in a cell, multiplied with `*` each iteration.
+- `Input`: `&2+.@` reads `5` and prints `7`; `&.@` reads a multi-digit or
+  negative integer (`12`, `-3`) from the input stream.
 
 ## Roadmap
 
@@ -83,7 +85,7 @@ the Lean kernel:
 | **Verified looping programs** (countdown, factorial) | ✅ Done | `Countdown` prints `321` and `Factorial` computes `3! = 6`, both via `|` loops with cells and verified by the kernel. |
 | **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | ✅ Done | `Theory.Invariance` proves spaces are no-ops, only `p` modifies the playfield, and `p` stores the addressed cell. |
 | **`?` as true nondeterminism** | ✅ Done | `stepRel` is a relational transition and `Theory.Random` proves the interpreter is a sound refinement, plus all four directions are reachable `?` outcomes. |
-| **Faithful `&` integer input** | Medium | Parse a decimal integer from the input stream instead of pushing `0`, then verify a small `&`-consuming program. |
+| **Faithful `&` integer input** | ✅ Done | `Core/Parser` implements a decimal parser (sign, spaces, multi-digit) and `Theory/Parser` proves the digits round-trip; `Input` verifies programs reading `5`, `12`, and `-3`. |
 | **Self-modification showcase** | Medium | Verify a program that writes its own `@` (halts by rewriting) or a minimal quine. |
 | **Befunge-98 extension** (`r`, `k`, `n`, fingerprints) | Low | Large surface area; a separate language dialect rather than a property of Befunge-93. |
 
@@ -98,7 +100,8 @@ the following choices, all documented in `ARCHITECTURE.md`:
 - **`p`/`g` argument order**: coordinates are popped as `y` then `x`, then the
   value, matching the Funge-98 convention.
 - **Input**: `~` consumes from an explicit input stream (pushing `0` at EOF);
-  `&` is not modeled and pushes `0`.
+  `&` parses a decimal integer from the stream (skipping leading spaces and
+  handling an optional `-` sign), leaving the remaining input for later.
 - **`?` (random)**: the executable interpreter fixes `?` to "keep the current
   direction", which is one of the possible outcomes of the nondeterministic
   instruction. The full nondeterminism is captured by the transition relation

@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Core.Direction
 import LeanFunge.Core.Grid
 import LeanFunge.Core.Instruction
+import LeanFunge.Core.Parser
 import LeanFunge.Core.Stack
 import LeanFunge.Core.State
 import Mathlib.Data.Nat.Notation
@@ -98,7 +99,12 @@ def stepState (s : State w h) (instr : Instruction) : State w h :=
       { s with
         stack := Stack.push s2 (Int.ofNat (s.grid.get (Int.toNat x) (Int.toNat y)).toNat),
         pc := stepPos w h s.dir s.pc }
-  | .inputInt => { s with stack := Stack.push s.stack 0, pc := stepPos w h s.dir s.pc }
+  | .inputInt =>
+      let (rest, v) := parseInt s.input
+      { s with
+        stack := Stack.push s.stack v,
+        input := rest,
+        pc := stepPos w h s.dir s.pc }
   | .inputChar =>
       match s.input with
       | [] => { s with stack := Stack.push s.stack 0, pc := stepPos w h s.dir s.pc }

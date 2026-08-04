@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Theory.Direction
 import LeanFunge.Theory.Grid
 import LeanFunge.Theory.Invariance
+import LeanFunge.Theory.Parser
 import LeanFunge.Theory.Random
 import LeanFunge.Theory.Stack
 import LeanFunge.Theory.Step

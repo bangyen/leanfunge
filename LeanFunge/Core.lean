@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Core.Direction
 import LeanFunge.Core.Grid
 import LeanFunge.Core.Instruction
+import LeanFunge.Core.Parser
 import LeanFunge.Core.Semantics
 import LeanFunge.Core.Stack
 import LeanFunge.Core.State

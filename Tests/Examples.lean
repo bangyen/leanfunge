@@ -52,4 +52,22 @@ example : (run 133 factorialState).map (fun s => s.stack) = some [6] :=
 example : run 134 factorialState = none :=
   factorial_halts
 
+example : (run 4 inputState).map (fun s => s.output) = some "7" :=
+  input_output
+
+example : run 5 inputState = none :=
+  input_halts
+
+example : (run 2 multiState).map (fun s => s.output) = some "12" :=
+  multi_output
+
+example : run 3 multiState = none :=
+  multi_halts
+
+example : (run 1 negState).map (fun s => Stack.top s.stack) = some (-3) :=
+  neg_stack
+
+example : run 2 negState = none :=
+  neg_halts
+
 end LeanFunge.Tests

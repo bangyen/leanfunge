@@ -130,7 +130,8 @@ project convention that `Core` files contain only definitions.
 - `Theory/Program.lean`: program equivalence. Strict and observational
   equivalence compare bounded runs; ordered trace equivalence supports
   stuttering step alignments, with reusable no-op-prefix and finite halted-tail
-  lemmas for spacing rewrites; `state_simulation` provides the next layer for
+  lemmas for spacing rewrites; `state_simulation` and
+  `run_related_of_state_simulation` provide the bisimulation layer for
   dimension-changing transformations.
 
 ## Verified Example Programs

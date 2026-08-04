@@ -55,6 +55,23 @@ example {p q r : Program w h}
     Program.trace_equiv p r :=
   Program.trace_equiv_trans hpq hqr
 
+example {p q : Program w h} (h : Program.observational_equiv p q) :
+    Program.ordered_trace_equiv p q :=
+  Program.observational_equiv_ordered_trace_equiv h
+
+example (p : Program w h) : Program.ordered_trace_equiv p p :=
+  Program.ordered_trace_equiv_refl p
+
+example {p q : Program w h} (h : Program.ordered_trace_equiv p q) :
+    Program.ordered_trace_equiv q p :=
+  Program.ordered_trace_equiv_symm h
+
+example {p q r : Program w h}
+    (hpq : Program.ordered_trace_equiv p q)
+    (hqr : Program.ordered_trace_equiv q r) :
+    Program.ordered_trace_equiv p r :=
+  Program.ordered_trace_equiv_trans hpq hqr
+
 example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') :
     Program.observe (step s) = some (s.stack, s.output) :=

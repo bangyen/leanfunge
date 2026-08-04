@@ -5,6 +5,8 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
 import LeanFunge.Theory.Invariance
+import Mathlib.Order.Nat
+import Mathlib.Order.Monotone.Defs
 
 /-!
 # Program Equivalence
@@ -19,6 +21,8 @@ import LeanFunge.Theory.Invariance
   halting at every finite run length.
 * `Program.trace_equiv`: Two programs have the same observable checkpoints,
   allowing different numbers of internal steps between checkpoints.
+* `Program.ordered_trace_equiv`: The same, with monotone step-index
+  alignments that preserve checkpoint order.
 * `step_nop_observe`: A space preserves the observable state for one step.
 * `run_nop_observe`: A run of no-ops preserves the observable state.
 
@@ -55,6 +59,16 @@ def observational_equiv (p q : Program w h) : Prop :=
 def trace_equiv (p q : Program w h) : Prop :=
   (∀ n, ∃ m, observe (run n (State.init p)) = observe (run m (State.init q))) ∧
     (∀ m, ∃ n, observe (run m (State.init q)) = observe (run n (State.init p)))
+
+/-- Trace equivalence with monotone functions aligning the step indices in
+    both directions. Unlike `trace_equiv`, this preserves checkpoint order. -/
+def ordered_trace_equiv (p q : Program w h) : Prop :=
+  ∃ f g : ℕ → ℕ,
+    Monotone f ∧ Monotone g ∧
+      (∀ n, observe (run n (State.init p)) =
+        observe (run (f n) (State.init q))) ∧
+      (∀ m, observe (run m (State.init q)) =
+        observe (run (g m) (State.init p)))
 
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
@@ -132,6 +146,37 @@ theorem trace_equiv_trans {p q r : Program w h}
     rcases hqr.2 l with ⟨m, hm⟩
     rcases hpq.2 m with ⟨n, hn⟩
     exact ⟨n, hm.trans hn⟩
+
+/-- Same-step observational equivalence implies ordered trace equivalence. -/
+theorem observational_equiv_ordered_trace_equiv {p q : Program w h}
+    (h : observational_equiv p q) : ordered_trace_equiv p q := by
+  refine ⟨id, id, monotone_id, monotone_id, ?_, ?_⟩
+  · intro n
+    exact h n
+  · intro m
+    exact (h m).symm
+
+/-- Ordered trace equivalence is reflexive. -/
+theorem ordered_trace_equiv_refl (p : Program w h) : ordered_trace_equiv p p := by
+  exact observational_equiv_ordered_trace_equiv (observational_equiv_refl p)
+
+/-- Ordered trace equivalence is symmetric. -/
+theorem ordered_trace_equiv_symm {p q : Program w h}
+    (h : ordered_trace_equiv p q) : ordered_trace_equiv q p := by
+  rcases h with ⟨f, g, hf, hg, hfg, hgf⟩
+  exact ⟨g, f, hg, hf, hgf, hfg⟩
+
+/-- Ordered trace equivalence is transitive. -/
+theorem ordered_trace_equiv_trans {p q r : Program w h}
+    (hpq : ordered_trace_equiv p q) (hqr : ordered_trace_equiv q r) :
+    ordered_trace_equiv p r := by
+  rcases hpq with ⟨f, g, hf, hg, hfg, hgf⟩
+  rcases hqr with ⟨u, v, hu, hv, huv, hvu⟩
+  refine ⟨u ∘ f, g ∘ v, hu.comp hf, hg.comp hv, ?_, ?_⟩
+  · intro n
+    exact (hfg n).trans (huv (f n))
+  · intro l
+    exact (hvu l).trans (hgf (v l))
 
 /-- A non-string-mode space preserves stack and output for one step. -/
 theorem step_nop_observe_of_decoded (s : State w h) (hm : s.stringMode = false)

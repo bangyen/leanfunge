@@ -34,4 +34,8 @@ example (g : Grid w h) (k x y : ℕ) (hx : x < w) :
     (Grid.prependSpaces g k).get (x + k) y = g.get x y :=
   Grid.get_prependSpaces_add g k x y hx
 
+example (g : Grid w h) (x y : ℕ) (hy : y < h) :
+    (Grid.rotateCW g).cells x (h - 1 - y) = g.cells y x :=
+  Grid.rotateCW_cell g x y hy
+
 end LeanFunge.Tests

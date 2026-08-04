@@ -53,6 +53,11 @@ def prependSpace (g : Grid w h) : Grid (w + 1) h :=
 def prependSpaces (g : Grid w h) (k : ℕ) : Grid (w + k) h :=
   { cells := fun y x => if x < k then ' ' else g.get (x - k) y }
 
+/-- Rotate a playfield clockwise at the raw-cell level. The `w`×`h` grid
+    becomes `h`×`w`. -/
+def rotateCW (g : Grid w h) : Grid h w :=
+  { cells := fun y x => g.cells (h - 1 - x) y }
+
 end Grid
 
 end LeanFunge

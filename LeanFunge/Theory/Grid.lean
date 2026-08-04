@@ -88,5 +88,13 @@ theorem get_prependSpaces_add (g : Grid w h) (k x y : ℕ) (hx : x < w) :
   have hnot : ¬ x + k < k := by omega
   simp [hnot, Grid.get]
 
+/-- A clockwise rotation maps an old raw cell `(x, y)` to `(h - 1 - y, x)`. -/
+theorem rotateCW_cell (g : Grid w h) (x y : ℕ) (hy : y < h) :
+    (Grid.rotateCW g).cells x (h - 1 - y) = g.cells y x := by
+  unfold Grid.rotateCW
+  dsimp
+  have hcoord : h - 1 - (h - 1 - y) = y := by omega
+  rw [hcoord]
+
 end Grid
 end LeanFunge

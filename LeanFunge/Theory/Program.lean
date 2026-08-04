@@ -54,6 +54,11 @@ def equiv (p q : Program w h) : Prop :=
 def observational_equiv (p q : Program w h) : Prop :=
   ∀ n, observe (run n (State.init p)) = observe (run n (State.init q))
 
+/-- Observational equivalence for programs whose playfields may have different
+    dimensions. -/
+def observational_equiv_between (p : Program w h) (q : Program w' h') : Prop :=
+  ∀ n, observe (run n (State.init p)) = observe (run n (State.init q))
+
 /-- Two programs are trace-equivalent when every observable checkpoint of one
     run occurs at some finite step of the other, in both directions. -/
 def trace_equiv (p q : Program w h) : Prop :=
@@ -63,6 +68,16 @@ def trace_equiv (p q : Program w h) : Prop :=
 /-- Trace equivalence with monotone functions aligning the step indices in
     both directions. Unlike `trace_equiv`, this preserves checkpoint order. -/
 def ordered_trace_equiv (p q : Program w h) : Prop :=
+  ∃ f g : ℕ → ℕ,
+    Monotone f ∧ Monotone g ∧
+      (∀ n, observe (run n (State.init p)) =
+        observe (run (f n) (State.init q))) ∧
+      (∀ m, observe (run m (State.init q)) =
+        observe (run (g m) (State.init p)))
+
+/-- Ordered trace equivalence for programs whose playfields may have different
+    dimensions. -/
+def ordered_trace_equiv_between (p : Program w h) (q : Program w' h') : Prop :=
   ∃ f g : ℕ → ℕ,
     Monotone f ∧ Monotone g ∧
       (∀ n, observe (run n (State.init p)) =
@@ -118,6 +133,16 @@ theorem observational_equiv_trace_equiv {p q : Program w h}
     exact ⟨n, h n⟩
   · intro m
     exact ⟨m, (h m).symm⟩
+
+/-- Same-step cross-dimension equivalence implies ordered trace equivalence. -/
+theorem observational_equiv_between_ordered_trace_equiv_between
+    {p : Program w h} {q : Program w' h'}
+    (h : observational_equiv_between p q) : ordered_trace_equiv_between p q := by
+  refine ⟨id, id, monotone_id, monotone_id, ?_, ?_⟩
+  · intro n
+    exact h n
+  · intro m
+    exact (h m).symm
 
 /-- Trace equivalence is reflexive. -/
 theorem trace_equiv_refl (p : Program w h) : trace_equiv p p := by
@@ -226,6 +251,25 @@ theorem ordered_trace_equiv_one_step_prefix {p q : Program w h}
     (hshift : ∀ n, observe (run n (State.init p)) =
       observe (run (n + 1) (State.init q))) :
     ordered_trace_equiv p q := by
+  refine ⟨Nat.succ, Nat.pred, ?_, ?_, ?_, ?_⟩
+  · intro a b hab
+    exact Nat.succ_le_succ hab
+  · intro a b hab
+    exact Nat.pred_le_pred hab
+  · intro n
+    exact hshift n
+  · intro n
+    cases n with
+    | zero => exact h₀.symm
+    | succ n => exact (hshift n).symm
+
+/-- A one-step prefix theorem for programs with different playfield dimensions. -/
+theorem ordered_trace_equiv_between_one_step_prefix
+    {p : Program w h} {q : Program w' h'}
+    (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
+    (hshift : ∀ n, observe (run n (State.init p)) =
+      observe (run (n + 1) (State.init q))) :
+    ordered_trace_equiv_between p q := by
   refine ⟨Nat.succ, Nat.pred, ?_, ?_, ?_, ?_⟩
   · intro a b hab
     exact Nat.succ_le_succ hab

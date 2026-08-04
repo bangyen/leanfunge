@@ -44,6 +44,11 @@ example {p q : Program w h} (h : Program.observational_equiv p q) :
     Program.trace_equiv p q :=
   Program.observational_equiv_trace_equiv h
 
+example {p : Program w h} {q : Program w' h'}
+    (h : Program.observational_equiv_between p q) :
+    Program.ordered_trace_equiv_between p q :=
+  Program.observational_equiv_between_ordered_trace_equiv_between h
+
 example (p : Program w h) : Program.trace_equiv p p :=
   Program.trace_equiv_refl p
 
@@ -71,6 +76,14 @@ example {p q r : Program w h}
     (hqr : Program.ordered_trace_equiv q r) :
     Program.ordered_trace_equiv p r :=
   Program.ordered_trace_equiv_trans hpq hqr
+
+example {p : Program w h} {q : Program w' h'}
+    (h₀ : Program.observe (run 0 (State.init p)) =
+      Program.observe (run 0 (State.init q)))
+    (hshift : ∀ n, Program.observe (run n (State.init p)) =
+      Program.observe (run (n + 1) (State.init q))) :
+  Program.ordered_trace_equiv_between p q :=
+  Program.ordered_trace_equiv_between_one_step_prefix h₀ hshift
 
 example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') :

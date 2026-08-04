@@ -381,4 +381,24 @@ example {w h : ℕ} (s s' : State w h) (n m : ℕ)
 example : Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") :=
   arithmetic_io_behavior
 
+example : Program.ioBehavior
+    ({ State.init readPrintProgram with input := String.toList "5" }) 2 =
+      some ([], "5") :=
+  readPrint_single
+
+example : Program.ioBehavior
+    ({ State.init readPrintProgram with input := String.toList "12" }) 2 =
+      some ([], "12") :=
+  readPrint_multi
+
+example (p : Program w h) : Program.io_equiv p p :=
+  Program.io_equiv_refl p
+
+example {p q : Program w h} (h : Program.io_equiv p q) : Program.io_equiv q p :=
+  Program.io_equiv_symm h
+
+example {p q r : Program w h} (hpq : Program.io_equiv p q) (hqr : Program.io_equiv q r) :
+    Program.io_equiv p r :=
+  Program.io_equiv_trans hpq hqr
+
 end LeanFunge.Tests

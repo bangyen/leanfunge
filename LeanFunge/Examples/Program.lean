@@ -319,6 +319,21 @@ theorem rotateCounterRotated_halts :
 /-- Clockwise rotation changes the behavior of a program using `_`: the
     original pushes `1` while the rotated program halts immediately, so
     rotation is not sound in general. -/
+def readPrintProgram : Program 3 1 :=
+  Grid.ofRows 3 1 [(String.toList "&.@")]
+
+/-- `&.@` consumes a single digit and prints it back. -/
+theorem readPrint_single :
+    Program.ioBehavior ({ State.init readPrintProgram with input := String.toList "5" }) 2 =
+      some ([], "5") := by
+  decide
+
+/-- `&.@` consumes a multi-digit integer and prints it back. -/
+theorem readPrint_multi :
+    Program.ioBehavior ({ State.init readPrintProgram with input := String.toList "12" }) 2 =
+      some ([], "12") := by
+  decide
+
 theorem arithmetic_io_behavior :
     Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") := by
   decide

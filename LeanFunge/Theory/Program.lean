@@ -58,6 +58,29 @@ theorem ioBehavior_append (s s' : State w h) (n m : ℕ)
   unfold ioBehavior
   rw [run_append s s' (run m s') n m h₁ rfl]
 
+/-- Two programs have the same I/O behavior for every initial input at every
+    run length: same remaining input, same output, and same halting. -/
+def io_equiv (p q : Program w h) : Prop :=
+  ∀ (input : List Char) (n : ℕ),
+    ioBehavior ({ State.init p with input := input }) n =
+      ioBehavior ({ State.init q with input := input }) n
+
+/-- I/O equivalence is reflexive. -/
+theorem io_equiv_refl (p : Program w h) : io_equiv p p := by
+  intro input n
+  rfl
+
+/-- I/O equivalence is symmetric. -/
+theorem io_equiv_symm {p q : Program w h} (h : io_equiv p q) : io_equiv q p := by
+  intro input n
+  exact (h input n).symm
+
+/-- I/O equivalence is transitive. -/
+theorem io_equiv_trans {p q r : Program w h} (hpq : io_equiv p q)
+    (hqr : io_equiv q r) : io_equiv p r := by
+  intro input n
+  exact (hpq input n).trans (hqr input n)
+
 /-- Two programs are equivalent when all bounded runs from `State.init` agree. -/
 def equiv (p q : Program w h) : Prop :=
   ∀ n, run n (State.init p) = run n (State.init q)

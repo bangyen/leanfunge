@@ -369,4 +369,16 @@ example : ¬ Program.ordered_trace_equiv_between
     rotateCounter (Grid.rotateCW rotateCounter) :=
   rotateCounter_not_ordered_equiv
 
+example {w h : ℕ} (s : State w h) (n : ℕ) :
+    Program.ioBehavior s n = (run n s).map (fun s' => (s'.input, s'.output)) :=
+  rfl
+
+example {w h : ℕ} (s s' : State w h) (n m : ℕ)
+    (h₁ : run n s = some s') :
+    Program.ioBehavior s (n + m) = Program.ioBehavior s' m :=
+  Program.ioBehavior_append s s' n m h₁
+
+example : Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") :=
+  arithmetic_io_behavior
+
 end LeanFunge.Tests

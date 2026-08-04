@@ -319,6 +319,10 @@ theorem rotateCounterRotated_halts :
 /-- Clockwise rotation changes the behavior of a program using `_`: the
     original pushes `1` while the rotated program halts immediately, so
     rotation is not sound in general. -/
+theorem arithmetic_io_behavior :
+    Program.ioBehavior (State.init arithmeticOriginal) 4 = some ([], "5") := by
+  decide
+
 theorem rotateCounter_not_ordered_equiv :
     ¬ Program.ordered_trace_equiv_between rotateCounter (Grid.rotateCW rotateCounter) := by
   intro h

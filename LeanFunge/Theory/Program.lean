@@ -5,6 +5,7 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
 import LeanFunge.Theory.Invariance
+import LeanFunge.Theory.Run.Relational
 import Mathlib.Order.Nat
 import Mathlib.Order.Monotone.Defs
 
@@ -44,6 +45,18 @@ def observe (result : Option (State w h)) : Option (Stack × String) :=
   match result with
   | none => none
   | some s => some (s.stack, s.output)
+
+/-- The I/O behavior of a bounded run: `none` means halted, while `some`
+    retains the remaining input stream and the output produced so far. -/
+def ioBehavior (s : State w h) (n : ℕ) : Option (List Char × String) :=
+  (run n s).map (fun s' => (s'.input, s'.output))
+
+/-- Composing a run with a continuation preserves its I/O behavior. -/
+theorem ioBehavior_append (s s' : State w h) (n m : ℕ)
+    (h₁ : run n s = some s') :
+    ioBehavior s (n + m) = ioBehavior s' m := by
+  unfold ioBehavior
+  rw [run_append s s' (run m s') n m h₁ rfl]
 
 /-- Two programs are equivalent when all bounded runs from `State.init` agree. -/
 def equiv (p q : Program w h) : Prop :=

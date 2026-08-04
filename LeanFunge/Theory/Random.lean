@@ -21,6 +21,8 @@ import Mathlib.Data.Nat.Notation
   of a `?`.
 * `stepRel_eq_step_of_not_random`: Outside a `?`, the relation agrees exactly
   with the deterministic step.
+* `stepRel_unique_of_not_random`: Outside a `?`, the relation has at most one
+  successor, so every deterministic program has a unique next state.
 -/
 
 namespace LeanFunge
@@ -78,5 +80,16 @@ theorem stepRel_eq_step_of_not_random (s : State w h) (s' : Option (State w h))
   · intro h
     left
     exact h
+
+/-- Outside a `?`, the relation has at most one successor: any two outcomes of
+    a step from a non-random state coincide, so every deterministic program
+    has a unique next state. -/
+theorem stepRel_unique_of_not_random (s : State w h) (s₁ s₂ : Option (State w h))
+    (hr : decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .random)
+    (h₁ : stepRel s s₁) (h₂ : stepRel s s₂) :
+    s₁ = s₂ := by
+  rw [stepRel_eq_step_of_not_random s s₁ hr] at h₁
+  rw [stepRel_eq_step_of_not_random s s₂ hr] at h₂
+  exact h₁.trans h₂.symm
 
 end LeanFunge

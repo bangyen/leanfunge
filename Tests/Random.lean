@@ -39,4 +39,10 @@ example {w h : ℕ} (s : State w h) (s' : Option (State w h))
     stepRel s s' ↔ s' = step s :=
   stepRel_eq_step_of_not_random s s' hr
 
+example {w h : ℕ} (s : State w h) (s₁ s₂ : Option (State w h))
+    (hr : decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .random)
+    (h₁ : stepRel s s₁) (h₂ : stepRel s s₂) :
+    s₁ = s₂ :=
+  stepRel_unique_of_not_random s s₁ s₂ hr h₁ h₂
+
 end LeanFunge.Tests

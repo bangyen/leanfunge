@@ -17,6 +17,7 @@ import LeanFunge.Theory.Random
 
 * `run_refines_runRel`: Every deterministic run is a relational run.
 * `runRel_append`: Relational runs compose across an intermediate live state.
+* `run_append`: Deterministic runs compose across an intermediate state.
 -/
 
 namespace LeanFunge
@@ -100,5 +101,26 @@ theorem runRel_append (s s' : State w h) (result : Option (State w h))
       · rw [Nat.add_succ]
         right
         exact ⟨ih none hhalt, hresult⟩
+
+/-- Compose deterministic runs across an intermediate state. -/
+theorem run_append (s s' : State w h) (result : Option (State w h))
+    (n m : ℕ) (h₁ : run n s = some s')
+    (h₂ : run m s' = result) : run (n + m) s = result := by
+  induction m generalizing result with
+  | zero =>
+      rw [run] at h₂
+      cases h₂
+      exact h₁
+  | succ m ih =>
+      rcases hmid : run m s' with _ | sₘ
+      · rw [run, hmid] at h₂
+        have hprefix := ih none hmid
+        rw [Nat.add_succ, run, hprefix]
+        exact h₂
+      · rw [run, hmid] at h₂
+        have hstep : step sₘ = result := by simpa only using h₂
+        have hprefix := ih (some sₘ) hmid
+        rw [Nat.add_succ, run, hprefix]
+        exact hstep
 
 end LeanFunge

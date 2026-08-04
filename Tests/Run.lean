@@ -50,4 +50,9 @@ example {w h : ℕ} (s s' : State w h) (result : Option (State w h))
     runRel (n + m) s result :=
   runRel_append s s' result n m h₁ h₂
 
+example {w h : ℕ} (s s' : State w h) (result : Option (State w h))
+    (n m : ℕ) (h₁ : run n s = some s') (h₂ : run m s' = result) :
+    run (n + m) s = result :=
+  run_append s s' result n m h₁ h₂
+
 end LeanFunge.Tests

@@ -107,6 +107,20 @@ def prependSpacesState (s : State w h) (k : ℕ) : State (w + k) h :=
     grid := Grid.prependSpaces s.grid k
     pc := (s.pc.1 + k, s.pc.2) }
 
+/-- Rotate a state clockwise, including its instruction-pointer coordinates and
+    direction. -/
+def rotateCWDirection : Direction → Direction
+  | .right => .down
+  | .down => .left
+  | .left => .up
+  | .up => .right
+
+def rotateCWState (s : State w h) : State h w :=
+  { s with
+    grid := Grid.rotateCW s.grid
+    pc := (h - 1 - s.pc.2, s.pc.1)
+    dir := rotateCWDirection s.dir }
+
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
   intro n
@@ -200,6 +214,11 @@ theorem prependSpacesState_cell (s : State w h) (k : ℕ) (hx : s.pc.1 < w) :
   change (Grid.prependSpaces s.grid k).get (s.pc.1 + k) s.pc.2 =
     s.grid.get s.pc.1 s.pc.2
   exact Grid.get_prependSpaces_add s.grid k s.pc.1 s.pc.2 hx
+
+/-- Clockwise state rotation preserves the observable state. -/
+theorem rotateCWState_observe (s : State w h) :
+    observe (some s) = observe (some (rotateCWState s)) := by
+  rfl
 
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/

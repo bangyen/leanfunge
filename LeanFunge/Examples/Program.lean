@@ -50,6 +50,15 @@ def arithmeticPaddedLeft : Program 6 1 :=
 def arithmeticPaddedRight : Program 6 1 :=
   Grid.ofRows 6 1 [(String.toList " 23+.@")]
 
+def arithmeticPaddedRightAfterSpace : State 6 1 :=
+  { State.init arithmeticPaddedRight with pc := (1, 0) }
+
+theorem arithmeticPaddedRight_step :
+    step (State.init arithmeticPaddedRight) =
+      some arithmeticPaddedRightAfterSpace := by
+  rw [step_nop (State.init arithmeticPaddedRight) rfl (by decide)]
+  rfl
+
 theorem arithmeticPaddedLeft_halts (n : ℕ) :
     run (n + 5) (State.init arithmeticPaddedLeft) = none := by
   induction n with
@@ -70,7 +79,9 @@ theorem arithmeticPaddedRight_halts (n : ℕ) :
 
 theorem arithmetic_padded_ordered_equiv :
     Program.ordered_trace_equiv arithmeticPaddedLeft arithmeticPaddedRight := by
-  apply Program.ordered_trace_equiv_one_step_prefix
+  apply Program.ordered_trace_equiv_of_step_continuation
+    arithmeticPaddedRightAfterSpace
+  · exact arithmeticPaddedRight_step
   · decide
   · intro n
     cases n with
@@ -88,7 +99,12 @@ theorem arithmetic_padded_ordered_equiv :
                     cases n with
                     | zero => decide
                     | succ n =>
-                        rw [arithmeticPaddedLeft_halts n,
-                          arithmeticPaddedRight_halts n]
+                        have hrun := Program.run_succ_eq_run_from_step
+                          (s := State.init arithmeticPaddedRight)
+                          (s' := arithmeticPaddedRightAfterSpace)
+                          arithmeticPaddedRight_step (n + 5)
+                        rw [arithmeticPaddedRight_halts n] at hrun
+                        rw [arithmeticPaddedLeft_halts n]
+                        rw [← hrun]
 
 end LeanFunge.Examples

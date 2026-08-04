@@ -411,6 +411,221 @@ theorem step_rotateCWState_printChar_right (s : State w h)
   simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
     Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
 
+/-- Clockwise rotation maps a right-moving subtraction step to a down-moving
+    subtraction step before either playfield boundary. -/
+theorem step_rotateCWState_sub_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .sub)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .sub)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .sub := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .sub
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving multiplication step to a down-moving
+    multiplication step before either playfield boundary. -/
+theorem step_rotateCWState_mul_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .mul)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .mul)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .mul := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .mul
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving division step to a down-moving
+    division step before either playfield boundary. -/
+theorem step_rotateCWState_div_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .div)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .div)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .div := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .div
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving modulo step to a down-moving modulo
+    step before either playfield boundary. -/
+theorem step_rotateCWState_mod_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .mod)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .mod)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .mod := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .mod
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving logical-not step to a down-moving
+    logical-not step before either playfield boundary. -/
+theorem step_rotateCWState_not_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .not)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .not)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .not := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .not
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving comparison step to a down-moving
+    comparison step before either playfield boundary. -/
+theorem step_rotateCWState_greater_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .greater)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .greater)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .greater := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .greater
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving string-mode step to a down-moving
+    string-mode step before either playfield boundary. -/
+theorem step_rotateCWState_stringMode_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .stringMode)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .stringMode)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .stringMode := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .stringMode
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving random step to a down-moving random
+    step before either playfield boundary. -/
+theorem step_rotateCWState_random_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .random)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .random)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .random := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .random
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving integer-input step to a down-moving
+    integer-input step before either playfield boundary. -/
+theorem step_rotateCWState_inputInt_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .inputInt)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .inputInt)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .inputInt := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .inputInt
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- Clockwise rotation maps a right-moving character-input step to a down-moving
+    character-input step before either playfield boundary. -/
+theorem step_rotateCWState_inputChar_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .inputChar)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .inputChar)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .inputChar := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .inputChar
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  cases h : s.input with
+  | nil =>
+      simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir, h,
+        Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+  | cons c rest =>
+      simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir, h,
+        Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_nop_right (s : State w h)

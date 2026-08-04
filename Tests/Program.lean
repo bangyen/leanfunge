@@ -136,6 +136,67 @@ example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
       some (Program.rotateCWState (stepState s .printChar)) :=
   Program.step_rotateCWState_printChar_right s hm hdir hdecode hx hy
 
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .sub)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .sub)) :=
+  Program.step_rotateCWState_sub_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .mul)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .mul)) :=
+  Program.step_rotateCWState_mul_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .div)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .div)) :=
+  Program.step_rotateCWState_div_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .mod)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .mod)) :=
+  Program.step_rotateCWState_mod_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .not)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .not)) :=
+  Program.step_rotateCWState_not_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .greater)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .greater)) :=
+  Program.step_rotateCWState_greater_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .stringMode)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) =
+      some (Program.rotateCWState (stepState s .stringMode)) :=
+  Program.step_rotateCWState_stringMode_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .random)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .random)) :=
+  Program.step_rotateCWState_random_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .inputInt)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .inputInt)) :=
+  Program.step_rotateCWState_inputInt_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .inputChar)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .inputChar)) :=
+  Program.step_rotateCWState_inputChar_right s hm hdir hdecode hx hy
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

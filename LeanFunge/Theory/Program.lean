@@ -17,6 +17,8 @@ import LeanFunge.Theory.Invariance
 * `Program.observe`: The externally relevant part of a run result.
 * `Program.observational_equiv`: Two programs agree on stack, output, and
   halting at every finite run length.
+* `Program.trace_equiv`: Two programs have the same observable checkpoints,
+  allowing different numbers of internal steps between checkpoints.
 * `step_nop_observe`: A space preserves the observable state for one step.
 * `run_nop_observe`: A run of no-ops preserves the observable state.
 
@@ -47,6 +49,12 @@ def equiv (p q : Program w h) : Prop :=
     on stack, output, and whether they have halted. -/
 def observational_equiv (p q : Program w h) : Prop :=
   ∀ n, observe (run n (State.init p)) = observe (run n (State.init q))
+
+/-- Two programs are trace-equivalent when every observable checkpoint of one
+    run occurs at some finite step of the other, in both directions. -/
+def trace_equiv (p q : Program w h) : Prop :=
+  (∀ n, ∃ m, observe (run n (State.init p)) = observe (run m (State.init q))) ∧
+    (∀ m, ∃ n, observe (run m (State.init q)) = observe (run n (State.init p)))
 
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
@@ -87,6 +95,43 @@ theorem observational_equiv_trans {p q r : Program w h}
     observational_equiv p r := by
   intro n
   exact (hpq n).trans (hqr n)
+
+/-- Same-step observational equivalence implies trace equivalence. -/
+theorem observational_equiv_trace_equiv {p q : Program w h}
+    (h : observational_equiv p q) : trace_equiv p q := by
+  constructor
+  · intro n
+    exact ⟨n, h n⟩
+  · intro m
+    exact ⟨m, (h m).symm⟩
+
+/-- Trace equivalence is reflexive. -/
+theorem trace_equiv_refl (p : Program w h) : trace_equiv p p := by
+  constructor <;> intro n <;> exact ⟨n, rfl⟩
+
+/-- Trace equivalence is symmetric. -/
+theorem trace_equiv_symm {p q : Program w h} (h : trace_equiv p q) :
+    trace_equiv q p := by
+  constructor
+  · intro m
+    rcases h.2 m with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · intro n
+    rcases h.1 n with ⟨m, hm⟩
+    exact ⟨m, hm⟩
+
+/-- Trace equivalence is transitive. -/
+theorem trace_equiv_trans {p q r : Program w h}
+    (hpq : trace_equiv p q) (hqr : trace_equiv q r) : trace_equiv p r := by
+  constructor
+  · intro n
+    rcases hpq.1 n with ⟨m, hm⟩
+    rcases hqr.1 m with ⟨l, hl⟩
+    exact ⟨l, hm.trans hl⟩
+  · intro l
+    rcases hqr.2 l with ⟨m, hm⟩
+    rcases hpq.2 m with ⟨n, hn⟩
+    exact ⟨n, hm.trans hn⟩
 
 /-- A non-string-mode space preserves stack and output for one step. -/
 theorem step_nop_observe_of_decoded (s : State w h) (hm : s.stringMode = false)

@@ -111,6 +111,31 @@ example (s : State w h) (hm : s.stringMode = false)
     step (Program.rotateCWState s) = none :=
   Program.step_rotateCWState_halt_right s hm hdecode hx hy
 
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .dup)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .dup)) :=
+  Program.step_rotateCWState_dup_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .swap)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .swap)) :=
+  Program.step_rotateCWState_swap_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .drop)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .drop)) :=
+  Program.step_rotateCWState_drop_right s hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .printChar)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) =
+      some (Program.rotateCWState (stepState s .printChar)) :=
+  Program.step_rotateCWState_printChar_right s hm hdir hdecode hx hy
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

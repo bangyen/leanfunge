@@ -11,6 +11,7 @@ import Tests.Parser
 import Tests.Random
 import Tests.Stack
 import Tests.Step
+import Tests.Termination
 
 /-!
 # Test Suite Aggregator

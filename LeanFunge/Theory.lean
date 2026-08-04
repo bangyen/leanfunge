@@ -10,6 +10,7 @@ import LeanFunge.Theory.Parser
 import LeanFunge.Theory.Random
 import LeanFunge.Theory.Stack
 import LeanFunge.Theory.Step
+import LeanFunge.Theory.Termination
 
 /-!
 # Theory Aggregator

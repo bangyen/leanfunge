@@ -18,7 +18,7 @@ the arithmetic `div`/`mod`, the comparison, the stack-manipulation
 * `step_div`: `/` pushes the quotient of the top two values.
 * `step_mod`: `%` pushes the remainder of the top two values.
 * `step_greater`: the comparison instruction pushes `1` when the
-  second-popped value exceeds the top, and `0` otherwise.
+  second-popped value exceeds the top, and 0 otherwise.
 * `step_dup`: `:` duplicates the top of the stack.
 * `step_swap`: `\` swaps the top two elements of the stack.
 * `step_drop`: `$` discards the top of the stack.

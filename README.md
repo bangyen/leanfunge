@@ -82,6 +82,10 @@ the Lean kernel:
   negative integer (`12`, `-3`) from the input stream.
 - `SelfMod`: `>88*80p  ` writes its own `@` instruction with `p` and then runs
   into it and halts; `>77*70p  @` writes a `1` instruction and executes it.
+- `DecimalOutput`: a "library" program reads a decimal integer with `&` and
+  prints its digits back as characters with `,` — a `div`/`mod` extraction loop
+  stores the remainders in cells and a print loop fetches them in reverse order.
+  Reading `123`, `12345`, or `5` prints the same digits back.
 
 ## Roadmap
 
@@ -95,7 +99,7 @@ the Lean kernel:
 | **Verified termination analysis** | ✅ Done | `Theory/Termination` proves strictly decreasing counters are bounded and hit zero, and that any decreasing-counter machine halts or reaches zero in finitely many steps, covering the loop examples. |
 | **Run-level program equivalence** | ✅ Done | `Theory/Run` proves a grid-preserving program leaves the playfield unchanged across a whole run, and a nop-only run leaves the stack unchanged. |
 | **Complete the instruction set** | ✅ Done | `Theory/StepOps` adds single-step theorems for `/`, `%`, the comparison, `:`, `\`, `$`, `~` (including EOF), and `&` using the existing patterns, completing single-step coverage. |
-| **Verified decimal output routine** | High | The dual of the `&` parser: a verified loop that prints a multi-digit number as characters, combining loops and `div`/`mod` — the first verified "library" program. |
+| **Verified decimal output routine** | ✅ Done | `DecimalOutput` is a verified `div`/`mod` loop that stores digits in cells and prints them back in order; reading `123`, `12345`, or `5` prints the same digits and halts — the first verified "library" program. |
 | **Program equivalence** | Medium | Prove two programs behave identically (e.g., under spacing or rotation rewrites), connecting step semantics to whole-program reasoning. |
 | **Determinism for `?`** | Medium | `Theory.Random` proves the interpreter is a sound refinement of `stepRel`; add the complementary result that non-`?` programs have a unique successor. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |

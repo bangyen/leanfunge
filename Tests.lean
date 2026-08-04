@@ -9,6 +9,7 @@ import Tests.Examples
 import Tests.Grid
 import Tests.Invariance
 import Tests.Parser
+import Tests.Program
 import Tests.Random
 import Tests.Run
 import Tests.Stack

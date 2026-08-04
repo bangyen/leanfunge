@@ -139,28 +139,26 @@ no external interpreter is trusted.
 | `Countdown` | 26×4 loop with cell counter | output `321`, halts after 133 steps |
 | `Factorial` | 26×4 loop with cell counter | computes `3!`, final stack `[6]`, halts |
 | `Input` | `&2+.@`, `&.@`, `&@` (5×1, 3×1, 2×1) | reads `5`→prints `7`, reads `12`→prints `12`, reads `-3` onto the stack |
+| `DecimalOutput` | 48×10 extraction/print loops | reads `0`, `5`, `123`, `12345` and prints each back as characters; the printed output re-parses to the original number |
 | `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
-| `DecimalOutput` | 48×10 two-loop program with cells | reads `123` (resp. `12345`, `5`) with `&` and prints `123` (resp. `12345`, `5`) back as characters; halts |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the
 instruction pointer reach and execute the written instruction.
 
+`DecimalOutput` is the first verified "library" program: a reusable routine
+that reads a non-negative integer with `&` and prints it back as characters.
+The running value lives in `(0, 0)` and the digit count in `(1, 0)`; an
+extraction loop divides by 10 (`55+/`), stores each remainder digit in a cell
+of column 0, and stores the quotient back, while a print loop fetches the
+digits in reverse order, adds 48, and prints with `,`. The theorem
+`decimal_roundtrip` re-parses each printed output with `parseInt`,
+reconstructing the original number — the dual of the `&` parser.
+
 The two looping programs use a common structure: the counter lives in the cell
 `(0, 0)`, the loop check is `00g!|` (fetch, logical-not, vertical branch), and
 the `|` exits upward to `@` when the counter reaches zero while the loop body
 runs downward, multiplies/prints, decrements, and stores the counter back.
-
-`DecimalOutput` is the first verified "library" program: it composes an
-extraction loop and a print loop over cells of column 0. The extraction loop
-fetches the running value from `(0, 0)`, pushes `10` with `55+`, stores
-`n % 10` in cell `(0, i + 2)` with `p`, stores `n / 10` back, and increments
-the count `i` in `(1, 0)`; its check `|` continues while the quotient is
-non-zero and otherwise exits up to the print setup. The setup fetches `i + 1`
-(reading upward in column 8) and flows right into the print loop, which fetches
-each digit cell `(0, y)` back, adds `48` (`58*8+`), prints the character, and
-decrements `y` until it reaches `2`. Reading `123`, `12345`, or `5` each prints
-the digits back and halts.
 
 Because `run n` evaluations can be deep (130+ steps), the project raises
 `maxRecDepth` to `10000` in `lakefile.toml` so the kernel `decide` tactic can

@@ -32,7 +32,21 @@ example :
     (run 150 singleState).map (fun s => s.output) = some "5" :=
   single_output
 
-example : run 200 singleState = none :=
+example : run 159 singleState = none :=
   single_halts
+
+example :
+    (run 150 zeroState).map (fun s => s.output) = some "0" :=
+  zero_output
+
+example : run 159 zeroState = none :=
+  zero_halts
+
+example :
+    (run 400 decimalState).map (fun s => parseInt s.output.toList) = some ([], 123) ∧
+    (run 700 decimal5State).map (fun s => parseInt s.output.toList) = some ([], 12345) ∧
+    (run 150 singleState).map (fun s => parseInt s.output.toList) = some ([], 5) ∧
+    (run 150 zeroState).map (fun s => parseInt s.output.toList) = some ([], 0) :=
+  decimal_roundtrip
 
 end LeanFunge.Tests

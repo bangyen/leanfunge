@@ -101,4 +101,44 @@ theorem arithmetic_padded_ordered_equiv :
                       | zero => decide
                       | succ n => omega
 
+def arithmeticOriginal : Program 5 1 :=
+  Grid.ofRows 5 1 [(String.toList "23+.@")]
+
+def arithmeticLeadingSpace : Program 6 1 :=
+  Grid.ofRows 6 1 [(String.toList " 23+.@")]
+
+theorem arithmeticOriginal_halts (n : ℕ) :
+    run (n + 5) (State.init arithmeticOriginal) = none := by
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init arithmeticOriginal) (n := 5) (m := n) (by decide)
+
+theorem arithmeticLeadingSpace_halts (n : ℕ) :
+    run (n + 6) (State.init arithmeticLeadingSpace) = none := by
+  simpa [Nat.add_comm] using
+    run_halts_mono (State.init arithmeticLeadingSpace) (n := 6) (m := n) (by decide)
+
+theorem arithmetic_leading_space_ordered_equiv :
+    Program.ordered_trace_equiv_between arithmeticOriginal arithmeticLeadingSpace := by
+  apply Program.ordered_trace_equiv_between_one_step_prefix
+  · decide
+  · intro n
+    cases n with
+    | zero => decide
+    | succ n =>
+        cases n with
+        | zero => decide
+        | succ n =>
+            cases n with
+            | zero => decide
+            | succ n =>
+                cases n with
+                | zero => decide
+                | succ n =>
+                    cases n with
+                    | zero => decide
+                    | succ n =>
+                        rw [arithmeticOriginal_halts n,
+                          arithmeticLeadingSpace_halts n]
+                        rfl
+
 end LeanFunge.Examples

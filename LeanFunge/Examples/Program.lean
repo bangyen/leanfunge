@@ -64,12 +64,6 @@ def arithmeticPaddedRight : Program 6 1 :=
 def arithmeticPaddedRightAfterSpace : State 6 1 :=
   { State.init arithmeticPaddedRight with pc := (1, 0) }
 
-theorem arithmeticPaddedRight_step :
-    step (State.init arithmeticPaddedRight) =
-      some arithmeticPaddedRightAfterSpace := by
-  rw [step_nop (State.init arithmeticPaddedRight) rfl (by decide)]
-  rfl
-
 theorem arithmeticPaddedLeft_halts (n : ℕ) :
     run (n + 5) (State.init arithmeticPaddedLeft) = none := by
   simpa [Nat.add_comm] using
@@ -94,7 +88,9 @@ theorem arithmetic_padded_ordered_equiv :
       have hrun := Program.run_succ_eq_run_from_step
         (s := State.init arithmeticPaddedRight)
         (s' := arithmeticPaddedRightAfterSpace)
-        arithmeticPaddedRight_step (d + 5)
+        (by
+          rw [step_nop (State.init arithmeticPaddedRight) rfl (by decide)]
+          rfl) (d + 5)
       rw [arithmeticPaddedRight_halts d] at hrun
       simpa [Nat.add_comm] using hrun.symm
     · intro n hn

@@ -59,6 +59,15 @@ example {R : State w h → State w' h' → Prop}
     (hst : R s t) : step s = none ↔ step t = none :=
   Program.state_simulation_halts hR hst
 
+example (s : State w h) :
+    Program.observe (some s) = Program.observe (some (Program.prependSpaceState s)) :=
+  Program.prependSpaceState_observe s
+
+example (s : State w h) (hx : s.pc.1 < w) :
+    (Program.prependSpaceState s).grid.get (Program.prependSpaceState s).pc.1
+      (Program.prependSpaceState s).pc.2 = s.grid.get s.pc.1 s.pc.2 :=
+  Program.prependSpaceState_cell s hx
+
 example {R : State w h → State w' h' → Prop}
     (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
     (hst : R s t) (n : ℕ) :

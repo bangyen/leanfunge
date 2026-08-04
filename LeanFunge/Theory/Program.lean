@@ -95,6 +95,12 @@ def state_simulation (R : State w h → State w' h' → Prop) : Prop :=
       (∀ s', step s = some s' → ∃ t', step t = some t' ∧ R s' t') ∧
       (∀ t', step t = some t' → ∃ s', step s = some s' ∧ R s' t')
 
+/-- Shift a state into a playfield with a leading-space column. -/
+def prependSpaceState (s : State w h) : State (w + 1) h :=
+  { s with
+    grid := Grid.prependSpace s.grid
+    pc := (s.pc.1 + 1, s.pc.2) }
+
 /-- Program equivalence is reflexive. -/
 theorem equiv_refl (p : Program w h) : equiv p p := by
   intro n
@@ -165,6 +171,20 @@ theorem state_simulation_halts {R : State w h → State w' h' → Prop}
     (hR : state_simulation R) {s t} (hst : R s t) :
     step s = none ↔ step t = none :=
   (hR s t hst).2.1
+
+/-- Leading-space state mapping preserves the observable state. -/
+theorem prependSpaceState_observe (s : State w h) :
+    observe (some s) = observe (some (prependSpaceState s)) := by
+  rfl
+
+/-- The leading-space state mapping preserves the fetched cell before the new
+    toroidal boundary. -/
+theorem prependSpaceState_cell (s : State w h) (hx : s.pc.1 < w) :
+    (prependSpaceState s).grid.get (prependSpaceState s).pc.1
+      (prependSpaceState s).pc.2 = s.grid.get s.pc.1 s.pc.2 := by
+  change (Grid.prependSpace s.grid).get (s.pc.1 + 1) s.pc.2 =
+    s.grid.get s.pc.1 s.pc.2
+  exact Grid.get_prependSpace_succ s.grid s.pc.1 s.pc.2 hx
 
 /-- Relate optional run results under a state simulation. -/
 def option_state_related (R : State w h → State w' h' → Prop) :

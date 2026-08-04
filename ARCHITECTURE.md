@@ -134,7 +134,8 @@ project convention that `Core` files contain only definitions.
   `run_related_of_state_simulation` provide the bisimulation layer for
   dimension-changing transformations, while
   `run_observations_of_state_simulation` turns that layer into observational
-  equivalence.
+  equivalence. `prependSpaceState` supplies the leading-space mapping and its
+  bounded cell correspondence.
 
 ## Verified Example Programs
 

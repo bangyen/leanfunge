@@ -49,6 +49,9 @@ theorem halt_padded_ordered_equiv : Program.ordered_trace_equiv haltLeft haltRig
       subst this
       rfl
 
+def arithmeticOriginal : Program 5 1 :=
+  Grid.ofRows 5 1 [(String.toList "23+.@")]
+
 def arithmeticPaddedLeft : Program 6 1 :=
   Grid.ofRows 6 1 [(String.toList "23+.@ ")]
 
@@ -101,11 +104,8 @@ theorem arithmetic_padded_ordered_equiv :
                       | zero => decide
                       | succ n => omega
 
-def arithmeticOriginal : Program 5 1 :=
-  Grid.ofRows 5 1 [(String.toList "23+.@")]
-
 def arithmeticLeadingSpace : Program 6 1 :=
-  Grid.ofRows 6 1 [(String.toList " 23+.@")]
+  Grid.prependSpace arithmeticOriginal
 
 theorem arithmeticOriginal_halts (n : ℕ) :
     run (n + 5) (State.init arithmeticOriginal) = none := by

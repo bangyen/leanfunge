@@ -89,7 +89,7 @@ the Lean kernel:
 | **`?` as true nondeterminism** | ✅ Done | `stepRel` is a relational transition and `Theory.Random` proves the interpreter is a sound refinement, plus all four directions are reachable `?` outcomes. |
 | **Faithful `&` integer input** | ✅ Done | `Core/Parser` implements a decimal parser (sign, spaces, multi-digit) and `Theory/Parser` proves the digits round-trip; `Input` verifies programs reading `5`, `12`, and `-3`. |
 | **Self-modification showcase** | ✅ Done | `SelfMod` verifies programs that write their own `@` (halting by rewriting) and that write then execute a `1` instruction. |
-| **Verified termination analysis** | Medium | Generalize the loop examples: prove that any countdown-style loop (a cell counter that strictly decreases toward zero) halts, covering `Countdown` and `Factorial` as instances. |
+| **Verified termination analysis** | ✅ Done | `Theory/Termination` proves strictly decreasing counters are bounded and hit zero, and that any decreasing-counter machine halts or reaches zero in finitely many steps, covering the loop examples. |
 | **Run-level program equivalence** | Medium | Lift the step-level invariance to whole runs, e.g. appending a block of no-ops never changes a program's final stack, or a cell never written by `p` keeps its value across a run. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 

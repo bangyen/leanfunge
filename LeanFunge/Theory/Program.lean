@@ -186,6 +186,23 @@ theorem prependSpaceState_cell (s : State w h) (hx : s.pc.1 < w) :
     s.grid.get s.pc.1 s.pc.2
   exact Grid.get_prependSpace_succ s.grid s.pc.1 s.pc.2 hx
 
+/-- A right-moving no-op step commutes with leading-space state padding before
+    the original playfield boundary. -/
+theorem step_prependSpaceState_nop_right (s : State w h)
+    (hdir : s.dir = .right) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ')
+    (hx : s.pc.1 + 1 < w) :
+    step (prependSpaceState s) =
+      some (prependSpaceState { s with pc := stepPos w h .right s.pc }) := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell' : (prependSpaceState s).grid.get
+      (prependSpaceState s).pc.1 (prependSpaceState s).pc.2 = ' ' := by
+    rw [prependSpaceState_cell s hpc]
+    exact hcell
+  rw [step_nop (prependSpaceState s) hm hcell']
+  simp [prependSpaceState, hdir, stepPos, Nat.mod_eq_of_lt hx,
+    Nat.mod_eq_of_lt (Nat.succ_lt_succ hx)]
+
 /-- Relate optional run results under a state simulation. -/
 def option_state_related (R : State w h → State w' h' → Prop) :
     Option (State w h) → Option (State w' h') → Prop

@@ -68,6 +68,12 @@ example (s : State w h) (hx : s.pc.1 < w) :
       (Program.prependSpaceState s).pc.2 = s.grid.get s.pc.1 s.pc.2 :=
   Program.prependSpaceState_cell s hx
 
+example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
+    step (Program.prependSpaceState s) =
+      some (Program.prependSpaceState { s with pc := stepPos w h .right s.pc }) :=
+  Program.step_prependSpaceState_nop_right s hdir hm hcell hx
+
 example {R : State w h → State w' h' → Prop}
     (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
     (hst : R s t) (n : ℕ) :

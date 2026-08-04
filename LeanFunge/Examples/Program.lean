@@ -83,28 +83,32 @@ theorem arithmetic_padded_ordered_equiv :
     arithmeticPaddedRightAfterSpace
   · exact arithmeticPaddedRight_step
   · decide
-  · intro n
-    cases n with
-    | zero => decide
-    | succ n =>
-        cases n with
-        | zero => decide
-        | succ n =>
-            cases n with
-            | zero => decide
-            | succ n =>
-                cases n with
-                | zero => decide
-                | succ n =>
-                    cases n with
-                    | zero => decide
-                    | succ n =>
-                        have hrun := Program.run_succ_eq_run_from_step
-                          (s := State.init arithmeticPaddedRight)
-                          (s' := arithmeticPaddedRightAfterSpace)
-                          arithmeticPaddedRight_step (n + 5)
-                        rw [arithmeticPaddedRight_halts n] at hrun
-                        rw [arithmeticPaddedLeft_halts n]
-                        rw [← hrun]
+  · apply Program.run_observe_eq_of_finite_prefix
+      (State.init arithmeticPaddedLeft) arithmeticPaddedRightAfterSpace 5
+    · intro d
+      simpa [Nat.add_comm] using arithmeticPaddedLeft_halts d
+    · intro d
+      have hrun := Program.run_succ_eq_run_from_step
+        (s := State.init arithmeticPaddedRight)
+        (s' := arithmeticPaddedRightAfterSpace)
+        arithmeticPaddedRight_step (d + 5)
+      rw [arithmeticPaddedRight_halts d] at hrun
+      simpa [Nat.add_comm] using hrun.symm
+    · intro n hn
+      cases n with
+      | zero => decide
+      | succ n =>
+          cases n with
+          | zero => decide
+          | succ n =>
+              cases n with
+              | zero => decide
+              | succ n =>
+                  cases n with
+                  | zero => decide
+                  | succ n =>
+                      cases n with
+                      | zero => decide
+                      | succ n => omega
 
 end LeanFunge.Examples

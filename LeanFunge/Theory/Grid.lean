@@ -65,5 +65,16 @@ theorem get_put_other (g : Grid w h) (x1 y1 x2 y2 : ℕ) (c : Char)
       exact hx hAnd.1
     exact dif_neg hne
 
+/-- Leading-space padding preserves each original cell at its shifted
+    coordinate, before the new toroidal boundary. -/
+theorem get_prependSpace_succ (g : Grid w h) (x y : ℕ) (hx : x < w) :
+    (Grid.prependSpace g).get (x + 1) y = g.get x y := by
+  unfold Grid.get Grid.prependSpace
+  dsimp
+  have hmod : (x + 1) % (w + 1) = x + 1 :=
+    Nat.mod_eq_of_lt (Nat.succ_lt_succ hx)
+  rw [hmod]
+  simp [Grid.get]
+
 end Grid
 end LeanFunge

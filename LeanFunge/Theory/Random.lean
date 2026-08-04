@@ -106,7 +106,7 @@ theorem stepRel_not_unique_of_random (s : State w h) (hm : s.stringMode = false)
     (stepRel_random_choice s hm hr .down)
   have hdir : Direction.up = Direction.down := by
     have h := congrArg (fun o : Option (State w h) => o.map State.dir) heq
-    simpa only [Option.map] using h
+    injection h with hdir
   cases hdir
 
 end LeanFunge

@@ -113,8 +113,9 @@ project convention that `Core` files contain only definitions.
   foundational "only `p` mutates the playfield" properties of the language.
 - `Theory/Random.lean`: nondeterminism. The transition relation `stepRel`
   allows any direction at `?`; `step_refines_stepRel` shows the deterministic
-  interpreter is a sound refinement, and `stepRel_random_four` shows all four
-  directions are reachable `?` outcomes.
+  interpreter is a sound refinement, `stepRel_random_four` shows all four
+  directions are reachable `?` outcomes, and the uniqueness/non-uniqueness
+  theorems characterize the determinism boundary.
 - `Theory/Parser.lean`: integer input. `parseInt` (in `Core/Parser`) reads a
   signed decimal integer from the input stream; `natDigitsValue_natDigits`
   proves the decimal digits round-trip.

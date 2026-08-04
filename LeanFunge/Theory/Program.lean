@@ -207,6 +207,24 @@ theorem run_related_of_state_simulation
               rw [run, hs, run, ht]
               simpa [hstep, hstep', option_state_related] using hrel'
 
+/-- A state simulation gives equal observations at every deterministic run
+    bound. -/
+theorem run_observations_of_state_simulation
+    {R : State w h → State w' h' → Prop} (hR : state_simulation R)
+    {s : State w h} {t : State w' h'} (hst : R s t) (n : ℕ) :
+    observe (run n s) = observe (run n t) := by
+  have hrel := run_related_of_state_simulation hR hst n
+  rcases hs : run n s with _ | s'
+  · rcases ht : run n t with _ | t'
+    · rfl
+    · rw [hs, ht] at hrel
+      cases hrel
+  · rcases ht : run n t with _ | t'
+    · rw [hs, ht] at hrel
+      cases hrel
+    · rw [hs, ht] at hrel
+      exact state_simulation_observe hR hrel
+
 /-- Trace equivalence is reflexive. -/
 theorem trace_equiv_refl (p : Program w h) : trace_equiv p p := by
   constructor <;> intro n <;> exact ⟨n, rfl⟩

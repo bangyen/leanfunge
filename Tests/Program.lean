@@ -65,6 +65,12 @@ example {R : State w h → State w' h' → Prop}
     Program.option_state_related R (run n s) (run n t) :=
   Program.run_related_of_state_simulation hR hst n
 
+example {R : State w h → State w' h' → Prop}
+    (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
+    (hst : R s t) (n : ℕ) :
+    Program.observe (run n s) = Program.observe (run n t) :=
+  Program.run_observations_of_state_simulation hR hst n
+
 example (p : Program w h) : Program.trace_equiv p p :=
   Program.trace_equiv_refl p
 

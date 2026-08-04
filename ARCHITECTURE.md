@@ -132,7 +132,9 @@ project convention that `Core` files contain only definitions.
   stuttering step alignments, with reusable no-op-prefix and finite halted-tail
   lemmas for spacing rewrites; `state_simulation` and
   `run_related_of_state_simulation` provide the bisimulation layer for
-  dimension-changing transformations.
+  dimension-changing transformations, while
+  `run_observations_of_state_simulation` turns that layer into observational
+  equivalence.
 
 ## Verified Example Programs
 

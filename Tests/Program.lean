@@ -84,6 +84,20 @@ example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
       { s with pc := stepPos w h .right s.pc }) :=
   Program.step_rotateCWState_nop_right s hm hdir hcell hx hy
 
+example (s : State w h) (n : Int) (hm : s.stringMode = false)
+    (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .push n)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s (.push n))) :=
+  Program.step_rotateCWState_push_right s n hm hdir hdecode hx hy
+
+example (s : State w h) (hm : s.stringMode = false)
+    (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .add)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState (stepState s .add)) :=
+  Program.step_rotateCWState_add_right s hm hdir hdecode hx hy
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

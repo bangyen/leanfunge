@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Invariance
 
 /-!
 # Program Equivalence
@@ -16,6 +17,8 @@ import LeanFunge.Core.Semantics
 * `Program.observe`: The externally relevant part of a run result.
 * `Program.observational_equiv`: Two programs agree on stack, output, and
   halting at every finite run length.
+* `step_nop_observe`: A space preserves the observable state for one step.
+* `run_nop_observe`: A run of no-ops preserves the observable state.
 
 The definition compares the complete state, rather than only output, so later
 rewrite theorems can preserve stack, instruction-pointer, and self-modifying
@@ -84,6 +87,57 @@ theorem observational_equiv_trans {p q r : Program w h}
     observational_equiv p r := by
   intro n
   exact (hpq n).trans (hqr n)
+
+/-- A non-string-mode space preserves stack and output for one step. -/
+theorem step_nop_observe_of_decoded (s : State w h) (hm : s.stringMode = false)
+    (hnop : decodeChar (s.grid.get s.pc.1 s.pc.2) = .nop) :
+    observe (step s) = some (s.stack, s.output) := by
+  unfold step
+  dsimp only
+  rw [hm, hnop]
+  rfl
+
+/-- A non-string-mode space preserves stack and output for one step. -/
+theorem step_nop_observe (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') :
+    observe (step s) = some (s.stack, s.output) := by
+  apply step_nop_observe_of_decoded s hm
+  rw [hcell]
+  rfl
+
+/-- A run whose every reached state executes a no-op preserves its initial
+    stack and output, and remains running. -/
+theorem run_nop_observe (s : State w h) (n : ℕ) (s' : State w h)
+    (h : run n s = some s')
+    (hn : ∀ k, k ≤ n → ∀ sₖ, run k s = some sₖ →
+      sₖ.stringMode = false ∧ decodeChar (sₖ.grid.get sₖ.pc.1 sₖ.pc.2) = .nop) :
+    observe (run n s) = some (s.stack, s.output) := by
+  induction n generalizing s' with
+  | zero =>
+      rw [run] at h
+      injection h with hs'
+      rw [run, hs']
+      rfl
+  | succ n ih =>
+      rcases hrun : run n s with _ | sₙ
+      · rw [run, hrun] at h
+        cases h
+      · rw [run, hrun] at h
+        have hstep : step sₙ = some s' := by simpa only using h
+        have hprev : observe (some sₙ) = some (s.stack, s.output) := by
+          rw [← hrun]
+          apply ih sₙ hrun
+          intro k hk sₖ hsₖ
+          exact hn k (Nat.le_trans hk (Nat.le_succ n)) sₖ hsₖ
+        have hnext : observe (some s') = observe (some sₙ) := by
+          rw [← hstep]
+          simpa only using step_nop_observe_of_decoded sₙ
+            (hn n (Nat.le_succ n) sₙ hrun).1
+            (hn n (Nat.le_succ n) sₙ hrun).2
+        rw [run, hrun]
+        change observe (step sₙ) = some (s.stack, s.output)
+        rw [hstep]
+        exact hnext.trans hprev
 
 end Program
 

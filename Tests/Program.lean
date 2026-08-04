@@ -40,4 +40,16 @@ example {p q r : Program w h}
     Program.observational_equiv p r :=
   Program.observational_equiv_trans hpq hqr
 
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') :
+    Program.observe (step s) = some (s.stack, s.output) :=
+  Program.step_nop_observe s hm hcell
+
+example {w h : ℕ} (s : State w h) (n : ℕ) (s' : State w h)
+    (h : run n s = some s')
+    (hn : ∀ k, k ≤ n → ∀ sₖ, run k s = some sₖ →
+      sₖ.stringMode = false ∧ decodeChar (sₖ.grid.get sₖ.pc.1 sₖ.pc.2) = .nop) :
+    Program.observe (run n s) = some (s.stack, s.output) :=
+  Program.run_nop_observe s n s' h hn
+
 end LeanFunge.Tests

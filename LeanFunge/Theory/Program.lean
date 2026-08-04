@@ -255,6 +255,17 @@ theorem step_nop_observe (s : State w h) (hm : s.stringMode = false)
   rw [hcell]
   rfl
 
+/-- The state reached by executing a non-string-mode space. -/
+def nop_successor (s : State w h) : State w h :=
+  { s with pc := stepPos w h s.dir s.pc }
+
+/-- A non-string-mode space steps to `nop_successor`. -/
+theorem step_nop_successor (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') :
+    step s = some (nop_successor s) := by
+  rw [step_nop s hm hcell]
+  rfl
+
 /-- Running a state for one step and then `n` more steps is the same as
     starting from the state reached by that first step. -/
 theorem run_succ_eq_run_from_step {s s' : State w h} (hstep : step s = some s')
@@ -287,14 +298,10 @@ theorem ordered_trace_equiv_of_nop_continuation {p q : Program w h}
     (hcell : (State.init q).grid.get (State.init q).pc.1 (State.init q).pc.2 = ' ')
     (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
     (hcont : ∀ n, observe (run n (State.init p)) =
-      observe (run n { State.init q with
-        pc := stepPos w h (State.init q).dir (State.init q).pc })) :
+      observe (run n (nop_successor (State.init q)))) :
     ordered_trace_equiv p q := by
-  let q' : State w h := { State.init q with
-    pc := stepPos w h (State.init q).dir (State.init q).pc }
-  have hstep : step (State.init q) = some q' := by
-    rw [step_nop (State.init q) hm hcell]
-  apply ordered_trace_equiv_of_step_continuation q' hstep h₀
+  apply ordered_trace_equiv_of_step_continuation (nop_successor (State.init q))
+    (step_nop_successor (State.init q) hm hcell) h₀
   exact hcont
 
 /-- Two states have equal observations at every step when their first `k`

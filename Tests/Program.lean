@@ -102,8 +102,7 @@ example {w h : ℕ} {p q : Program w h}
     (h₀ : Program.observe (run 0 (State.init p)) =
       Program.observe (run 0 (State.init q)))
     (hcont : ∀ n, Program.observe (run n (State.init p)) =
-      Program.observe (run n { State.init q with
-        pc := stepPos w h (State.init q).dir (State.init q).pc })) :
+      Program.observe (run n (Program.nop_successor (State.init q)))) :
     Program.ordered_trace_equiv p q :=
   Program.ordered_trace_equiv_of_nop_continuation hm hcell h₀ hcont
 

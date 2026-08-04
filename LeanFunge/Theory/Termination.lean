@@ -8,6 +8,11 @@ import Mathlib.Data.Nat.Init
 /-!
 # Termination Analysis
 
+## Main definitions
+
+* `runMachine`: Run a counter machine for finitely many steps.
+* `countdownNext`: The counter transition of a countdown loop.
+
 ## Theorems
 
 * `decreasing_seq_bound`: A strictly decreasing sequence of naturals has

@@ -96,6 +96,17 @@ example {w h : ℕ} {p q : Program w h} (q' : State w h)
     Program.ordered_trace_equiv p q :=
   Program.ordered_trace_equiv_of_step_continuation q' hstep h₀ hcont
 
+example {w h : ℕ} {p q : Program w h}
+    (hm : (State.init q).stringMode = false)
+    (hcell : (State.init q).grid.get (State.init q).pc.1 (State.init q).pc.2 = ' ')
+    (h₀ : Program.observe (run 0 (State.init p)) =
+      Program.observe (run 0 (State.init q)))
+    (hcont : ∀ n, Program.observe (run n (State.init p)) =
+      Program.observe (run n { State.init q with
+        pc := stepPos w h (State.init q).dir (State.init q).pc })) :
+    Program.ordered_trace_equiv p q :=
+  Program.ordered_trace_equiv_of_nop_continuation hm hcell h₀ hcont
+
 example {w h : ℕ} (s t : State w h) (k : ℕ)
     (hs : ∀ d, run (k + d) s = none)
     (ht : ∀ d, run (k + d) t = none)

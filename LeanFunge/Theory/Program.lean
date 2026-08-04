@@ -280,6 +280,23 @@ theorem ordered_trace_equiv_of_step_continuation {p q : Program w h}
   rw [run_succ_eq_run_from_step hstep n]
   exact hcont n
 
+/-- A leading space can be handled as a one-step continuation without
+    repeating its successor-state proof. -/
+theorem ordered_trace_equiv_of_nop_continuation {p q : Program w h}
+    (hm : (State.init q).stringMode = false)
+    (hcell : (State.init q).grid.get (State.init q).pc.1 (State.init q).pc.2 = ' ')
+    (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
+    (hcont : ∀ n, observe (run n (State.init p)) =
+      observe (run n { State.init q with
+        pc := stepPos w h (State.init q).dir (State.init q).pc })) :
+    ordered_trace_equiv p q := by
+  let q' : State w h := { State.init q with
+    pc := stepPos w h (State.init q).dir (State.init q).pc }
+  have hstep : step (State.init q) = some q' := by
+    rw [step_nop (State.init q) hm hcell]
+  apply ordered_trace_equiv_of_step_continuation q' hstep h₀
+  exact hcont
+
 /-- Two states have equal observations at every step when their first `k`
     checkpoints agree and both runs remain halted afterward. -/
 theorem run_observe_eq_of_finite_prefix (s t : State w h) (k : ℕ)

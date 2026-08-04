@@ -294,6 +294,52 @@ theorem step_prependSpacesState_add_right (s : State w h) (k : ℕ)
   simp [prependSpacesState, stepState, hdir, stepPos, hold, hnew]
   omega
 
+/-- A right-moving integer-output step commutes with `k`-cell leading-space
+    padding before the original playfield boundary. -/
+theorem step_prependSpacesState_printInt_right (s : State w h) (k : ℕ)
+    (hdir : s.dir = .right) (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .printInt)
+    (hx : s.pc.1 + 1 < w) :
+    step (prependSpacesState s k) = some (prependSpacesState
+      (stepState s .printInt) k) := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell : (prependSpacesState s k).grid.get
+      (prependSpacesState s k).pc.1 (prependSpacesState s k).pc.2 =
+      s.grid.get s.pc.1 s.pc.2 := prependSpacesState_cell s k hpc
+  have hdecode' : decodeChar ((prependSpacesState s k).grid.get
+      (prependSpacesState s k).pc.1 (prependSpacesState s k).pc.2) = .printInt := by
+    rw [hcell]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (prependSpacesState s k).stringMode = false := hm
+  rw [hdecode', hm']
+  have hold : (s.pc.1 + 1) % w = s.pc.1 + 1 := Nat.mod_eq_of_lt hx
+  have hnew : (s.pc.1 + k + 1) % (w + k) = s.pc.1 + k + 1 := by
+    apply Nat.mod_eq_of_lt
+    omega
+  simp [prependSpacesState, stepState, hdir, stepPos, hold, hnew]
+  omega
+
+/-- A right-moving halt step commutes with `k`-cell leading-space padding by
+    halting on both sides. -/
+theorem step_prependSpacesState_halt_right (s : State w h) (k : ℕ)
+    (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt)
+    (hx : s.pc.1 + 1 < w) : step (prependSpacesState s k) = none := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell : (prependSpacesState s k).grid.get
+      (prependSpacesState s k).pc.1 (prependSpacesState s k).pc.2 =
+      s.grid.get s.pc.1 s.pc.2 := prependSpacesState_cell s k hpc
+  have hdecode' : decodeChar ((prependSpacesState s k).grid.get
+      (prependSpacesState s k).pc.1 (prependSpacesState s k).pc.2) = .halt := by
+    rw [hcell]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (prependSpacesState s k).stringMode = false := hm
+  rw [hdecode', hm']
+
 /-- A right-moving push step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_push_right (s : State w h) (n : Int)

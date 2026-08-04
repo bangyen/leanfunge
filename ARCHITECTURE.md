@@ -123,6 +123,9 @@ project convention that `Core` files contain only definitions.
   playfield unchanged across the whole run (`run_grid_invariant`), so a cell
   never written by the put instruction keeps its value; a nop-only run leaves
   the stack unchanged (`run_stack_invariant`).
+- `Theory/Run/Relational.lean`: multi-step relational semantics. `runRel`
+  lifts `stepRel` to finite runs, including halt propagation; deterministic
+  runs refine it, and one-step relational runs coincide with `stepRel`.
 - `Theory/Program.lean`: program equivalence. Strict and observational
   equivalence compare bounded runs; ordered trace equivalence supports
   stuttering step alignments, with reusable no-op-prefix and finite halted-tail

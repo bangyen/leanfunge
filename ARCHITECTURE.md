@@ -118,7 +118,8 @@ project convention that `Core` files contain only definitions.
   theorems characterize the determinism boundary.
 - `Theory/Parser.lean`: integer input. `parseInt` (in `Core/Parser`) reads a
   signed decimal integer from the input stream; `natDigitsValue_natDigits`
-  proves the decimal digits round-trip.
+  proves the decimal digits round-trip, and `parseInt_natDigits` shows parsing
+  the digit characters of a number consumes the stream and recovers it.
 - `Theory/Run.lean`: run-level invariance. A grid-preserving run leaves the
   playfield unchanged across the whole run (`run_grid_invariant`), so a cell
   never written by the put instruction keeps its value; a nop-only run leaves
@@ -137,6 +138,7 @@ project convention that `Core` files contain only definitions.
   equivalence. `prependSpaceState` supplies the leading-space mapping and its
   bounded cell correspondence; the arithmetic example assembles the
   instruction-level no-wrap cases into a concrete state bisimulation.
+  `ioBehavior` and `io_equiv` define input/output behavior contracts.
 
 ## Verified Example Programs
 

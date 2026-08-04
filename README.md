@@ -110,7 +110,7 @@ the Lean kernel:
 | **Verified spacing transformations** | ✅ Done | `Grid.prependSpace`, `prependSpaceState`, and the arithmetic bisimulation verify a width-changing leading-space rewrite under explicit no-wrap conditions. |
 | **Verified program transformations** | ✅ Done | Spacing rewrites are verified; rotation commutes with the full non-branching instruction set but is unsound in general (`rotateCounter` shows `_` changes behavior), so full rotation is documented as a limitation. |
 | **Rotation-safe rewrites** | Medium | Verify clockwise rotation under a `rotationSafe` predicate restricting programs to the sound instruction set (no `_`, `|`, `?`, `p`, `g`). |
-| **I/O behavior contracts** | Medium | Define input-consumption and output-production contracts and use them to compose the verified parser and decimal-output routines. |
+| **I/O behavior contracts** | ✅ Done | `ioBehavior` and `io_equiv` define input-consumption/output-production contracts; `parseInt_natDigits` proves the parser consumes a digit stream and recovers the number; `&.@` read-print contracts are verified for concrete inputs. The generic output re-parse round-trip is limited by Lean's non-reducible `toString` encoding. |
 | **Verified optimization rewrites** | Medium | Verify local stack-neutral rewrites such as no-op elimination and simple constant folding. |
 | **Generic ranking-function termination API** | Medium | Generalize the decreasing-counter proofs into reusable ranking-function infrastructure for verified loops. |
 | **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |

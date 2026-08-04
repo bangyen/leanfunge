@@ -79,9 +79,9 @@ theorem arithmeticPaddedRight_halts (n : ℕ) :
 
 theorem arithmetic_padded_ordered_equiv :
     Program.ordered_trace_equiv arithmeticPaddedLeft arithmeticPaddedRight := by
-  apply Program.ordered_trace_equiv_of_step_continuation
-    arithmeticPaddedRightAfterSpace
-  · exact arithmeticPaddedRight_step
+  apply Program.ordered_trace_equiv_of_nop_continuation
+  · decide
+  · decide
   · decide
   · apply Program.run_observe_eq_of_finite_prefix
       (State.init arithmeticPaddedLeft) arithmeticPaddedRightAfterSpace 5

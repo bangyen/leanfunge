@@ -268,6 +268,18 @@ theorem run_succ_eq_run_from_step {s s' : State w h} (hstep : step s = some s')
       rw [ih]
       rfl
 
+/-- A program is equivalent to the continuation reached by one first step of
+    another program, then the two programs are ordered-trace equivalent. -/
+theorem ordered_trace_equiv_of_step_continuation {p q : Program w h}
+    (q' : State w h) (hstep : step (State.init q) = some q')
+    (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
+    (hcont : ∀ n, observe (run n (State.init p)) = observe (run n q')) :
+    ordered_trace_equiv p q := by
+  apply ordered_trace_equiv_one_step_prefix h₀
+  intro n
+  rw [run_succ_eq_run_from_step hstep n]
+  exact hcont n
+
 /-- A run whose every reached state executes a no-op preserves its initial
     stack and output, and remains running. -/
 theorem run_nop_observe (s : State w h) (n : ℕ) (s' : State w h)

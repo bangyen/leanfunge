@@ -88,4 +88,12 @@ example {w h : ℕ} (s s' : State w h) (hstep : step s = some s') (n : ℕ) :
     run (n + 1) s = run n s' :=
   Program.run_succ_eq_run_from_step hstep n
 
+example {w h : ℕ} {p q : Program w h} (q' : State w h)
+    (hstep : step (State.init q) = some q')
+    (h₀ : Program.observe (run 0 (State.init p)) =
+      Program.observe (run 0 (State.init q)))
+    (hcont : ∀ n, Program.observe (run n (State.init p)) = Program.observe (run n q')) :
+    Program.ordered_trace_equiv p q :=
+  Program.ordered_trace_equiv_of_step_continuation q' hstep h₀ hcont
+
 end LeanFunge.Tests

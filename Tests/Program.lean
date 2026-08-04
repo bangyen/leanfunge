@@ -77,6 +77,13 @@ example (s : State w h) :
     Program.observe (some s) = Program.observe (some (Program.rotateCWState s)) :=
   Program.rotateCWState_observe s
 
+example (s : State w h) (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ')
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = some (Program.rotateCWState
+      { s with pc := stepPos w h .right s.pc }) :=
+  Program.step_rotateCWState_nop_right s hm hdir hcell hx hy
+
 example (s : State w h) (hdir : s.dir = .right) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ' ') (hx : s.pc.1 + 1 < w) :
     step (Program.prependSpaceState s) =

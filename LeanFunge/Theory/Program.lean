@@ -220,6 +220,26 @@ theorem rotateCWState_observe (s : State w h) :
     observe (some s) = observe (some (rotateCWState s)) := by
   rfl
 
+/-- Clockwise rotation maps a right-moving no-op step to a down-moving no-op
+    step before either playfield boundary. -/
+theorem step_rotateCWState_nop_right (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ' ')
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState
+      { s with pc := stepPos w h .right s.pc }) := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell' : (rotateCWState s).grid.get (rotateCWState s).pc.1
+      (rotateCWState s).pc.2 = ' ' := by
+    change (Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1 = ' '
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hcell
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [step_nop (rotateCWState s) hm' hcell']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_nop_right (s : State w h)

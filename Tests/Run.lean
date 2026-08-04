@@ -33,4 +33,8 @@ example (s : State w h) (n : ℕ) (s' : State w h)
     s'.stack = s.stack :=
   run_stack_invariant s n s' h hn
 
+example {w h : ℕ} (s : State w h) (n : ℕ) (result : Option (State w h))
+    (h : run n s = result) : runRel n s result :=
+  run_refines_runRel n s result h
+
 end LeanFunge.Tests

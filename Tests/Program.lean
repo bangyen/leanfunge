@@ -86,6 +86,22 @@ example (s : State w h) (k : ℕ) (hdir : s.dir = .right)
       { s with pc := stepPos w h .right s.pc } k) :=
   Program.step_prependSpacesState_nop_right s k hdir hm hcell hx
 
+example (s : State w h) (k : ℕ) (n : Int) (hdir : s.dir = .right)
+    (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .push n)
+    (hx : s.pc.1 + 1 < w) :
+    step (Program.prependSpacesState s k) = some (Program.prependSpacesState
+      (stepState s (.push n)) k) :=
+  Program.step_prependSpacesState_push_right s k n hdir hm hdecode hx
+
+example (s : State w h) (k : ℕ) (hdir : s.dir = .right)
+    (hm : s.stringMode = false)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .add)
+    (hx : s.pc.1 + 1 < w) :
+    step (Program.prependSpacesState s k) = some (Program.prependSpacesState
+      (stepState s .add) k) :=
+  Program.step_prependSpacesState_add_right s k hdir hm hdecode hx
+
 example (s : State w h) (n : Int) (hdir : s.dir = .right)
     (hm : s.stringMode = false)
     (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .push n)

@@ -166,6 +166,47 @@ theorem state_simulation_halts {R : State w h → State w' h' → Prop}
     step s = none ↔ step t = none :=
   (hR s t hst).2.1
 
+/-- Relate optional run results under a state simulation. -/
+def option_state_related (R : State w h → State w' h' → Prop) :
+    Option (State w h) → Option (State w' h') → Prop
+  | none, none => True
+  | some s, some t => R s t
+  | _, _ => False
+
+/-- A state simulation lifts to every finite deterministic run. -/
+theorem run_related_of_state_simulation
+    {R : State w h → State w' h' → Prop} (hR : state_simulation R)
+    {s : State w h} {t : State w' h'} (hst : R s t) (n : ℕ) :
+    option_state_related R (run n s) (run n t) := by
+  induction n generalizing s t with
+  | zero => exact hst
+  | succ n ih =>
+      rcases hs : run n s with _ | sₙ
+      · rcases ht : run n t with _ | tₙ
+        · rw [run, hs, run, ht]
+          simp [option_state_related]
+        · have hrel := ih hst
+          rw [hs, ht] at hrel
+          cases hrel
+      · rcases ht : run n t with _ | tₙ
+        · have hrel := ih hst
+          rw [hs, ht] at hrel
+          cases hrel
+        · have hstₙ : R sₙ tₙ := by
+            have hrel := ih hst
+            rw [hs, ht] at hrel
+            exact hrel
+          cases hstep : step sₙ with
+          | none =>
+              have hstep' : step tₙ = none := (hR sₙ tₙ hstₙ).2.1.mp hstep
+              rw [run, hs, run, ht]
+              simp [hstep, hstep', option_state_related]
+          | some s' =>
+              obtain ⟨t', hstep', hrel'⟩ :=
+                (hR sₙ tₙ hstₙ).2.2.1 s' hstep
+              rw [run, hs, run, ht]
+              simpa [hstep, hstep', option_state_related] using hrel'
+
 /-- Trace equivalence is reflexive. -/
 theorem trace_equiv_refl (p : Program w h) : trace_equiv p p := by
   constructor <;> intro n <;> exact ⟨n, rfl⟩

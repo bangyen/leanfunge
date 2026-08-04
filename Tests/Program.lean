@@ -59,6 +59,12 @@ example {R : State w h → State w' h' → Prop}
     (hst : R s t) : step s = none ↔ step t = none :=
   Program.state_simulation_halts hR hst
 
+example {R : State w h → State w' h' → Prop}
+    (hR : Program.state_simulation R) {s : State w h} {t : State w' h'}
+    (hst : R s t) (n : ℕ) :
+    Program.option_state_related R (run n s) (run n t) :=
+  Program.run_related_of_state_simulation hR hst n
+
 example (p : Program w h) : Program.trace_equiv p p :=
   Program.trace_equiv_refl p
 

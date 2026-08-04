@@ -158,4 +158,15 @@ example : Program.ordered_trace_equiv haltLeft haltRight := by
             · rw [haltLeft_run_succ, haltRight_run_two_add]
             · omega
 
+example : Program.ordered_trace_equiv haltLeft haltRight := by
+  apply Program.ordered_trace_equiv_halt_shift
+  · exact fun n => by
+      rw [haltLeft_run_succ n]
+      rfl
+  · exact fun n => by
+      rw [haltRight_run_two_add n]
+      rfl
+  · rfl
+  · rfl
+
 end LeanFunge.Tests

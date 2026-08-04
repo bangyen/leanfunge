@@ -178,6 +178,47 @@ theorem ordered_trace_equiv_trans {p q r : Program w h}
   · intro l
     exact (hvu l).trans (hgf (v l))
 
+/-- Programs with identical initial observations are ordered-trace equivalent
+    when `p` halts after its first step and `q` does the same after one
+    leading no-op step. -/
+theorem ordered_trace_equiv_halt_shift {p q : Program w h}
+    (hp : ∀ n, observe (run (n + 1) (State.init p)) = none)
+    (hq : ∀ n, observe (run (n + 2) (State.init q)) = none)
+    (h₀ : observe (run 0 (State.init p)) = observe (run 0 (State.init q)))
+    (h₁ : observe (run 0 (State.init p)) = observe (run 1 (State.init q))) :
+    ordered_trace_equiv p q := by
+  let f : ℕ → ℕ := fun n => if n = 0 then 0 else 2
+  let g : ℕ → ℕ := fun n => if n ≤ 1 then 0 else 1
+  refine ⟨f, g, ?_, ?_, ?_, ?_⟩
+  · intro a b hab
+    simp only [f]
+    by_cases ha : a = 0 <;> by_cases hb : b = 0 <;> simp [ha, hb] at *
+  · intro a b hab
+    simp only [g]
+    by_cases ha : a ≤ 1
+    · simp [ha]
+    · have hb : ¬ b ≤ 1 := by
+        intro hb
+        exact ha (Nat.le_trans hab hb)
+      simp [ha, hb]
+  · intro n
+    cases n with
+    | zero => exact h₀
+    | succ n =>
+        simp only [f]
+        rw [if_neg (Nat.succ_ne_zero n), hp n, hq 0]
+  · intro n
+    cases n with
+    | zero => exact h₀.symm
+    | succ n =>
+        cases n with
+        | zero => exact h₁.symm
+        | succ n =>
+            simp only [g]
+            rw [if_neg]
+            · rw [hq n, hp 0]
+            · omega
+
 /-- A non-string-mode space preserves stack and output for one step. -/
 theorem step_nop_observe_of_decoded (s : State w h) (hm : s.stringMode = false)
     (hnop : decodeChar (s.grid.get s.pc.1 s.pc.2) = .nop) :

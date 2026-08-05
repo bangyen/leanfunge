@@ -397,6 +397,21 @@ example : ¬ Program.observational_equiv_between
     arithmeticOriginal foldedProgram :=
   constant_folding_unsound
 
+example (s : State w h)
+    (hsafe : Program.rotationSafe s.grid) (hdir : s.dir = .right)
+    (hm : s.stringMode = false)
+    (hx : s.pc.1 + 1 < w) (hx2 : s.pc.1 + 2 < w) (hy : s.pc.2 < h) :
+    step (Program.rotateCWState s) = (step s).map Program.rotateCWState :=
+  Program.step_rotateCWState_rotationSafe_right s hsafe hdir hm hx hx2 hy
+
+example : Program.rotationSafe arithmeticOriginal :=
+  arithmeticOriginal_rotationSafe
+
+example (n : ℕ) :
+    Program.observe (run n (State.init arithmeticOriginal)) =
+      Program.observe (run n rotatedArithmeticState) :=
+  arithmetic_rotation_safe_equiv n
+
 example : Program.ioBehavior
     ({ State.init readPrintProgram with input := String.toList "5" }) 2 =
       some ([], "5") :=

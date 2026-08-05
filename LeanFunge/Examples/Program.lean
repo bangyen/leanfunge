@@ -311,12 +311,64 @@ theorem trailing_space_elimination :
 def rotatedArithmeticState : State 1 5 :=
   Program.rotateCWState (State.init arithmeticOriginal)
 
+/-- The arithmetic program is rotation-safe: it uses only push, add, print, and
+    halt. -/
+theorem arithmeticOriginal_rotationSafe : Program.rotationSafe arithmeticOriginal := by
+  intro y x hy hx
+  have hy0 : y = 0 := by omega
+  subst y
+  have hx4 : x = 0 ∨ x = 1 ∨ x = 2 ∨ x = 3 ∨ x = 4 := by omega
+  rcases hx4 with rfl | rfl | rfl | rfl | rfl
+  · have hc : Grid.get arithmeticOriginal 0 0 = '2' := by native_decide
+    rw [hc]
+    simp [Program.rotationSafeCell, decodeChar]
+  · have hc : Grid.get arithmeticOriginal 1 0 = '3' := by native_decide
+    rw [hc]
+    simp [Program.rotationSafeCell, decodeChar]
+  · have hc : Grid.get arithmeticOriginal 2 0 = '+' := by native_decide
+    rw [hc]
+    simp [Program.rotationSafeCell, decodeChar]
+  · have hc : Grid.get arithmeticOriginal 3 0 = '.' := by native_decide
+    rw [hc]
+    simp [Program.rotationSafeCell, decodeChar]
+  · have hc : Grid.get arithmeticOriginal 4 0 = '@' := by native_decide
+    rw [hc]
+    simp [Program.rotationSafeCell, decodeChar]
+
 theorem rotated_arithmetic_output :
     (run 4 rotatedArithmeticState).map (fun s => s.output) = some "5" := by
   decide
 
 theorem rotated_arithmetic_halts : run 5 rotatedArithmeticState = none := by
   decide
+
+theorem rotated_arithmetic_halts_mono (n : ℕ) :
+    run (n + 5) rotatedArithmeticState = none := by
+  simpa [Nat.add_comm] using run_halts_mono
+    rotatedArithmeticState (n := 5) (m := n) rotated_arithmetic_halts
+
+/-- Clockwise rotation preserves the arithmetic program's observations at every
+    step, under the rotation-safe conditions. -/
+theorem arithmetic_rotation_safe_equiv (n : ℕ) :
+    Program.observe (run n (State.init arithmeticOriginal)) =
+      Program.observe (run n rotatedArithmeticState) := by
+  cases n with
+  | zero => decide
+  | succ n =>
+      cases n with
+      | zero => decide
+      | succ n =>
+          cases n with
+          | zero => decide
+          | succ n =>
+              cases n with
+              | zero => decide
+              | succ n =>
+                  cases n with
+                  | zero => decide
+                  | succ n =>
+                      rw [arithmeticOriginal_halts n, rotated_arithmetic_halts_mono n]
+                      rfl
 
 def rotateCounter : Program 2 2 :=
   Grid.ofRows 2 2 [['1', '_'], ['@', ' ']]

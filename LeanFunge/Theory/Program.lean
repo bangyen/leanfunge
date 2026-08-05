@@ -688,6 +688,172 @@ theorem step_rotateCWState_trampoline_right (s : State w h)
   simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
     hmid, hnew, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
 
+/-- A cell is rotation-safe when its instruction neither changes direction,
+    reads or writes the playfield at computed coordinates, nor enters string
+    mode or branches randomly. -/
+def rotationSafeCell (c : Char) : Prop :=
+  match decodeChar c with
+  | .push _ => True
+  | .add => True
+  | .sub => True
+  | .mul => True
+  | .div => True
+  | .mod => True
+  | .not => True
+  | .greater => True
+  | .dup => True
+  | .swap => True
+  | .drop => True
+  | .printInt => True
+  | .printChar => True
+  | .trampoline => True
+  | .inputInt => True
+  | .inputChar => True
+  | .halt => True
+  | .nop => True
+  | _ => False
+
+/-- A playfield is rotation-safe when every cell is rotation-safe. -/
+def rotationSafe (g : Grid w h) : Prop :=
+  ∀ y x, y < h → x < w → rotationSafeCell (g.get x y)
+
+/-- Clockwise rotation maps a right-moving no-op (decoded `nop`) step to a
+    down-moving no-op step before either playfield boundary. -/
+theorem step_rotateCWState_nop_right_of_decode (s : State w h)
+    (hm : s.stringMode = false) (hdir : s.dir = .right)
+    (hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) = .nop)
+    (hx : s.pc.1 + 1 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = some (rotateCWState (stepState s .nop)) := by
+  have hpc : s.pc.1 < w := by omega
+  have hdecode' : decodeChar ((rotateCWState s).grid.get
+      (rotateCWState s).pc.1 (rotateCWState s).pc.2) = .nop := by
+    change decodeChar ((Grid.rotateCW s.grid).get (h - 1 - s.pc.2) s.pc.1) = .nop
+    rw [Grid.get_rotateCW s.grid s.pc.1 s.pc.2 hpc hy]
+    exact hdecode
+  unfold step
+  dsimp only
+  have hm' : (rotateCWState s).stringMode = false := hm
+  rw [hdecode', hm']
+  have hrotx : h - 1 - s.pc.2 < h := by omega
+  simp [rotateCWState, rotateCWDirection, stepState, stepPos, hdir,
+    Nat.mod_eq_of_lt hx, Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt hrotx]
+
+/-- A rotation-safe right-moving step commutes with clockwise rotation: the
+    rotated step is exactly the rotation of the original step. -/
+theorem step_rotateCWState_rotationSafe_right (s : State w h)
+    (hsafe : rotationSafe s.grid) (hdir : s.dir = .right)
+    (hm : s.stringMode = false)
+    (hx : s.pc.1 + 1 < w) (hx2 : s.pc.1 + 2 < w) (hy : s.pc.2 < h) :
+    step (rotateCWState s) = (step s).map rotateCWState := by
+  have hpc : s.pc.1 < w := by omega
+  have hcell : rotationSafeCell (s.grid.get s.pc.1 s.pc.2) :=
+    hsafe s.pc.2 s.pc.1 hy hpc
+  cases hdecode : decodeChar (s.grid.get s.pc.1 s.pc.2) with
+  | push n =>
+      rw [step_rotateCWState_push_right s n hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | add =>
+      rw [step_rotateCWState_add_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | sub =>
+      rw [step_rotateCWState_sub_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | mul =>
+      rw [step_rotateCWState_mul_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | div =>
+      rw [step_rotateCWState_div_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | mod =>
+      rw [step_rotateCWState_mod_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | not =>
+      rw [step_rotateCWState_not_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | greater =>
+      rw [step_rotateCWState_greater_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | dup =>
+      rw [step_rotateCWState_dup_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | swap =>
+      rw [step_rotateCWState_swap_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | drop =>
+      rw [step_rotateCWState_drop_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | printInt =>
+      rw [step_rotateCWState_printInt_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | printChar =>
+      rw [step_rotateCWState_printChar_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | trampoline =>
+      rw [step_rotateCWState_trampoline_right s hm hdir hdecode hx2 hy]
+      simp [step, hm, hdecode]
+  | inputInt =>
+      rw [step_rotateCWState_inputInt_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | inputChar =>
+      rw [step_rotateCWState_inputChar_right s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | halt =>
+      rw [step_rotateCWState_halt_right s hm hdecode hx hy]
+      simp [step, hm, hdecode]
+  | nop =>
+      rw [step_rotateCWState_nop_right_of_decode s hm hdir hdecode hx hy]
+      simp [step, hm, hdecode]
+  | right =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | left =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | up =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | down =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | chooseH =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | chooseV =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | random =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | stringMode =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | put =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+  | get =>
+      exfalso
+      unfold rotationSafeCell at hcell
+      rw [hdecode] at hcell
+      exact hcell
+
 /-- A right-moving no-op step commutes with leading-space state padding before
     the original playfield boundary. -/
 theorem step_prependSpaceState_nop_right (s : State w h)

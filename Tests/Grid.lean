@@ -40,4 +40,8 @@ example (g : Grid w h) (y x v : Int) (hvalid : (Int.toNat v).isValidChar) (hv : 
             (Int.toNat y)).toNat = v :=
   Grid.put_get_roundtrip g y x v hvalid hv
 
+example (g : Grid w h) (x y : ℕ) (c : Char) :
+    Grid.get (Grid.put g x y c) (x % w) (y % h) = c :=
+  Grid.put_get_wrapped g x y c
+
 end LeanFunge.Tests

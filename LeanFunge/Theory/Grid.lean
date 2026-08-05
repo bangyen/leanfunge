@@ -17,6 +17,8 @@ import Mathlib.Data.Nat.Notation
 * `put_put`: Writing twice is the same as writing only the last value.
 * `get_put_other`: Writing to one cell does not disturb distinct cells.
 * `put_get_roundtrip`: A value written by `p` is read back by `g`.
+* `put_get_wrapped`: `put` writes the wrapped cell, and `get` at the wrapped
+  coordinates reads it back.
 * `ofRows_cells_out_of_rows`: Missing rows are spaces.
 * `ofRows_cells_out_of_col`: Missing cells in a row are spaces.
 -/
@@ -87,6 +89,17 @@ theorem put_get_roundtrip {w h : ℕ} (g : Grid w h) (y x v : Int)
   change (Int.toNat v : Int) = v
   rw [Int.ofNat_toNat v]
   omega
+
+/-- `put` writes the wrapped cell: `get` at the wrapped coordinates reads the
+    stored value. -/
+theorem put_get_wrapped (g : Grid w h) (x y : ℕ) (c : Char) :
+    Grid.get (Grid.put g x y c) (x % w) (y % h) = c := by
+  unfold Grid.get Grid.put
+  have hx : (x % w) % w = x % w := Nat.mod_mod _ _
+  have hy : (y % h) % h = y % h := Nat.mod_mod _ _
+  rw [hx, hy]
+  change (if (x % w) = x % w ∧ (y % h) = y % h then c else g.cells (y % h) (x % w)) = c
+  exact dif_pos ⟨rfl, rfl⟩
 
 /-- A playfield built by `ofRows` treats rows beyond the given list as spaces. -/
 theorem ofRows_cells_out_of_rows (rows : List (List Char)) (hy : rows.length ≤ y) :

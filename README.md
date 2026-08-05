@@ -131,6 +131,8 @@ the Lean kernel:
 | **Nop-run pointer movement** | Low | Confirmed: a full attempt needed several run-level lemmas (never-halts, grid preservation) on top of the `stepPos` threading. |
 | **Input consumption is prefix-only** | Medium | Confirmed: the `skipSpaces`/`takeDigits` suffix lemmas are proven, but `parseInt_suffix` needs reducing `parseInt`'s match on the space-skipped stream (literal `-` pattern), which does not reduce by `simp`. |
 | **String-mode block output round-trip** | Medium | Confirmed: the dual of the string-mode block theorem shares the confirmed grid-suffix run roadblock, plus the `,` composition. |
+| **Halting characterization** | Medium | Confirmed: `step s = none` iff the pointer is on `@` outside string mode. The `@`-side and converse are clear, but the `decodeChar` case analysis on a generic cell does not reduce by `simp` (literal-pattern friction). |
+| **I/O separation** | Medium | Confirmed: `~`/`&` are the only input consumers and `,`/`.` the only output writers, but proving it is the same 27-instruction case analysis that roadblocked output monotonicity. |
 
 ## Scope & Limitations
 

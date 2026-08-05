@@ -138,7 +138,9 @@ project convention that `Core` files contain only definitions.
   equivalence. `prependSpaceState` supplies the leading-space mapping and its
   bounded cell correspondence; the arithmetic example assembles the
   instruction-level no-wrap cases into a concrete state bisimulation.
-  `ioBehavior` and `io_equiv` define input/output behavior contracts.
+  `ioBehavior` and `io_equiv` define input/output behavior contracts;
+  `rotationSafe` and `step_rotateCWState_rotationSafe_right` provide the
+  restricted rotation-rewrite rule, instantiated by the arithmetic program.
 - `Theory/Termination.lean`: termination analysis. `decreasing_machine_terminates`
   covers single counters, and `rankedMachine_terminates` generalizes it to any
   state type with a strictly decreasing ranking function, instantiated by the

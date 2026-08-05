@@ -122,6 +122,9 @@ the Lean kernel:
 | **Toroidal iteration family** | Low | `runPos_right` covers only rightward steps; analogous lemmas for `left`/`up`/`down` would complete the modular generalization of the wrapping theorems. |
 | **Trampoline wrapping** | Low | `#` skips one cell, but there is no theorem about it doing so across the torus edge (e.g. `#` at the last column skipping to column 1). |
 | **`ofRows` missing-cell behavior** | Low | The playfield construction treats missing cells as spaces, but no theorem proves that `Grid.ofRows` returns `' '` for rows or cells beyond the given list. |
+| **Run-level output monotonicity** | Medium | Prove that the output stream only ever grows across `run`. The single-step version needs a per-instruction case analysis (only `,`/`.` extend output), and the run-level lift needs run threading. |
+| **Nop-run pointer movement** | Low | Bridge `runPos` to the interpreter: prove that a run of no-ops advances the instruction pointer exactly as `runPos k` predicts. Requires run-level invariants (a space grid never halts, the grid is preserved) on top of the `stepPos` threading. |
+| **Toroidal wrap example** | Low | A verified program that wraps off the playfield edge. A halting wrap needs self-modification (`p`) or stack-branching to make the post-wrap behavior differ from the first pass, which complicates the program design. |
 
 ## Scope & Limitations
 

@@ -112,7 +112,7 @@ the Lean kernel:
 | **Rotation-safe rewrites** | Medium | Verify clockwise rotation under a `rotationSafe` predicate restricting programs to the sound instruction set (no `_`, `|`, `?`, `p`, `g`). |
 | **I/O behavior contracts** | ✅ Done | `ioBehavior` and `io_equiv` define input-consumption/output-production contracts; `parseInt_natDigits` proves the parser consumes a digit stream and recovers the number; `&.@` read-print contracts are verified for concrete inputs. The generic output re-parse round-trip is limited by Lean's non-reducible `toString` encoding. |
 | **Verified optimization rewrites** | ✅ Done | Dead no-op elimination is verified (`23+.@ ` ≡ `23+.@`); constant folding is unsound under stack-observational equivalence because intermediate stacks are observable (`constant_folding_unsound`), so folding is documented as a limitation. |
-| **Generic ranking-function termination API** | Medium | Generalize the decreasing-counter proofs into reusable ranking-function infrastructure for verified loops. |
+| **Generic ranking-function termination API** | ✅ Done | `rankedMachine_terminates` proves any machine whose transitions strictly decrease a ranking function halts or reaches rank zero in finitely many steps; `twoCounter_terminates` instantiates it beyond single counters. |
 | **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 

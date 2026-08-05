@@ -139,6 +139,10 @@ project convention that `Core` files contain only definitions.
   bounded cell correspondence; the arithmetic example assembles the
   instruction-level no-wrap cases into a concrete state bisimulation.
   `ioBehavior` and `io_equiv` define input/output behavior contracts.
+- `Theory/Termination.lean`: termination analysis. `decreasing_machine_terminates`
+  covers single counters, and `rankedMachine_terminates` generalizes it to any
+  state type with a strictly decreasing ranking function, instantiated by the
+  two-counter machine.
 
 ## Verified Example Programs
 

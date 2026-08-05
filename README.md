@@ -10,19 +10,17 @@
 LeanFunge constructs a fully machine-checked, executable formalization of the
 [Befunge-93](https://en.wikipedia.org/wiki/Befunge) esolang in the
 [Lean 4](https://leanprover.github.io/) interactive theorem prover, and proves
-properties about the language: stack algebra, toroidal wrapping, the
-self-modifying playfield, string mode, and the single-step semantics of the
-instruction set. Esolangs like Befunge are defined by loose, human-readable
-specifications that leave many details ambiguous (stack underflow, `p`/`g`
-coordinate order, wrapping behavior, input at end-of-file). LeanFunge pins down
-one precise, total, deterministic formalization — every transition of the
-interpreter is a pure Lean function — and then proves theorems about it.
+properties about the language. Esolangs like Befunge are defined by loose,
+human-readable specifications that leave many details ambiguous (stack
+underflow, `p`/`g` coordinate order, wrapping behavior, input at end-of-file).
+LeanFunge pins down one precise, total, deterministic formalization — every
+transition of the interpreter is a pure Lean function — and then proves
+theorems about it.
 
 ## Architecture
 
-For a detailed overview of the project's design — the toroidal playfield, the
-total stack, the single-step transition function, and the relational treatment
-of `?` — see [ARCHITECTURE.md](ARCHITECTURE.md).
+For a detailed overview of the project's design and the full list of verified
+theorems and example programs, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 The implementation is organized into `Core` (definitions), `Theory`
 (verified theorems), `Examples` (verified example programs), and `Tests`
@@ -30,109 +28,44 @@ The implementation is organized into `Core` (definitions), `Theory`
 
 ## Results
 
-**Core primitives** (`LeanFunge.Core`)
-
-- `Direction`: the four cardinal directions and the `_`/`|` choice functions.
-- `Stack`: the Befunge data stack (a list of integers) with push/pop/top/drop/
-  dup/swap/binary-op. Underflow yields `0`.
-- `Grid`: the `w`×`h` playfield. Cells are addressed modulo the playfield size,
-  so the playfield is a torus; `p` and `g` may read and write any cell.
-- `Instruction` + `decodeChar`: the Befunge-93 instruction set and its
-  character decoder.
-- `State`: the full interpreter state (playfield, stack, instruction pointer,
-  direction, string mode, output, and input streams).
-- `Semantics`: `stepString`, `stepState`, `step`, `run`, and `halts` — a total,
-  deterministic single-step transition function.
-
-**Verified properties** (`LeanFunge.Theory`)
-
-- *Stack algebra* (`Theory.Stack`): popping after pushing restores the stack,
-  swapping is an involution, duplication copies the top, and binary operations
-  consume exactly two elements.
-- *Playfield algebra* (`Theory.Grid`): reading immediately after writing
-  returns the stored value (`get_put_self`), writing twice keeps the last write
-  (`put_put`), and writing to one cell does not disturb distinct cells
-  (`get_put_other`); `put_get_roundtrip` proves `p`'s stored value is read
-  back by `g`; `ofRows` fills missing rows and cells with spaces.
-- *Toroidal wrapping* (`Theory.Direction`): moving right from the last column
-  wraps to column `0`, moving left from column `0` wraps to the last column,
-  and symmetrically for rows; iterating steps in any direction lands at the
-  modular offset (`runPos_right`, `runPos_down`, `runPos_up`, `runPos_left`).
-- *Step semantics* (`Theory.Step`, `Theory.StepOps`): the `@` instruction
-  halts; digits push; `+`, `-`, `*`, `/`, `%` combine the top two values; the
-  comparison pushes `1` when the second-popped value exceeds the top; `:`, `\`,
-  `$` duplicate, swap, and discard the top; the direction arrows reorient the
-  pointer; `_` and `|` branch on the top of the stack; `"` toggles string mode
-  (in which characters are pushed as their codes); `#` skips the next cell;
-  `p`/`g` store and fetch playfield values; `.`/`,` write to the output; and
-  `~`/`&` read from the input stream; `#` at the last column skips across the
-  torus wrap (`step_trampoline_right_from_last`).
-- *Program-level invariance* (`Theory.Invariance`): a space is a pure no-op
-  (`step_nop`), every instruction except `p` leaves the playfield unchanged
-  (`stepState_grid_of_ne_put`), and `p` stores its value at the addressed cell
-  (`step_put_grid`), bridging the instruction semantics to the grid algebra.
-- *Run-level invariance* (`Theory.Run`): a grid-preserving run leaves the
-  playfield unchanged across the whole run (`run_grid_invariant`), and a
-  nop-only run leaves the stack unchanged (`run_stack_invariant`).
-- *Divergence* (`Theory.Run.Divergence`): a run on an all-space playfield never
-  halts (`run_space_some`), never modifies the playfield, and never enters
-  string mode.
-- *Nondeterminism* (`Theory.Random`): the transition relation `stepRel` allows
-  any of the four directions at `?`; the deterministic interpreter is a sound
-  refinement of it, and all four directions are reachable `?` outcomes.
-- *Termination* (`Theory.Termination`): a machine whose transitions strictly
-  decrease a ranking function halts or reaches rank zero in finitely many
-  steps, covering the looping examples.
-- *Integer output round-trip* (`Theory.Output`): the `.` instruction prints
-  through a redefinable `formatInt` encoding (`Core/Parser`), and
-  `parseInt_formatInt` proves that re-parsing any `formatInt` output with `&`
-  recovers the original integer — the generic dual of the `&` parser.
-
-**Verified example programs** (`LeanFunge.Examples`)
-
-Each example is executed by the interpreter itself and its behavior checked by
-the Lean kernel:
-
-- `HelloWorld`: `"!dlroW olleH",,,,,,,,,,,,@` prints `Hello World!` and halts.
-- `Arithmetic`: `23+.@` computes `2 + 3 = 5`, prints it, and halts.
-- `Trampoline`: `12#3+@` shows that `#` skips the `3`, so the sum is `3`.
-- `PutGet`: `521p21g.@` stores `5` into the playfield with `p` and retrieves it
-  with `g`, demonstrating self-modification.
-- `Countdown`: a loop driven by `|` prints `321` — each iteration fetches,
-  prints, and decrements a counter held in a cell, then exits upward on zero.
-- `Factorial`: a loop computes `3! = 6` — the accumulator lives on the stack
-  and the counter in a cell, multiplied with `*` each iteration.
-- `Input`: `&2+.@` reads `5` and prints `7`; `&.@` reads a multi-digit or
-  negative integer (`12`, `-3`) from the input stream.
-- `DecimalOutput`: a "library" routine that reads a non-negative integer with
-  `&` and prints it back as characters — an extraction loop divides by 10
-  (`/`, `%`) storing the digits in cells, and a print loop fetches them in
-  reverse order and prints with `,`. Verified for `0`, `5`, `123`, and
-  `12345`, and `decimal_roundtrip` shows the printed output re-parses to the
-  original number (the dual of the `&` parser).
-- `SelfMod`: `>88*80p  ` writes its own `@` instruction with `p` and then runs
-  into it and halts; `>77*70p  @` writes a `1` instruction and executes it.
-- `Quine`: the classic `01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@` prints
-  its own source code by reading each cell of the playfield with `g` and
-  printing it with `,`; after 2407 steps the output is exactly the program's
-  own source, and it halts one step later.
-- `Echo`: `~,@` reads one character from the input stream with `~` and prints
-  it back with `,`, then halts — the first example exercising character input.
-- `Wrap`: `88*00p` computes `64`, writes `@` into its own first cell with `p`,
-  and steps off the right edge; the toroidal wrap returns the pointer to column
-  `0`, where it executes the self-written `@` and halts.
+- **Total, deterministic interpreter** (`Core.Semantics`): `step`/`run` execute
+  any Befunge-93 playfield as a pure Lean function, with `@` the sole halting
+  instruction.
+- **Stack algebra** (`Theory.Stack`): push/pop round-trip, swap involution,
+  duplication, and binary-op consumption.
+- **Playfield algebra** (`Theory.Grid`): the toroidal playfield, `get`/`put`
+  round-trips, and the `p`/`g` write-then-read round-trip at wrapped
+  coordinates.
+- **Toroidal wrapping** (`Theory.Direction`): single-step and iterated wrapping
+  in all four directions.
+- **Complete single-step semantics** (`Theory.Step`, `Theory.StepOps`): a
+  theorem for every instruction, including `#` skipping across the wrap.
+- **Nondeterminism** (`Theory.Random`): `?` as a transition relation, with the
+  deterministic interpreter a sound refinement.
+- **I/O semantics** (`Theory.Parser`, `Theory.Output`): `&` parses a signed
+  decimal integer and `.` prints through a redefinable encoding that round-trips
+  with the parser.
+- **Invariance, termination, divergence** (`Theory.Invariance`, `Theory.Run`,
+  `Theory.Termination`): only `p` writes the playfield, ranked machines
+  terminate, and all-space runs never halt.
+- **Verified example programs** (`LeanFunge.Examples`): kernel-checked
+  `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
+  `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
 
 ## Roadmap
 
-| Task | Priority | Justification |
+All items below have been attempted and are confirmed roadblocks, not untried
+work.
+
+| Task | Priority | Status |
 | :--- | :--- | :--- |
-| **String-mode block semantics** | Medium | Confirmed: the single-step `"` theorems hold, but a block-level theorem (a balanced `"..."` pushes exactly its interior codes) needs a grid-suffix run lemma — the base case works, but relating the sub-block run from a later column to a narrow-grid induction is substantial. |
-| **Run-level output monotonicity** | Medium | Confirmed: the string-mode and `,`/`.` cases of the single-step version are proven, but the remaining ~23 instructions need a long mechanical case analysis (with `inputChar`/`inputInt` matching on the input stream), and the run-level lift is unstarted. |
-| **Nop-run pointer movement** | Low | Confirmed: a full attempt needed several run-level lemmas (never-halts, grid preservation) on top of the `stepPos` threading. |
-| **Input consumption is prefix-only** | Medium | Confirmed: the `skipSpaces`/`takeDigits` suffix lemmas are proven, but `parseInt_suffix` needs reducing `parseInt`'s match on the space-skipped stream (literal `-` pattern), which does not reduce by `simp`. |
-| **String-mode block output round-trip** | Medium | Confirmed: the dual of the string-mode block theorem shares the confirmed grid-suffix run roadblock, plus the `,` composition. |
-| **Halting characterization** | Medium | Confirmed: `step s = none` iff the pointer is on `@` outside string mode. The `@`-side and converse are clear, but the `decodeChar` case analysis on a generic cell does not reduce by `simp` (literal-pattern friction). |
-| **I/O separation** | Medium | Confirmed: `~`/`&` are the only input consumers and `,`/`.` the only output writers, but proving it is the same 27-instruction case analysis that roadblocked output monotonicity. |
+| **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
+| **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
+| **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |
+| **Input consumption is prefix-only** | Medium | Suffix helpers are proven; `parseInt_suffix` needs a match-reduction lemma. |
+| **String-mode block output round-trip** | Medium | Shares the block roadblock, plus the `,` composition. |
+| **Halting characterization** | Medium | Needs a `decodeChar` match lemma for a generic cell. |
+| **I/O separation** | Medium | The 27-instruction case analysis. |
 
 ## Scope & Limitations
 

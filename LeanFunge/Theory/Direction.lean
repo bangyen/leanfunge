@@ -15,6 +15,7 @@ import Mathlib.Data.Nat.Notation
 * `stepPos_left_from_zero`: Moving left from column 0 wraps to the last column.
 * `stepPos_down_from_last`: Moving down from the last row wraps to 0.
 * `stepPos_up_from_zero`: Moving up from row 0 wraps to the last row.
+* `runPos_right`: Iterating rightward steps lands at the modular column.
 -/
 
 namespace LeanFunge
@@ -44,5 +45,27 @@ theorem stepPos_up_from_zero {w h : ℕ} [NeZero h] (x : ℕ) :
   unfold stepPos
   have hlt : h - 1 < h := Nat.sub_lt (Nat.pos_of_neZero h) (by decide)
   simp only [Nat.zero_add, Nat.mod_eq_of_lt hlt]
+
+/-- Iterating rightward steps from a reduced column lands at the modular
+    offset: after `k` steps the column is `(x + k) % w`. -/
+theorem runPos_right (w h k x y : ℕ) :
+    runPos w h k Direction.right (x % w, y % h) = ((x + k) % w, y % h) := by
+  induction k with
+  | zero =>
+      simp only [runPos]
+      rw [Nat.add_zero]
+  | succ k ih =>
+      simp only [runPos, ih, stepPos]
+      have hx : ((x + k) % w + 1) % w = (x + (k + 1)) % w := by
+        rw [← Nat.add_assoc]
+        conv =>
+          lhs
+          rw [Nat.add_mod]
+          rw [Nat.mod_mod]
+        conv =>
+          rhs
+          rw [Nat.add_mod]
+      have hy : (y % h) % h = y % h := Nat.mod_mod _ _
+      rw [hx, hy]
 
 end LeanFunge

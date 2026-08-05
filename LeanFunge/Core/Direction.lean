@@ -14,6 +14,7 @@ import Mathlib.Data.Nat.Notation
 * `Direction.chooseH`: The direction selected by the `_` instruction.
 * `Direction.chooseV`: The direction selected by the `|` instruction.
 * `stepPos`: The toroidal position update rule.
+* `runPos`: Iterate the toroidal position update rule.
 -/
 
 namespace LeanFunge
@@ -48,5 +49,12 @@ def stepPos (w h : ℕ) (d : Direction) (pos : ℕ × ℕ) : ℕ × ℕ :=
   | .down => (pos.1 % w, (pos.2 + 1) % h)
   | .left => ((pos.1 + w - 1) % w, pos.2 % h)
   | .right => ((pos.1 + 1) % w, pos.2 % h)
+
+/-- Move a position `k` cells in direction `d`, wrapping around the edges
+    each step. -/
+def runPos (w h : ℕ) (k : ℕ) (d : Direction) (pos : ℕ × ℕ) : ℕ × ℕ :=
+  match k with
+  | 0 => pos
+  | k + 1 => stepPos w h d (runPos w h k d pos)
 
 end LeanFunge

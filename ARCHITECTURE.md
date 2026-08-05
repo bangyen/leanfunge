@@ -98,7 +98,9 @@ project convention that `Core` files contain only definitions.
   behind `put` with `change`, then reason with `dif_pos`/`dif_neg`.
 - `Theory/Direction.lean`: toroidal wrapping (`stepPos_right_from_last`,
   `stepPos_left_from_zero`, `stepPos_down_from_last`, `stepPos_up_from_zero`),
-  proved with `Nat.mod` arithmetic under `[NeZero]` assumptions.
+  proved with `Nat.mod` arithmetic under `[NeZero]` assumptions;
+  `runPos_right` generalizes this to `k` rightward steps, landing at the
+  modular column `(x + k) % w`.
 - `Theory/Step.lean`: single-step semantics for the instruction set. Each
   theorem unfolds `step`, rewrites the cell/stack/string-mode hypotheses, and
   simplifies with the relevant definitions. `run_halts_mono` shows that halting
@@ -158,6 +160,7 @@ no external interpreter is trusted.
 | `DecimalOutput` | 48×10 extraction/print loops | reads `0`, `5`, `123`, `12345` and prints each back as characters; the printed output re-parses to the original number |
 | `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
 | `Quine` | `01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@` (45×1) | reads each playfield cell with `g` and prints it with `,`; after 2407 steps the output is exactly its own source, halting one step later |
+| `Echo` | `~,@` (3×1) | reads a character with `~` and prints it back with `,`; output `x`, halts after 3 steps |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the

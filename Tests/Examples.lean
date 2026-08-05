@@ -91,4 +91,10 @@ example : (run 2407 quineState).map (fun s => s.output) = some quineStr :=
 example : run 2408 quineState = none :=
   quine_halts
 
+example : (run 2 echoState).map (fun s => s.output) = some "x" :=
+  echo_output
+
+example : run 3 echoState = none :=
+  echo_halts
+
 end LeanFunge.Tests

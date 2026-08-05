@@ -55,7 +55,8 @@ The implementation is organized into `Core` (definitions), `Theory`
   (`get_put_other`).
 - *Toroidal wrapping* (`Theory.Direction`): moving right from the last column
   wraps to column `0`, moving left from column `0` wraps to the last column,
-  and symmetrically for rows.
+  and symmetrically for rows; iterating rightward steps lands at the modular
+  column (`runPos_right`).
 - *Step semantics* (`Theory.Step`, `Theory.StepOps`): the `@` instruction
   halts; digits push; `+`, `-`, `*`, `/`, `%` combine the top two values; the
   comparison pushes `1` when the second-popped value exceeds the top; `:`, `\`,
@@ -110,13 +111,14 @@ the Lean kernel:
   its own source code by reading each cell of the playfield with `g` and
   printing it with `,`; after 2407 steps the output is exactly the program's
   own source, and it halts one step later.
+- `Echo`: `~,@` reads one character from the input stream with `~` and prints
+  it back with `,`, then halts — the first example exercising character input.
 
 ## Roadmap
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
-| **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
+| **String-mode block semantics** | Medium | `Theory.Step` covers the single-step `"` toggle, but there is no block-level theorem: proving that a balanced `"..."` region pushes exactly its interior character codes requires threading `run` through a variable-width playfield, a multi-step induction. |
 
 ## Scope & Limitations
 
@@ -126,8 +128,10 @@ string mode, and the single-step semantics of the instruction set — together
 with verified example programs. It deliberately does not develop verified
 program transformations or optimizations (spacing, rotation, dead no-op
 elimination, constant folding); the program-equivalence framework that
-supported them was removed as out of scope. A Befunge-98 fingerprint is also
-out of scope.
+supported them was removed as out of scope. A Befunge-98 fingerprint and
+self-interpreters (programs that interpret Befunge, verified to match direct
+execution) are also out of scope, as their correctness proofs are
+program-equivalence reasoning rather than properties of the language.
 
 **Design choices.** Befunge's specification leaves several behaviors
 unspecified; LeanFunge makes the following choices, all documented in
@@ -180,8 +184,7 @@ lake lint           # Runs the linter
 
 This repo uses standard Mathlib naming conventions and the same guard scripts
 as LeanSharp. If you are interested in extending the formalization — for
-example, a verified Befunge quine or a self-interpreter — feel free to open a
-pull request.
+example, another verified example program — feel free to open a pull request.
 
 ## Citation
 

@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Examples.Arithmetic
 import LeanFunge.Examples.Countdown
 import LeanFunge.Examples.DecimalOutput
+import LeanFunge.Examples.Echo
 import LeanFunge.Examples.Factorial
 import LeanFunge.Examples.HelloWorld
 import LeanFunge.Examples.Input

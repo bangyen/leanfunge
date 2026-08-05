@@ -25,4 +25,11 @@ example : stepPos 80 25 Direction.down (0, 24) = (0, 0) := by
 example : stepPos 80 25 Direction.up (0, 0) = (0, 24) := by
   simpa only [] using (stepPos_up_from_zero (w := 80) (h := 25) (x := 0))
 
+example : runPos 80 25 10 Direction.right (3, 0) = (13, 0) := by
+  simpa only [Nat.reduceAdd] using (runPos_right (w := 80) (h := 25) (k := 10) (x := 3) (y := 0))
+
+example : runPos 80 25 80 Direction.right (3, 0) = (3, 0) := by
+  simpa only [Nat.reduceAdd, Nat.mod_self] using
+    (runPos_right (w := 80) (h := 25) (k := 80) (x := 3) (y := 0))
+
 end LeanFunge.Tests

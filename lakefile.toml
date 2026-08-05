@@ -6,13 +6,17 @@ defaultTargets = ["LeanFunge", "Tests"]
 lintDriver = "batteries/runLinter"
 testDriver = "Tests"
 
+# Give Lean's worker threads a large stack so the deep kernel `decide`
+# reductions (e.g. the 2407-step quine) do not overflow on CI runners.
+moreLeanArgs = ["-s", "65536"]
+
 [leanOptions]
 pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 5
 maxHeartbeats = 400000
-maxRecDepth = 10000                   # kernel `decide` on deep `run n` evaluations
+maxRecDepth = 20000                   # kernel `decide` on deep `run n` evaluations
 
 [[require]]
 name = "mathlib"

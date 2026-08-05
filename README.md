@@ -119,6 +119,9 @@ the Lean kernel:
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
 | **String-mode block semantics** | Medium | `Theory.Step` covers the single-step `"` toggle, but there is no block-level theorem: proving that a balanced `"..."` region pushes exactly its interior character codes requires threading `run` through a variable-width playfield, a multi-step induction. |
+| **Toroidal iteration family** | Low | `runPos_right` covers only rightward steps; analogous lemmas for `left`/`up`/`down` would complete the modular generalization of the wrapping theorems. |
+| **Trampoline wrapping** | Low | `#` skips one cell, but there is no theorem about it doing so across the torus edge (e.g. `#` at the last column skipping to column 1). |
+| **`ofRows` missing-cell behavior** | Low | The playfield construction treats missing cells as spaces, but no theorem proves that `Grid.ofRows` returns `' '` for rows or cells beyond the given list. |
 
 ## Scope & Limitations
 

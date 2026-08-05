@@ -14,6 +14,7 @@ import LeanFunge.Examples.PutGet
 import LeanFunge.Examples.Quine
 import LeanFunge.Examples.SelfMod
 import LeanFunge.Examples.Trampoline
+import LeanFunge.Examples.Wrap
 
 /-!
 # Examples Aggregator

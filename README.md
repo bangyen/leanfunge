@@ -118,18 +118,19 @@ the Lean kernel:
   own source, and it halts one step later.
 - `Echo`: `~,@` reads one character from the input stream with `~` and prints
   it back with `,`, then halts — the first example exercising character input.
+- `Wrap`: `88*00p` computes `64`, writes `@` into its own first cell with `p`,
+  and steps off the right edge; the toroidal wrap returns the pointer to column
+  `0`, where it executes the self-written `@` and halts.
 
 ## Roadmap
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **String-mode block semantics** | Medium | `Theory.Step` covers the single-step `"` toggle, but there is no block-level theorem: proving that a balanced `"..."` region pushes exactly its interior character codes requires threading `run` through a variable-width playfield, a multi-step induction. |
-| **Run-level output monotonicity** | Medium | Prove that the output stream only ever grows across `run`. The single-step version needs a per-instruction case analysis (only `,`/`.` extend output), and the run-level lift needs run threading. |
-| **Nop-run pointer movement** | Low | Bridge `runPos` to the interpreter: prove that a run of no-ops advances the instruction pointer exactly as `runPos k` predicts. The never-halts lemma (`run_space_some`) is done; the remaining `stepPos` threading is the open part. |
-| **Toroidal wrap example** | Low | A verified program that wraps off the playfield edge. A halting wrap needs self-modification (`p`) or stack-branching to make the post-wrap behavior differ from the first pass, which complicates the program design. |
-| **Input consumption is prefix-only** | Medium | Prove that `&`/`~` never reorder or duplicate the input stream: the remaining stream is a suffix of the original. The `skipSpaces`/`takeDigits` suffix lemmas are proven, but `parseInt_suffix` needs reducing `parseInt`'s match on the space-skipped stream (with its literal `-` pattern), which does not reduce by `simp`. |
-| **Run-level `p`→`g` round-trip** | Medium | Generalize `put_get_roundtrip` across a run: a program that writes a cell with `p` and later reads it with `g` (no intervening write) recovers the value, composing `run_grid_invariant` with the grid algebra and step composition. |
-| **String-mode block output round-trip** | Medium | The dual of the string-mode block theorem: after a balanced `"..."` pushes the interior codes, printing them with `,` reproduces the interior characters. Shares the run-threading difficulty that roadblocked the block push theorem. |
+| **String-mode block semantics** | Medium | Confirmed: the single-step `"` theorems hold, but a block-level theorem (a balanced `"..."` pushes exactly its interior codes) needs a grid-suffix run lemma — the base case works, but relating the sub-block run from a later column to a narrow-grid induction is substantial. |
+| **Run-level output monotonicity** | Medium | Partially attempted: the single-step per-instruction case analysis is begun but not completed; the run-level lift is unstarted. |
+| **Nop-run pointer movement** | Low | Confirmed: a full attempt needed several run-level lemmas (never-halts, grid preservation) on top of the `stepPos` threading. |
+| **Input consumption is prefix-only** | Medium | Confirmed: the `skipSpaces`/`takeDigits` suffix lemmas are proven, but `parseInt_suffix` needs reducing `parseInt`'s match on the space-skipped stream (literal `-` pattern), which does not reduce by `simp`. |
+| **String-mode block output round-trip** | Medium | Confirmed: the dual of the string-mode block theorem shares the confirmed grid-suffix run roadblock, plus the `,` composition. |
 
 ## Scope & Limitations
 

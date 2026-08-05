@@ -97,4 +97,10 @@ example : (run 2 echoState).map (fun s => s.output) = some "x" :=
 example : run 3 echoState = none :=
   echo_halts
 
+example : (run 6 wrapState).map (fun s => (s.pc, s.grid.get 0 0)) = some ((0, 0), '@') :=
+  wrap_writes
+
+example : run 7 wrapState = none :=
+  wrap_halts
+
 end LeanFunge.Tests

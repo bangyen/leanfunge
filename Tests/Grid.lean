@@ -26,20 +26,4 @@ example (g : Grid w h) (x1 y1 x2 y2 : ℕ) (c : Char)
     Grid.get (Grid.put g x2 y2 c) x1 y1 = Grid.get g x1 y1 :=
   Grid.get_put_other g x1 y1 x2 y2 c hdist
 
-example (g : Grid w h) (x y : ℕ) (hx : x < w) :
-    (Grid.prependSpace g).get (x + 1) y = g.get x y :=
-  Grid.get_prependSpace_succ g x y hx
-
-example (g : Grid w h) (k x y : ℕ) (hx : x < w) :
-    (Grid.prependSpaces g k).get (x + k) y = g.get x y :=
-  Grid.get_prependSpaces_add g k x y hx
-
-example (g : Grid w h) (x y : ℕ) (hy : y < h) :
-    (Grid.rotateCW g).cells x (h - 1 - y) = g.cells y x :=
-  Grid.rotateCW_cell g x y hy
-
-example (g : Grid w h) (x y : ℕ) (hx : x < w) (hy : y < h) :
-    (Grid.rotateCW g).get (h - 1 - y) x = g.get x y :=
-  Grid.get_rotateCW g x y hx hy
-
 end LeanFunge.Tests

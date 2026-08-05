@@ -23,6 +23,8 @@ import Mathlib.Data.Nat.Init
   `a k + k` at most `a 0`.
 * `decreasing_seq_hits_zero`: A strictly decreasing sequence of naturals
   reaches zero at index `a 0`.
+* `runStep_succ`: One more transition step runs one more transition.
+* `runStep_shift`: A single transition shifts the run index.
 * `runMachine_succ`: One more machine step runs one more transition.
 * `runMachine_shift`: A single transition shifts the run index.
 * `decreasing_machine_terminates`: A machine whose transitions strictly
@@ -213,13 +215,13 @@ theorem twoCounter_terminates (a b : ℕ) :
   rcases rankedMachine_terminates (fun s : ℕ × ℕ => s.1 + s.2) twoCounterNext
     twoCounterNext_decreasing (a, b) with ⟨steps, hle, hterm⟩
   refine ⟨steps, ?_, ?_⟩
-  · simpa using hle
+  · simpa only using hle
   · cases hrun : runStep steps twoCounterNext (a, b) with
     | none => trivial
     | some c =>
         have hc := hterm
         rw [hrun] at hc
-        simpa using hc
+        simpa only using hc
 
 /-- The counter transition of a countdown loop: `n + 1` steps down to `n`, and
     `0` halts. -/

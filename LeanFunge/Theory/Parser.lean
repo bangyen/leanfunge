@@ -3,20 +3,34 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
-import LeanFunge.Core.Parser
-import Batteries.Data.Char.Basic
 import Batteries.Data.Char.AsciiCasing
+import Batteries.Data.Char.Basic
+import LeanFunge.Core.Parser
 import Mathlib.Data.List.Basic
 import Mathlib.Data.Nat.Init
 
 /-!
 # Integer Input Parsing
 
+## Definitions
+
+* `digitChar`: The digit character encoding of a decimal digit.
+* `isDigitChar`: A character is a decimal digit.
+
 ## Theorems
 
 * `parseInt_empty`: Parsing the empty stream yields `0` and consumes nothing.
+* `digitValue_ofNat`: The digit character at value `d` decodes back to `d`.
+* `natDigits_digit_lt`: Every decimal digit of a natural number is a single digit.
 * `natDigitsValue_natDigits`: Interpreting the decimal digits of a natural
   number reconstructs the number.
+* `digitsValue_natDigits`: Reconstructing the digit characters of a natural
+  number returns the original number.
+* `takeDigits_all_digits`: `takeDigits` consumes the whole stream when every
+  character is a digit.
+* `skipSpaces_no_space`: `skipSpaces` leaves a stream without spaces unchanged.
+* `parseInt_natDigits`: Parsing the digit characters of a natural number
+  consumes everything and reconstructs the number.
 -/
 
 namespace LeanFunge
@@ -31,7 +45,8 @@ theorem digitValue_ofNat (d : Nat) (hd : d < 10) :
   unfold digitValue
   have hvalid : (d + 48).isValidChar := by omega
   rw [Char.toNat_ofNat]
-  simp [hvalid]
+  simp only [hvalid, ↓reduceIte, Nat.le_add_left, Nat.reduceLeDiff, true_and, Nat.add_sub_cancel,
+    ite_eq_left_iff, Nat.not_le]
   omega
 
 /-- Every decimal digit of a natural number is a single digit. -/
@@ -95,11 +110,11 @@ theorem digitsValue_natDigits (n : Nat) :
           intro a h
           have hds : ∀ d ∈ ds, d < 10 := by
             intro d' hd'
-            exact h d' (by simp [hd'])
+            exact h d' (by simp only [List.mem_cons, hd', or_true])
           change List.foldl (fun acc d => acc * 10 + digitValue (Char.ofNat (d + 48)))
               (a * 10 + digitValue (Char.ofNat (d + 48))) ds =
             List.foldl (fun acc d => acc * 10 + d) (a * 10 + d) ds
-          rw [digitValue_ofNat d (h d (by simp))]
+          rw [digitValue_ofNat d (h d (by simp only [List.mem_cons, true_or]))]
           rw [ih (a * 10 + d) hds]
     exact hstep (natDigits n) 0 (natDigits_digit_lt n)
   · unfold natDigitsValue
@@ -120,10 +135,10 @@ theorem takeDigits_all_digits (ds : List Char) :
   | nil => intro h; rfl
   | cons c cs ih =>
       intro h
-      have hc : 48 ≤ c.toNat ∧ c.toNat ≤ 57 := h c (by simp)
+      have hc : 48 ≤ c.toNat ∧ c.toNat ≤ 57 := h c (by simp only [List.mem_cons, true_or])
       have hcs : ∀ c ∈ cs, isDigitChar c := by
         intro c' hc'
-        exact h c' (by simp [hc'])
+        exact h c' (by simp only [List.mem_cons, hc', or_true])
       unfold takeDigits
       rw [if_pos hc]
       rw [ih hcs]
@@ -135,7 +150,7 @@ theorem skipSpaces_no_space (ds : List Char) :
   | nil => intro h; rfl
   | cons c cs ih =>
       intro h
-      have hc : c ≠ ' ' := h c (by simp)
+      have hc : c ≠ ' ' := h c (by simp only [List.mem_cons, true_or])
       unfold skipSpaces
       rw [if_neg hc]
 
@@ -152,7 +167,7 @@ theorem parseInt_natDigits (n : Nat) :
     unfold isDigitChar
     have hvalid : (d + 48).isValidChar := by omega
     rw [Char.toNat_ofNat]
-    simp [hvalid]
+    simp only [hvalid, ↓reduceIte, Nat.le_add_left, Nat.reduceLeDiff, true_and, ge_iff_le]
     omega
   have hnoSpace : ∀ c ∈ natDigits n |>.map digitChar, c ≠ ' ' := by
     intro c hc hspace
@@ -172,34 +187,37 @@ theorem parseInt_natDigits (n : Nat) :
     by_cases hn : n < 10
     · unfold natDigits at h
       rw [if_pos hn] at h
-      exact (by simp : [n] ≠ []) h
+      exact (by simp only [ne_eq, List.cons_ne_self, not_false_eq_true] : [n] ≠ []) h
     · unfold natDigits at h
       rw [if_neg hn] at h
-      exact (by simp : ¬ natDigits (n / 10) ++ [n % 10] = []) h
+      exact (by
+        simp only [List.append_eq_nil_iff, List.cons_ne_self, and_false, not_false_eq_true] :
+          ¬ natDigits (n / 10) ++ [n % 10] = []) h
   have hmap_ne : (natDigits n).map digitChar ≠ [] := by
     intro h
     have hlen : ((natDigits n).map digitChar).length = (natDigits n).length := by
       rw [List.length_map]
     rw [h] at hlen
-    simp at hlen
+    simp only [List.length_nil] at hlen
     apply hne
     apply List.eq_nil_of_length_eq_zero
     omega
-  dsimp
+  dsimp only [Int.ofNat_eq_natCast, Lean.Elab.WF.paramLet]
   cases hc : natDigits n |>.map digitChar with
   | nil => exact False.elim (hmap_ne hc)
   | cons c cs =>
       have hc' : c ≠ '-' := by
         intro hneg
-        have hb := hdigits c (by simp [hc])
+        have hb := hdigits c (by simp only [hc, List.mem_cons, true_or])
         rw [hneg] at hb
         unfold isDigitChar at hb
         have hb' : '-'.toNat = 45 := by decide
         rw [hb'] at hb
         omega
-      simp [hc']
+      simp only [↓Char.isValue, List.cons.injEq, hc', false_and, imp_self, implies_true,
+        Prod.mk.injEq]
       rw [← hc, htake]
-      simp
-      simpa [digitChar] using congrArg (fun v : Nat => (v : Int)) (digitsValue_natDigits n)
+      simp only [true_and]
+      simpa only using congrArg (fun v : Nat => (v : Int)) (digitsValue_natDigits n)
 
 end LeanFunge

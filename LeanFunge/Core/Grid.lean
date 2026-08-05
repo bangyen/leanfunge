@@ -43,21 +43,6 @@ def space (w h : ℕ) : Grid w h :=
 def ofRows (w h : ℕ) (rows : List (List Char)) : Grid w h :=
   { cells := fun y x => (rows.getD y []).getD x ' ' }
 
-/-- Add a leading space column, shifting the original playfield right by one
-    cell. -/
-def prependSpace (g : Grid w h) : Grid (w + 1) h :=
-  { cells := fun y x => if x = 0 then ' ' else g.get (x - 1) y }
-
-/-- Add `k` leading space columns, shifting the original playfield right by
-    `k` cells. -/
-def prependSpaces (g : Grid w h) (k : ℕ) : Grid (w + k) h :=
-  { cells := fun y x => if x < k then ' ' else g.get (x - k) y }
-
-/-- Rotate a playfield clockwise at the raw-cell level. The `w`×`h` grid
-    becomes `h`×`w`. -/
-def rotateCW (g : Grid w h) : Grid h w :=
-  { cells := fun y x => g.cells (h - 1 - x) y }
-
 end Grid
 
 end LeanFunge

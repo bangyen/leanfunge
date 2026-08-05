@@ -16,6 +16,9 @@ import LeanFunge.Theory.Random
 ## Theorems
 
 * `run_refines_runRel`: Every deterministic run is a relational run.
+* `runRel_one`: A one-step relational run is exactly a `stepRel` transition.
+* `runRel_halts_mono`: Once a relational run has halted, every longer bound is
+  also halted.
 * `runRel_append`: Relational runs compose across an intermediate live state.
 * `run_append`: Deterministic runs compose across an intermediate state.
 -/
@@ -76,7 +79,7 @@ theorem runRel_one (s : State w h) (result : Option (State w h)) :
 theorem runRel_halts_mono (s : State w h) {n : ℕ}
     (h : runRel n s none) (m : ℕ) : runRel (n + m) s none := by
   induction m with
-  | zero => simpa using h
+  | zero => simpa only [Nat.add_zero] using h
   | succ m ih =>
       rw [Nat.add_succ]
       change runRel (n + m + 1) s none
@@ -91,7 +94,7 @@ theorem runRel_append (s s' : State w h) (result : Option (State w h))
   | zero =>
       rw [runRel] at h₂
       cases h₂
-      simpa using h₁
+      simpa only [Nat.add_zero] using h₁
   | succ m ih =>
       rw [runRel] at h₂
       rcases h₂ with ⟨sₘ, hₘ, hstep⟩ | ⟨hhalt, hresult⟩

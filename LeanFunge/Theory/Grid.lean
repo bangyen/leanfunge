@@ -65,48 +65,5 @@ theorem get_put_other (g : Grid w h) (x1 y1 x2 y2 : ℕ) (c : Char)
       exact hx hAnd.1
     exact dif_neg hne
 
-/-- Leading-space padding preserves each original cell at its shifted
-    coordinate, before the new toroidal boundary. -/
-theorem get_prependSpace_succ (g : Grid w h) (x y : ℕ) (hx : x < w) :
-    (Grid.prependSpace g).get (x + 1) y = g.get x y := by
-  unfold Grid.get Grid.prependSpace
-  dsimp
-  have hmod : (x + 1) % (w + 1) = x + 1 :=
-    Nat.mod_eq_of_lt (Nat.succ_lt_succ hx)
-  rw [hmod]
-  simp [Grid.get]
-
-/-- Arbitrary leading-space padding preserves each original cell at its
-    translated coordinate, before the new toroidal boundary. -/
-theorem get_prependSpaces_add (g : Grid w h) (k x y : ℕ) (hx : x < w) :
-    (Grid.prependSpaces g k).get (x + k) y = g.get x y := by
-  unfold Grid.get Grid.prependSpaces
-  dsimp
-  have hmod : (x + k) % (w + k) = x + k :=
-    Nat.mod_eq_of_lt (Nat.add_lt_add_right hx k)
-  rw [hmod]
-  have hnot : ¬ x + k < k := by omega
-  simp [hnot, Grid.get]
-
-/-- A clockwise rotation maps an old raw cell `(x, y)` to `(h - 1 - y, x)`. -/
-theorem rotateCW_cell (g : Grid w h) (x y : ℕ) (hy : y < h) :
-    (Grid.rotateCW g).cells x (h - 1 - y) = g.cells y x := by
-  unfold Grid.rotateCW
-  dsimp
-  have hcoord : h - 1 - (h - 1 - y) = y := by omega
-  rw [hcoord]
-
-/-- Clockwise rotation preserves `get` at the rotated coordinates. -/
-theorem get_rotateCW (g : Grid w h) (x y : ℕ) (hx : x < w) (hy : y < h) :
-    (Grid.rotateCW g).get (h - 1 - y) x = g.get x y := by
-  unfold Grid.get Grid.rotateCW
-  dsimp
-  have hnewx : h - 1 - y < h := by omega
-  have hmodx : (h - 1 - y) % h = h - 1 - y := Nat.mod_eq_of_lt hnewx
-  have hmody : x % w = x := Nat.mod_eq_of_lt hx
-  have hmody' : y % h = y := Nat.mod_eq_of_lt hy
-  have hcoord : h - 1 - (h - 1 - y) = y := by omega
-  rw [hmodx, hmody, hcoord, hmody']
-
 end Grid
 end LeanFunge

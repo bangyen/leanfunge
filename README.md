@@ -52,7 +52,8 @@ The implementation is organized into `Core` (definitions), `Theory`
 - *Playfield algebra* (`Theory.Grid`): reading immediately after writing
   returns the stored value (`get_put_self`), writing twice keeps the last write
   (`put_put`), and writing to one cell does not disturb distinct cells
-  (`get_put_other`); `ofRows` fills missing rows and cells with spaces.
+  (`get_put_other`); `put_get_roundtrip` proves `p`'s stored value is read
+  back by `g`; `ofRows` fills missing rows and cells with spaces.
 - *Toroidal wrapping* (`Theory.Direction`): moving right from the last column
   wraps to column `0`, moving left from column `0` wraps to the last column,
   and symmetrically for rows; iterating steps in any direction lands at the

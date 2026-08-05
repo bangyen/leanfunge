@@ -97,7 +97,9 @@ project convention that `Core` files contain only definitions.
   algebra of the self-modifying playfield. The proofs expose the `if`/`dite`
   behind `put` with `change`, then reason with `dif_pos`/`dif_neg`.
   `ofRows_cells_out_of_rows` and `ofRows_cells_out_of_col` prove that the
-  playfield construction fills missing rows and cells with spaces.
+  playfield construction fills missing rows and cells with spaces, and
+  `put_get_roundtrip` proves the interpreter's `p`/`g` round-trip for valid
+  non-negative codes.
 - `Theory/Direction.lean`: toroidal wrapping (`stepPos_right_from_last`,
   `stepPos_left_from_zero`, `stepPos_down_from_last`, `stepPos_up_from_zero`),
   proved with `Nat.mod` arithmetic under `[NeZero]` assumptions;

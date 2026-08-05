@@ -3,6 +3,7 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
+import Batteries.Data.Char.Basic
 import LeanFunge.Core.Grid
 import Mathlib.Data.List.GetD
 import Mathlib.Data.Nat.Notation
@@ -15,6 +16,7 @@ import Mathlib.Data.Nat.Notation
 * `get_put_self`: Reading a cell immediately after writing returns the value.
 * `put_put`: Writing twice is the same as writing only the last value.
 * `get_put_other`: Writing to one cell does not disturb distinct cells.
+* `put_get_roundtrip`: A value written by `p` is read back by `g`.
 * `ofRows_cells_out_of_rows`: Missing rows are spaces.
 * `ofRows_cells_out_of_col`: Missing cells in a row are spaces.
 -/
@@ -67,6 +69,24 @@ theorem get_put_other (g : Grid w h) (x1 y1 x2 y2 : ℕ) (c : Char)
       intro hAnd
       exact hx hAnd.1
     exact dif_neg hne
+
+/-- The cell written by `p` holds the character `Char.ofNat (Int.toNat v)`, and
+    `g` reading it back recovers the value `v` for a valid non-negative code:
+    the interpreter's `p`/`g` round-trip. -/
+theorem put_get_roundtrip {w h : ℕ} (g : Grid w h) (y x v : Int)
+    (hvalid : (Int.toNat v).isValidChar) (hv : 0 ≤ v) :
+    Int.ofNat
+        ((Grid.put g (Int.toNat x) (Int.toNat y) (Char.ofNat (Int.toNat v))).get (Int.toNat x)
+            (Int.toNat y)).toNat = v := by
+  have hcode :
+      (Grid.put g (Int.toNat x) (Int.toNat y) (Char.ofNat (Int.toNat v))).get (Int.toNat x)
+        (Int.toNat y) = Char.ofNat (Int.toNat v) :=
+    Grid.get_put_self g (Int.toNat x) (Int.toNat y) (Char.ofNat (Int.toNat v))
+  rw [hcode]
+  rw [Char.toNat_ofNat (Int.toNat v), if_pos hvalid]
+  change (Int.toNat v : Int) = v
+  rw [Int.ofNat_toNat v]
+  omega
 
 /-- A playfield built by `ofRows` treats rows beyond the given list as spaces. -/
 theorem ofRows_cells_out_of_rows (rows : List (List Char)) (hy : rows.length ≤ y) :

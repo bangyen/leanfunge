@@ -34,4 +34,10 @@ example (row : List Char) (hx : row.length ≤ x) :
     (List.getD row x ' ' : Char) = ' ' :=
   Grid.ofRows_cells_out_of_col row hx
 
+example (g : Grid w h) (y x v : Int) (hvalid : (Int.toNat v).isValidChar) (hv : 0 ≤ v) :
+    Int.ofNat
+        ((Grid.put g (Int.toNat x) (Int.toNat y) (Char.ofNat (Int.toNat v))).get (Int.toNat x)
+            (Int.toNat y)).toNat = v :=
+  Grid.put_get_roundtrip g y x v hvalid hv
+
 end LeanFunge.Tests

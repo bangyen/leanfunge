@@ -1,6 +1,6 @@
 name = "leanfunge"
 version = "1.0.0"
-description = "Formal Verification of the Befunge Esolang"
+description = "Formal Lean 4 verification of the Befunge-93 esolang focusing on executable semantics and verified language properties"
 keywords = ["math", "esolang", "formal-verification", "programming-languages"]
 defaultTargets = ["LeanFunge", "Tests"]
 lintDriver = "batteries/runLinter"

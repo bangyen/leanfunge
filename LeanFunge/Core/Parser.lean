@@ -11,12 +11,14 @@ import Mathlib.Data.Nat.Notation
 ## Main definitions
 
 * `digitValue`: The decimal value of a digit character.
+* `digitChar`: The digit character encoding of a decimal digit.
 * `takeDigits`: Split the leading decimal digits from an input stream.
 * `digitsValue`: The value of a list of digit characters.
 * `skipSpaces`: Drop leading spaces.
 * `parseInt`: Parse a (possibly negative) decimal integer from an input stream.
 * `natDigits`: The decimal digits of a natural number.
 * `natDigitsValue`: The value of a list of decimal digits.
+* `formatInt`: The decimal character encoding of an integer.
 -/
 
 namespace LeanFunge
@@ -71,5 +73,18 @@ decreasing_by
 /-- The value of a list of decimal digits (most significant first). -/
 def natDigitsValue (ds : List Nat) : Nat :=
   ds.foldl (fun acc d => acc * 10 + d) 0
+
+/-- The digit character encoding of a decimal digit. -/
+def digitChar (d : Nat) : Char :=
+  Char.ofNat (d + 48)
+
+/-- The decimal character encoding of an integer: the digits of its absolute
+    value, with a leading `-` for negative numbers. This is the redefinable
+    counterpart of `toString` used by the `.` instruction, so that the
+    integer-output round-trip with `parseInt` is provable. -/
+def formatInt (n : Int) : List Char :=
+  match n with
+  | Int.ofNat m => Nat.toDigits 10 m
+  | Int.negSucc k => '-' :: Nat.toDigits 10 (k + 1)
 
 end LeanFunge

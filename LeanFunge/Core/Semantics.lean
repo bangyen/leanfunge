@@ -77,7 +77,7 @@ def stepState (s : State w h) (instr : Instruction) : State w h :=
   | .drop => { s with stack := Stack.drop s.stack, pc := stepPos w h s.dir s.pc }
   | .printInt =>
       { s with
-        output := s.output ++ toString (Stack.top s.stack),
+        output := s.output ++ String.ofList (formatInt (Stack.top s.stack)),
         stack := Stack.drop s.stack,
         pc := stepPos w h s.dir s.pc }
   | .printChar =>

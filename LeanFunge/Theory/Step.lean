@@ -229,7 +229,7 @@ theorem step_printInt (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = '.') (v : Int) (rest : Stack)
     (hstack : s.stack = v :: rest) :
     step s = some { s with
-      output := s.output ++ toString v,
+      output := s.output ++ String.ofList (formatInt v),
       stack := rest,
       pc := stepPos w h s.dir s.pc } := by
   unfold step

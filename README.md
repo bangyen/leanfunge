@@ -77,6 +77,10 @@ The implementation is organized into `Core` (definitions), `Theory`
 - *Termination* (`Theory.Termination`): a machine whose transitions strictly
   decrease a ranking function halts or reaches rank zero in finitely many
   steps, covering the looping examples.
+- *Integer output round-trip* (`Theory.Output`): the `.` instruction prints
+  through a redefinable `formatInt` encoding (`Core/Parser`), and
+  `parseInt_formatInt` proves that re-parsing any `formatInt` output with `&`
+  recovers the original integer — the generic dual of the `&` parser.
 
 **Verified example programs** (`LeanFunge.Examples`)
 
@@ -107,7 +111,7 @@ the Lean kernel:
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **Generic decimal output round-trip** | Medium | `decimal_roundtrip` is verified for concrete inputs only; a redefinable output encoding would make the re-parse round-trip a fully generic theorem, closing the `toString` reducibility gap. |
+| **Generic decimal output round-trip** | ✅ Done | The `.` instruction prints through a redefinable `formatInt` encoding; `parseInt_formatInt` proves re-parsing any `formatInt` output with `&` recovers the original integer, closing the non-reducible `toString` gap and making the output re-parse round-trip fully generic at the encoding level. |
 | **Verified Befunge quine** | Medium | A program that prints its own source code using `p`/`g`, verified against the interpreter — a classic self-referential example that pairs with the self-interpreter milestones. |
 | **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
@@ -143,9 +147,10 @@ unspecified; LeanFunge makes the following choices, all documented in
 
 **Limitations.**
 
-- The decimal-output round-trip (`decimal_roundtrip`) is verified for concrete
-  inputs only, because Lean's `toString` output encoding is not reducible; a
-  redefinable encoding would make the theorem fully generic (see Roadmap).
+- The `DecimalOutput` program's round-trip (`decimal_roundtrip`) is verified
+  for concrete inputs only — a generic statement would require a
+  program-level correctness proof of its loops. The `.` output encoding's
+  round-trip (`parseInt_formatInt`) is fully generic.
 - Every verified example is deterministic; the nondeterminism of `?` is
   captured by the transition relation rather than the executable interpreter.
 

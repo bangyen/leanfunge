@@ -14,7 +14,6 @@ import Mathlib.Data.Nat.Init
 
 ## Definitions
 
-* `digitChar`: The digit character encoding of a decimal digit.
 * `isDigitChar`: A character is a decimal digit.
 
 ## Theorems
@@ -119,10 +118,6 @@ theorem digitsValue_natDigits (n : Nat) :
     exact hstep (natDigits n) 0 (natDigits_digit_lt n)
   · unfold natDigitsValue
     exact natDigitsValue_natDigits n
-
-/-- The digit character encoding of a decimal digit. -/
-def digitChar (d : Nat) : Char :=
-  Char.ofNat (d + 48)
 
 /-- A character is a decimal digit. -/
 def isDigitChar (c : Char) : Prop :=

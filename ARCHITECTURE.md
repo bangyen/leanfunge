@@ -120,6 +120,12 @@ project convention that `Core` files contain only definitions.
   signed decimal integer from the input stream; `natDigitsValue_natDigits`
   proves the decimal digits round-trip, and `parseInt_natDigits` shows parsing
   the digit characters of a number consumes the stream and recovers it.
+- `Theory/Output.lean`: integer output. `formatInt` (in `Core/Parser`) is the
+  redefinable decimal encoding used by the `.` instruction, a reducible
+  counterpart of `toString`; `toDigits_natDigits` identifies it with the
+  digits of `natDigits`, and `parseInt_formatInt` proves that re-parsing any
+  `formatInt` output with `&` recovers the original integer — the generic dual
+  of the `&` parser.
 - `Theory/Run.lean`: run-level invariance. A grid-preserving run leaves the
   playfield unchanged across the whole run (`run_grid_invariant`), so a cell
   never written by the put instruction keeps its value; a nop-only run leaves
@@ -177,8 +183,9 @@ verify the loop programs without hitting the default recursion limit.
 ## Project Structure
 
 - `LeanFunge/Core`: Definitions (Direction, Stack, Grid, Instruction, State,
-  Semantics).
-- `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step, StepOps).
+  Semantics, Parser).
+- `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step, StepOps,
+  Invariance, Random, Parser, Output, Run, Termination).
 - `LeanFunge/Examples`: Verified example programs.
 - `Tests`: Executable `example` statements that re-assert the theorems.
 - `scripts`: Repository guard checks (naming, imports, copyright, formatting).

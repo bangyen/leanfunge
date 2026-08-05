@@ -96,11 +96,13 @@ project convention that `Core` files contain only definitions.
 - `Theory/Grid.lean`: `get_put_self`, `put_put`, and `get_put_other` —
   algebra of the self-modifying playfield. The proofs expose the `if`/`dite`
   behind `put` with `change`, then reason with `dif_pos`/`dif_neg`.
+  `ofRows_cells_out_of_rows` and `ofRows_cells_out_of_col` prove that the
+  playfield construction fills missing rows and cells with spaces.
 - `Theory/Direction.lean`: toroidal wrapping (`stepPos_right_from_last`,
   `stepPos_left_from_zero`, `stepPos_down_from_last`, `stepPos_up_from_zero`),
   proved with `Nat.mod` arithmetic under `[NeZero]` assumptions;
-  `runPos_right` generalizes this to `k` rightward steps, landing at the
-  modular column `(x + k) % w`.
+  `runPos_right`/`runPos_down`/`runPos_up`/`runPos_left` generalize this to
+  `k` steps in each direction, landing at the modular offset.
 - `Theory/Step.lean`: single-step semantics for the instruction set. Each
   theorem unfolds `step`, rewrites the cell/stack/string-mode hypotheses, and
   simplifies with the relevant definitions. `run_halts_mono` shows that halting
@@ -108,7 +110,8 @@ project convention that `Core` files contain only definitions.
 - `Theory/StepOps.lean`: single-step semantics for the remaining instructions —
   `/`, `%`, the comparison instruction, `:`, `\`, `$`, `~` (including the
   end-of-input case), and `&` — completing single-step coverage of the
-  instruction set.
+  instruction set. `step_trampoline_right_from_last` proves that `#` at the
+  last column skips across the torus wrap to column 1.
 - `Theory/Invariance.lean`: program-level equivalence. A space is a pure no-op;
   every instruction except `p` leaves the playfield unchanged; and `p` writes
   exactly the addressed cell (bridging to `Theory/Grid`). These are the

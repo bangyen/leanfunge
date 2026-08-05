@@ -74,4 +74,10 @@ example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
       pc := stepPos w h s.dir s.pc } :=
   step_inputInt s hm hcell rest v hparse
 
+example {w h : ℕ} (hw : 2 ≤ w) (s : State w h) (y : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (w - 1, y)) (hdir : s.dir = .right) :
+    step s = some { s with pc := (1, y % h) } :=
+  step_trampoline_right_from_last hw s y hm hcell hpc hdir
+
 end LeanFunge.Tests

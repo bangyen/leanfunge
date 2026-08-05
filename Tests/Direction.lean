@@ -32,4 +32,13 @@ example : runPos 80 25 80 Direction.right (3, 0) = (3, 0) := by
   simpa only [Nat.reduceAdd, Nat.mod_self] using
     (runPos_right (w := 80) (h := 25) (k := 80) (x := 3) (y := 0))
 
+example : runPos 80 25 10 Direction.down (3, 0) = (3, 10) := by
+  decide
+
+example : runPos 80 25 30 Direction.up (3, 0) = (3, 20) := by
+  decide
+
+example : runPos 80 25 30 Direction.left (3, 0) = (53, 0) := by
+  decide
+
 end LeanFunge.Tests

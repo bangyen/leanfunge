@@ -16,6 +16,9 @@ import Mathlib.Data.Nat.Notation
 * `stepPos_down_from_last`: Moving down from the last row wraps to 0.
 * `stepPos_up_from_zero`: Moving up from row 0 wraps to the last row.
 * `runPos_right`: Iterating rightward steps lands at the modular column.
+* `runPos_down`: Iterating downward steps lands at the modular row.
+* `runPos_up`: Iterating upward steps lands at the modular row.
+* `runPos_left`: Iterating leftward steps lands at the modular column.
 -/
 
 namespace LeanFunge
@@ -67,5 +70,73 @@ theorem runPos_right (w h k x y : ℕ) :
           rw [Nat.add_mod]
       have hy : (y % h) % h = y % h := Nat.mod_mod _ _
       rw [hx, hy]
+
+/-- Iterating downward steps from a reduced row lands at the modular offset:
+    after `k` steps the row is `(y + k) % h`. -/
+theorem runPos_down (w h k x y : ℕ) :
+    runPos w h k Direction.down (x % w, y % h) = (x % w, (y + k) % h) := by
+  induction k with
+  | zero =>
+      simp only [runPos]
+      rw [Nat.add_zero]
+  | succ k ih =>
+      simp only [runPos, ih, stepPos]
+      have hy : ((y + k) % h + 1) % h = (y + (k + 1)) % h := by
+        rw [← Nat.add_assoc]
+        conv =>
+          lhs
+          rw [Nat.add_mod]
+          rw [Nat.mod_mod]
+        conv =>
+          rhs
+          rw [Nat.add_mod]
+      have hx : (x % w) % w = x % w := Nat.mod_mod _ _
+      rw [hy, hx]
+
+/-- Iterating upward steps from a reduced row lands at the modular offset:
+    each step adds `h - 1` modulo `h`. -/
+theorem runPos_up {w h : ℕ} [NeZero h] (k x y : ℕ) :
+    runPos w h k Direction.up (x % w, y % h) = (x % w, (y + k * (h - 1)) % h) := by
+  have hpos : 0 < h := Nat.pos_of_neZero h
+  induction k with
+  | zero =>
+      simp only [runPos]
+      rw [Nat.zero_mul, Nat.add_zero]
+  | succ k ih =>
+      simp only [runPos, ih, stepPos]
+      have hy : ((y + k * (h - 1)) % h + (h - 1)) % h = (y + (k + 1) * (h - 1)) % h := by
+        rw [Nat.add_mul, Nat.one_mul]
+        rw [← Nat.add_assoc]
+        conv =>
+          rhs
+          rw [Nat.add_mod]
+          rw [Nat.mod_eq_of_lt (show h - 1 < h by omega)]
+      have hx : (x % w) % w = x % w := Nat.mod_mod _ _
+      have hsub : (y + k * (h - 1)) % h + h - 1 = (y + k * (h - 1)) % h + (h - 1) := by
+        rw [Nat.add_sub_assoc (show 1 ≤ h by omega)]
+      rw [hsub, hx, hy]
+
+/-- Iterating leftward steps from a reduced column lands at the modular offset:
+    each step adds `w - 1` modulo `w`. -/
+theorem runPos_left {w h : ℕ} [NeZero w] (k x y : ℕ) :
+    runPos w h k Direction.left (x % w, y % h) = ((x + k * (w - 1)) % w, y % h) := by
+  have hpos : 0 < w := Nat.pos_of_neZero w
+  induction k with
+  | zero =>
+      simp only [runPos]
+      rw [Nat.zero_mul, Nat.add_zero]
+  | succ k ih =>
+      simp only [runPos, ih, stepPos]
+      have hx : ((x + k * (w - 1)) % w + (w - 1)) % w = (x + (k + 1) * (w - 1)) % w := by
+        rw [Nat.add_mul, Nat.one_mul]
+        rw [← Nat.add_assoc]
+        conv =>
+          rhs
+          rw [Nat.add_mod]
+          rw [Nat.mod_eq_of_lt (show w - 1 < w by omega)]
+      have hy : (y % h) % h = y % h := Nat.mod_mod _ _
+      have hsub : (x + k * (w - 1)) % w + w - 1 = (x + k * (w - 1)) % w + (w - 1) := by
+        rw [Nat.add_sub_assoc (show 1 ≤ w by omega)]
+      rw [hsub, hy, hx]
 
 end LeanFunge

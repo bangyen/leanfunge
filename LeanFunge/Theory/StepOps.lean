@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Step
 import Mathlib.Data.Nat.Notation
 
 /-!
@@ -11,7 +12,8 @@ import Mathlib.Data.Nat.Notation
 
 Theorems for the instructions not covered in `LeanFunge.Theory.Step`:
 the arithmetic `div`/`mod`, the comparison, the stack-manipulation
-`dup`/`swap`/`drop`, and the input `~`/`&`.
+`dup`/`swap`/`drop`, and the input `~`/`&`. Also includes the
+toroidal-wrapping instance of the `#` trampoline.
 
 ## Theorems
 
@@ -25,6 +27,7 @@ the arithmetic `div`/`mod`, the comparison, the stack-manipulation
 * `step_inputChar`: `~` pushes the code of the next input character.
 * `step_inputChar_eof`: At end of input, `~` pushes `0`.
 * `step_inputInt`: `&` parses a decimal integer from the input stream.
+* `step_trampoline_right_from_last`: `#` at the last column wraps to column 1.
 -/
 
 namespace LeanFunge
@@ -109,5 +112,21 @@ theorem step_inputInt (s : State w h) (hm : s.stringMode = false)
       pc := stepPos w h s.dir s.pc } := by
   unfold step
   simp only [decodeChar, stepState, hm, hcell, hparse]
+
+/-- `#` at the last column, moving right, skips across the wrap and lands at
+    column 1. -/
+theorem step_trampoline_right_from_last {w h : ℕ} (hw : 2 ≤ w) (s : State w h) (y : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (w - 1, y)) (hdir : s.dir = .right) :
+    step s = some { s with pc := (1, y % h) } := by
+  have hmid : stepPos w h Direction.right (w - 1, y) = (0, y % h) := by
+    unfold stepPos
+    rw [Nat.sub_add_cancel (show 1 ≤ w by omega)]
+    rw [Nat.mod_self]
+  have hnext : stepPos w h Direction.right (0, y % h) = (1, y % h) := by
+    unfold stepPos
+    simp only [Nat.mod_eq_of_lt (show 1 < w by omega), Nat.mod_mod]
+  rw [step_trampoline s hm hcell]
+  simp only [hpc, hdir, hmid, hnext]
 
 end LeanFunge

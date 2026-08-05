@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Grid
+import Mathlib.Data.List.GetD
 import Mathlib.Data.Nat.Notation
 
 /-!
@@ -14,6 +15,8 @@ import Mathlib.Data.Nat.Notation
 * `get_put_self`: Reading a cell immediately after writing returns the value.
 * `put_put`: Writing twice is the same as writing only the last value.
 * `get_put_other`: Writing to one cell does not disturb distinct cells.
+* `ofRows_cells_out_of_rows`: Missing rows are spaces.
+* `ofRows_cells_out_of_col`: Missing cells in a row are spaces.
 -/
 
 namespace LeanFunge
@@ -64,6 +67,21 @@ theorem get_put_other (g : Grid w h) (x1 y1 x2 y2 : ℕ) (c : Char)
       intro hAnd
       exact hx hAnd.1
     exact dif_neg hne
+
+/-- A playfield built by `ofRows` treats rows beyond the given list as spaces. -/
+theorem ofRows_cells_out_of_rows (rows : List (List Char)) (hy : rows.length ≤ y) :
+    (Grid.ofRows w h rows).cells y x = ' ' := by
+  unfold Grid.ofRows
+  change (rows.getD y []).getD x ' ' = ' '
+  have h1 : rows.getD y [] = [] :=
+    List.getD_eq_default (l := rows) (n := y) (d := []) hy
+  rw [h1]
+  rfl
+
+/-- A playfield built by `ofRows` treats cells beyond a row's width as spaces. -/
+theorem ofRows_cells_out_of_col (row : List Char) (hx : row.length ≤ x) :
+    (List.getD row x ' ' : Char) = ' ' := by
+  exact List.getD_eq_default (l := row) (n := x) (d := ' ') hx
 
 end Grid
 end LeanFunge

@@ -52,11 +52,11 @@ The implementation is organized into `Core` (definitions), `Theory`
 - *Playfield algebra* (`Theory.Grid`): reading immediately after writing
   returns the stored value (`get_put_self`), writing twice keeps the last write
   (`put_put`), and writing to one cell does not disturb distinct cells
-  (`get_put_other`).
+  (`get_put_other`); `ofRows` fills missing rows and cells with spaces.
 - *Toroidal wrapping* (`Theory.Direction`): moving right from the last column
   wraps to column `0`, moving left from column `0` wraps to the last column,
-  and symmetrically for rows; iterating rightward steps lands at the modular
-  column (`runPos_right`).
+  and symmetrically for rows; iterating steps in any direction lands at the
+  modular offset (`runPos_right`, `runPos_down`, `runPos_up`, `runPos_left`).
 - *Step semantics* (`Theory.Step`, `Theory.StepOps`): the `@` instruction
   halts; digits push; `+`, `-`, `*`, `/`, `%` combine the top two values; the
   comparison pushes `1` when the second-popped value exceeds the top; `:`, `\`,
@@ -64,7 +64,8 @@ The implementation is organized into `Core` (definitions), `Theory`
   pointer; `_` and `|` branch on the top of the stack; `"` toggles string mode
   (in which characters are pushed as their codes); `#` skips the next cell;
   `p`/`g` store and fetch playfield values; `.`/`,` write to the output; and
-  `~`/`&` read from the input stream.
+  `~`/`&` read from the input stream; `#` at the last column skips across the
+  torus wrap (`step_trampoline_right_from_last`).
 - *Program-level invariance* (`Theory.Invariance`): a space is a pure no-op
   (`step_nop`), every instruction except `p` leaves the playfield unchanged
   (`stepState_grid_of_ne_put`), and `p` stores its value at the addressed cell
@@ -119,9 +120,6 @@ the Lean kernel:
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
 | **String-mode block semantics** | Medium | `Theory.Step` covers the single-step `"` toggle, but there is no block-level theorem: proving that a balanced `"..."` region pushes exactly its interior character codes requires threading `run` through a variable-width playfield, a multi-step induction. |
-| **Toroidal iteration family** | Low | `runPos_right` covers only rightward steps; analogous lemmas for `left`/`up`/`down` would complete the modular generalization of the wrapping theorems. |
-| **Trampoline wrapping** | Low | `#` skips one cell, but there is no theorem about it doing so across the torus edge (e.g. `#` at the last column skipping to column 1). |
-| **`ofRows` missing-cell behavior** | Low | The playfield construction treats missing cells as spaces, but no theorem proves that `Grid.ofRows` returns `' '` for rows or cells beyond the given list. |
 | **Run-level output monotonicity** | Medium | Prove that the output stream only ever grows across `run`. The single-step version needs a per-instruction case analysis (only `,`/`.` extend output), and the run-level lift needs run threading. |
 | **Nop-run pointer movement** | Low | Bridge `runPos` to the interpreter: prove that a run of no-ops advances the instruction pointer exactly as `runPos k` predicts. Requires run-level invariants (a space grid never halts, the grid is preserved) on top of the `stepPos` threading. |
 | **Toroidal wrap example** | Low | A verified program that wraps off the playfield edge. A halting wrap needs self-modification (`p`) or stack-branching to make the post-wrap behavior differ from the first pass, which complicates the program design. |

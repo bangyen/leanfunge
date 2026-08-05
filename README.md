@@ -74,6 +74,9 @@ The implementation is organized into `Core` (definitions), `Theory`
 - *Run-level invariance* (`Theory.Run`): a grid-preserving run leaves the
   playfield unchanged across the whole run (`run_grid_invariant`), and a
   nop-only run leaves the stack unchanged (`run_stack_invariant`).
+- *Divergence* (`Theory.Run.Divergence`): a run on an all-space playfield never
+  halts (`run_space_some`), never modifies the playfield, and never enters
+  string mode.
 - *Nondeterminism* (`Theory.Random`): the transition relation `stepRel` allows
   any of the four directions at `?`; the deterministic interpreter is a sound
   refinement of it, and all four directions are reachable `?` outcomes.
@@ -122,7 +125,7 @@ the Lean kernel:
 | :--- | :--- | :--- |
 | **String-mode block semantics** | Medium | `Theory.Step` covers the single-step `"` toggle, but there is no block-level theorem: proving that a balanced `"..."` region pushes exactly its interior character codes requires threading `run` through a variable-width playfield, a multi-step induction. |
 | **Run-level output monotonicity** | Medium | Prove that the output stream only ever grows across `run`. The single-step version needs a per-instruction case analysis (only `,`/`.` extend output), and the run-level lift needs run threading. |
-| **Nop-run pointer movement** | Low | Bridge `runPos` to the interpreter: prove that a run of no-ops advances the instruction pointer exactly as `runPos k` predicts. Requires run-level invariants (a space grid never halts, the grid is preserved) on top of the `stepPos` threading. |
+| **Nop-run pointer movement** | Low | Bridge `runPos` to the interpreter: prove that a run of no-ops advances the instruction pointer exactly as `runPos k` predicts. The never-halts lemma (`run_space_some`) is done; the remaining `stepPos` threading is the open part. |
 | **Toroidal wrap example** | Low | A verified program that wraps off the playfield edge. A halting wrap needs self-modification (`p`) or stack-branching to make the post-wrap behavior differ from the first pass, which complicates the program design. |
 
 ## Scope & Limitations

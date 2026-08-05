@@ -55,4 +55,8 @@ example {w h : ℕ} (s s' : State w h) (result : Option (State w h))
     run (n + m) s = result :=
   run_append s s' result n m h₁ h₂
 
+example (w h k x y : ℕ) :
+    run k { State.init (Grid.space w h) with pc := (x, y), dir := .right } ≠ none :=
+  run_space_some w h k x y
+
 end LeanFunge.Tests

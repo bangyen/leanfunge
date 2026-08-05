@@ -137,6 +137,9 @@ project convention that `Core` files contain only definitions.
   playfield unchanged across the whole run (`run_grid_invariant`), so a cell
   never written by the put instruction keeps its value; a nop-only run leaves
   the stack unchanged (`run_stack_invariant`).
+- `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
+  never halts (`run_space_some`), and every successor state keeps the all-space
+  playfield and stays out of string mode (`run_space_step`).
 - `Theory/Run/Relational.lean`: multi-step relational semantics. `runRel`
   lifts `stepRel` to finite runs, including halt propagation; deterministic
   runs refine it, one-step relational runs coincide with `stepRel`, and both

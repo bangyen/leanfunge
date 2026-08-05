@@ -127,7 +127,7 @@ the Lean kernel:
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
 | **String-mode block semantics** | Medium | Confirmed: the single-step `"` theorems hold, but a block-level theorem (a balanced `"..."` pushes exactly its interior codes) needs a grid-suffix run lemma — the base case works, but relating the sub-block run from a later column to a narrow-grid induction is substantial. |
-| **Run-level output monotonicity** | Medium | Partially attempted: the single-step per-instruction case analysis is begun but not completed; the run-level lift is unstarted. |
+| **Run-level output monotonicity** | Medium | Confirmed: the string-mode and `,`/`.` cases of the single-step version are proven, but the remaining ~23 instructions need a long mechanical case analysis (with `inputChar`/`inputInt` matching on the input stream), and the run-level lift is unstarted. |
 | **Nop-run pointer movement** | Low | Confirmed: a full attempt needed several run-level lemmas (never-halts, grid preservation) on top of the `stepPos` threading. |
 | **Input consumption is prefix-only** | Medium | Confirmed: the `skipSpaces`/`takeDigits` suffix lemmas are proven, but `parseInt_suffix` needs reducing `parseInt`'s match on the space-skipped stream (literal `-` pattern), which does not reduce by `simp`. |
 | **String-mode block output round-trip** | Medium | Confirmed: the dual of the string-mode block theorem shares the confirmed grid-suffix run roadblock, plus the `,` composition. |

@@ -7,7 +7,6 @@ import LeanFunge.Theory.Direction
 import LeanFunge.Theory.Grid
 import LeanFunge.Theory.Invariance
 import LeanFunge.Theory.Parser
-import LeanFunge.Theory.Program
 import LeanFunge.Theory.Random
 import LeanFunge.Theory.Run
 import LeanFunge.Theory.Stack

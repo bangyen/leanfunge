@@ -2,6 +2,7 @@
 
 **Formal Verification of the Befunge Esolang in Lean 4.**
 
+[![CI](https://github.com/bangyen/leanfunge/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/bangyen/leanfunge/actions/workflows/lean_action_ci.yml)
 [![Lean 4 Version](https://img.shields.io/badge/Lean-4.28.0-blue.svg)](https://leanprover.github.io/)
 [![Mathlib4](https://img.shields.io/badge/Mathlib-4-brightgreen.svg)](https://github.com/leanprover-community/mathlib4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -11,19 +12,23 @@ LeanFunge constructs a fully machine-checked, executable formalization of the
 [Lean 4](https://leanprover.github.io/) interactive theorem prover, and proves
 properties about the language: stack algebra, toroidal wrapping, the
 self-modifying playfield, string mode, and the single-step semantics of the
-instruction set.
+instruction set. Esolangs like Befunge are defined by loose, human-readable
+specifications that leave many details ambiguous (stack underflow, `p`/`g`
+coordinate order, wrapping behavior, input at end-of-file). LeanFunge pins down
+one precise, total, deterministic formalization — every transition of the
+interpreter is a pure Lean function — and then proves theorems about it.
 
-## Motivation
+## Architecture
 
-Esolangs like Befunge are defined by loose, human-readable specifications that
-leave many details ambiguous (stack underflow, `p`/`g` coordinate order,
-wrapping behavior, input at end-of-file). LeanFunge pins down one precise,
-total, deterministic formalization — every transition of the interpreter is a
-pure Lean function — and then proves theorems about it.
+For a detailed overview of the project's design — the toroidal playfield, the
+total stack, the single-step transition function, and the relational treatment
+of `?` — see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## What is formalized
+The implementation is organized into `Core` (definitions), `Theory`
+(verified theorems), `Examples` (verified example programs), and `Tests`
+(kernel re-assertions of the theorems and examples).
 
-The formalization lives in `LeanFunge/Core` and `LeanFunge/Theory`.
+## Results
 
 **Core primitives** (`LeanFunge.Core`)
 
@@ -63,6 +68,15 @@ The formalization lives in `LeanFunge/Core` and `LeanFunge/Theory`.
   (`step_nop`), every instruction except `p` leaves the playfield unchanged
   (`stepState_grid_of_ne_put`), and `p` stores its value at the addressed cell
   (`step_put_grid`), bridging the instruction semantics to the grid algebra.
+- *Run-level invariance* (`Theory.Run`): a grid-preserving run leaves the
+  playfield unchanged across the whole run (`run_grid_invariant`), and a
+  nop-only run leaves the stack unchanged (`run_stack_invariant`).
+- *Nondeterminism* (`Theory.Random`): the transition relation `stepRel` allows
+  any of the four directions at `?`; the deterministic interpreter is a sound
+  refinement of it, and all four directions are reachable `?` outcomes.
+- *Termination* (`Theory.Termination`): a machine whose transitions strictly
+  decrease a ranking function halts or reaches rank zero in finitely many
+  steps, covering the looping examples.
 
 **Verified example programs** (`LeanFunge.Examples`)
 
@@ -93,33 +107,25 @@ the Lean kernel:
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **Verified looping programs** (countdown, factorial) | ✅ Done | `Countdown` prints `321` and `Factorial` computes `3! = 6`, both via `|` loops with cells and verified by the kernel. |
-| **Program-level equivalence** (nop invariance, `p`/`g` roundtrip) | ✅ Done | `Theory.Invariance` proves spaces are no-ops, only `p` modifies the playfield, and `p` stores the addressed cell. |
-| **`?` as true nondeterminism** | ✅ Done | `stepRel` is a relational transition and `Theory.Random` proves the interpreter is a sound refinement, plus all four directions are reachable `?` outcomes. |
-| **Faithful `&` integer input** | ✅ Done | `Core/Parser` implements a decimal parser (sign, spaces, multi-digit) and `Theory/Parser` proves the digits round-trip; `Input` verifies programs reading `5`, `12`, and `-3`. |
-| **Self-modification showcase** | ✅ Done | `SelfMod` verifies programs that write their own `@` (halting by rewriting) and that write then execute a `1` instruction. |
-| **Verified termination analysis** | ✅ Done | `Theory/Termination` proves strictly decreasing counters are bounded and hit zero, and that any decreasing-counter machine halts or reaches zero in finitely many steps, covering the loop examples. |
-| **Run-level program equivalence** | ✅ Done | `Theory/Run` proves a grid-preserving program leaves the playfield unchanged across a whole run, and a nop-only run leaves the stack unchanged. |
-| **Complete the instruction set** | ✅ Done | `Theory/StepOps` adds single-step theorems for `/`, `%`, the comparison, `:`, `\`, `$`, `~` (including EOF), and `&` using the existing patterns, completing single-step coverage. |
-| **Verified decimal output routine** | ✅ Done | `DecimalOutput` reads `0`, `5`, `123`, and `12345` with `&` and prints each back as characters via a `div`/`mod` extraction loop and a reverse print loop; `decimal_roundtrip` shows the printed output re-parses to the original number — the first verified "library" program, the dual of the `&` parser. |
-| **Program equivalence** | ✅ Done | `Theory/Program` defines strict, observational, and ordered stuttering equivalence; verified examples show that leading-space padding preserves the behavior of `@` and `23+.@`. |
-| **Determinism for `?`** | ✅ Done | `Theory.Random` proves non-random states have a unique relational successor and `?` states have distinct reachable successors, completing the determinism boundary around the nondeterministic instruction. |
-| **Multi-step relational semantics** | ✅ Done | `Theory/Run/Relational` lifts `stepRel` to finite runs, proves deterministic execution is a valid relational trace, identifies one-step runs with `stepRel`, and propagates relational halting. |
-| **Compositional program blocks** | ✅ Done | `run_append` and `runRel_append` compose deterministic and relational executions across continuations, providing the sequencing foundation for block equivalence. |
-| **State simulation relations** | ✅ Done | `Theory/Program` defines dimension-independent bisimulations that preserve observations, halting, and successor states, then lifts them to whole deterministic runs. |
-| **Verified spacing transformations** | ✅ Done | `Grid.prependSpace`, `prependSpaceState`, and the arithmetic bisimulation verify a width-changing leading-space rewrite under explicit no-wrap conditions. |
-| **Verified program transformations** | ✅ Done | Spacing rewrites are verified; rotation commutes with the full non-branching instruction set but is unsound in general (`rotateCounter` shows `_` changes behavior), so full rotation is documented as a limitation. |
-| **Rotation-safe rewrites** | ✅ Done | `rotationSafe` restricts programs to instructions that preserve direction and grid shape; `step_rotateCWState_rotationSafe_right` proves the general step commutation, and the arithmetic program instantiates it (`arithmetic_rotation_safe_equiv`). |
-| **I/O behavior contracts** | ✅ Done | `ioBehavior` and `io_equiv` define input-consumption/output-production contracts; `parseInt_natDigits` proves the parser consumes a digit stream and recovers the number; `&.@` read-print contracts are verified for concrete inputs. The generic output re-parse round-trip is limited by Lean's non-reducible `toString` encoding. |
-| **Verified optimization rewrites** | ✅ Done | Dead no-op elimination is verified (`23+.@ ` ≡ `23+.@`); constant folding is unsound under stack-observational equivalence because intermediate stacks are observable (`constant_folding_unsound`), so folding is documented as a limitation. |
-| **Generic ranking-function termination API** | ✅ Done | `rankedMachine_terminates` proves any machine whose transitions strictly decrease a ranking function halts or reaches rank zero in finitely many steps; `twoCounter_terminates` instantiates it beyond single counters. |
+| **Generic decimal output round-trip** | Medium | `decimal_roundtrip` is verified for concrete inputs only; a redefinable output encoding would make the re-parse round-trip a fully generic theorem, closing the `toString` reducibility gap. |
+| **Verified Befunge quine** | Medium | A program that prints its own source code using `p`/`g`, verified against the interpreter — a classic self-referential example that pairs with the self-interpreter milestones. |
 | **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 
-## Design decisions
+## Scope & Limitations
 
-Befunge's specification leaves several behaviors unspecified; LeanFunge makes
-the following choices, all documented in `ARCHITECTURE.md`:
+**Scope.** LeanFunge formalizes Befunge-93 and proves properties about the
+language — stack algebra, toroidal wrapping, the self-modifying playfield,
+string mode, and the single-step semantics of the instruction set — together
+with verified example programs. It deliberately does not develop verified
+program transformations or optimizations (spacing, rotation, dead no-op
+elimination, constant folding); the program-equivalence framework that
+supported them was removed as out of scope. A Befunge-98 fingerprint is also
+out of scope.
+
+**Design choices.** Befunge's specification leaves several behaviors
+unspecified; LeanFunge makes the following choices, all documented in
+`ARCHITECTURE.md`:
 
 - **Toroidal playfield**: coordinates are reduced modulo the playfield size on
   every access, so the playfield is a torus.
@@ -134,6 +140,14 @@ the following choices, all documented in `ARCHITECTURE.md`:
   instruction. The full nondeterminism is captured by the transition relation
   `stepRel`, and `Theory.Random` proves the interpreter is a sound refinement
   of it and that `?` may choose any of the four directions.
+
+**Limitations.**
+
+- The decimal-output round-trip (`decimal_roundtrip`) is verified for concrete
+  inputs only, because Lean's `toString` output encoding is not reducible; a
+  redefinable encoding would make the theorem fully generic (see Roadmap).
+- Every verified example is deterministic; the nondeterminism of `?` is
+  captured by the transition relation rather than the executable interpreter.
 
 ## Installation & Building
 
@@ -159,8 +173,8 @@ lake lint           # Runs the linter
 
 This repo uses standard Mathlib naming conventions and the same guard scripts
 as LeanSharp. If you are interested in extending the formalization — for
-example, a verified Befunge-98 fingerprint, a termination analysis, or a
-self-interpreter — feel free to open a pull request.
+example, a verified Befunge quine or a self-interpreter — feel free to open a
+pull request.
 
 ## Citation
 

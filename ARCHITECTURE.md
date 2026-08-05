@@ -128,19 +128,6 @@ project convention that `Core` files contain only definitions.
   lifts `stepRel` to finite runs, including halt propagation; deterministic
   runs refine it, one-step relational runs coincide with `stepRel`, and both
   deterministic and relational runs compose across continuations.
-- `Theory/Program.lean`: program equivalence. Strict and observational
-  equivalence compare bounded runs; ordered trace equivalence supports
-  stuttering step alignments, with reusable no-op-prefix and finite halted-tail
-  lemmas for spacing rewrites; `state_simulation` and
-  `run_related_of_state_simulation` provide the bisimulation layer for
-  dimension-changing transformations, while
-  `run_observations_of_state_simulation` turns that layer into observational
-  equivalence. `prependSpaceState` supplies the leading-space mapping and its
-  bounded cell correspondence; the arithmetic example assembles the
-  instruction-level no-wrap cases into a concrete state bisimulation.
-  `ioBehavior` and `io_equiv` define input/output behavior contracts;
-  `rotationSafe` and `step_rotateCWState_rotationSafe_right` provide the
-  restricted rotation-rewrite rule, instantiated by the arithmetic program.
 - `Theory/Termination.lean`: termination analysis. `decreasing_machine_terminates`
   covers single counters, and `rankedMachine_terminates` generalizes it to any
   state type with a strictly decreasing ranking function, instantiated by the
@@ -164,7 +151,6 @@ no external interpreter is trusted.
 | `Input` | `&2+.@`, `&.@`, `&@` (5×1, 3×1, 2×1) | reads `5`→prints `7`, reads `12`→prints `12`, reads `-3` onto the stack |
 | `DecimalOutput` | 48×10 extraction/print loops | reads `0`, `5`, `123`, `12345` and prints each back as characters; the printed output re-parses to the original number |
 | `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
-| `Program` | padded and rotated `23+.@` variants | verifies ordered trace equivalence under leading-space padding; the clockwise state mapping runs the arithmetic program vertically with identical output and halt behavior; `rotateCounter` shows rotation is unsound for programs using `_` |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the

@@ -9,7 +9,6 @@ import LeanFunge.Examples.DecimalOutput
 import LeanFunge.Examples.Factorial
 import LeanFunge.Examples.HelloWorld
 import LeanFunge.Examples.Input
-import LeanFunge.Examples.Program
 import LeanFunge.Examples.PutGet
 import LeanFunge.Examples.SelfMod
 import LeanFunge.Examples.Trampoline

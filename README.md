@@ -106,13 +106,15 @@ the Lean kernel:
   original number (the dual of the `&` parser).
 - `SelfMod`: `>88*80p  ` writes its own `@` instruction with `p` and then runs
   into it and halts; `>77*70p  @` writes a `1` instruction and executes it.
+- `Quine`: the classic `01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@` prints
+  its own source code by reading each cell of the playfield with `g` and
+  printing it with `,`; after 2407 steps the output is exactly the program's
+  own source, and it halts one step later.
 
 ## Roadmap
 
 | Task | Priority | Justification |
 | :--- | :--- | :--- |
-| **Generic decimal output round-trip** | ✅ Done | The `.` instruction prints through a redefinable `formatInt` encoding; `parseInt_formatInt` proves re-parsing any `formatInt` output with `&` recovers the original integer, closing the non-reducible `toString` gap and making the output re-parse round-trip fully generic at the encoding level. |
-| **Verified Befunge quine** | Medium | A program that prints its own source code using `p`/`g`, verified against the interpreter — a classic self-referential example that pairs with the self-interpreter milestones. |
 | **Restricted self-interpreter** | Medium | Verify an interpreter for a small instruction subset as a staged simulation milestone, without committing to the full self-interpreter. |
 | **Befunge-93 self-interpreter** | Low | A Befunge program that interprets Befunge-93, verified against the interpreter itself — the ultimate in-scope showcase, but a large lift. |
 

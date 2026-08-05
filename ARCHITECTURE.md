@@ -157,6 +157,7 @@ no external interpreter is trusted.
 | `Input` | `&2+.@`, `&.@`, `&@` (5×1, 3×1, 2×1) | reads `5`→prints `7`, reads `12`→prints `12`, reads `-3` onto the stack |
 | `DecimalOutput` | 48×10 extraction/print loops | reads `0`, `5`, `123`, `12345` and prints each back as characters; the printed output re-parses to the original number |
 | `SelfMod` | `>88*80p  `, `>77*70p  @` (10×1) | writes its own `@` and halts; writes a `1` and executes it |
+| `Quine` | `01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@` (45×1) | reads each playfield cell with `g` and prints it with `,`; after 2407 steps the output is exactly its own source, halting one step later |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the

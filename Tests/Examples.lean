@@ -85,4 +85,10 @@ example : (run 9 execState).map (fun s => s.stack) = some [1] :=
 example : run 10 execState = none :=
   exec_halts
 
+example : (run 2407 quineState).map (fun s => s.output) = some quineStr :=
+  quine_output
+
+example : run 2408 quineState = none :=
+  quine_halts
+
 end LeanFunge.Tests

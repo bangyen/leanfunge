@@ -29,6 +29,12 @@ example :
     (run 38 (loopStart 3 0)).map (fun s => (s.stack, s.pc)) = some ([Int.ofNat (encode 2 1)], (0, 3)) :=
   loop_back_jump
 
+example (s : State 12 10)
+    (hpc : s.pc = (0, 9)) (hsm : s.stringMode = false)
+    (hgrid : s.grid = loopGrid) :
+    run 18 s = some { s with pc := (0, 3), dir := .down } :=
+  loop_routing_back s hpc hsm hgrid
+
 example :
     (run 127 (loopStart 3 0)).map (fun s => s.stack)
       = (CMInstr.run loopProgram 10 (CMInstr.startCM 3 0)).map

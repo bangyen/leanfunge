@@ -26,6 +26,7 @@ used to drop the pointer into a target row.
 ## Main definitions
 
 * `SpacesRun`: All cells on a straight path of `n` steps are spaces.
+* `Direction.char`: The playfield character that sets a direction.
 
 ## Theorems
 
@@ -34,6 +35,8 @@ used to drop the pointer into a target row.
 * `run_spaces`: Running any number of steps through a run of spaces moves the
   pointer by the corresponding position iterate and preserves the rest of the
   state.
+* `run_spaces_turn`: A run of spaces followed by a turn cell leaves the
+  pointer moving in the turn's direction at the cell beyond it.
 * `run_spaces_v`: A run of spaces followed by a downward-turn cell leaves the
   pointer moving down at the cell below the turn.
 -/
@@ -81,6 +84,61 @@ theorem run_spaces (x y n : ℕ) (s : State w h)
       · change s.stringMode = false
         exact hsm
       · exact hspaces n (Nat.lt_succ_self n)
+
+/-- The playfield character that sets a direction. -/
+def Direction.char : Direction → Char
+  | .up => '^'
+  | .down => 'v'
+  | .left => '<'
+  | .right => '>'
+
+/-- A run of spaces followed by a turn cell leaves the pointer moving in the
+    turn's direction at the cell beyond it: the general corridor pattern. -/
+theorem run_spaces_turn (x y n : ℕ) (s : State w h) (d d' : Direction)
+    (hpc : s.pc = (x % w, y % h))
+    (hsm : s.stringMode = false)
+    (hdir : s.dir = d)
+    (hspaces : SpacesRun s.grid d x y n)
+    (hturn : s.grid.get (runPos w h n d (x % w, y % h)).1
+        (runPos w h n d (x % w, y % h)).2 = Direction.char d') :
+    run (n + 1) s =
+      some { s with
+        dir := d',
+        pc := stepPos w h d' (runPos w h n d (x % w, y % h)) } := by
+  rw [show run (n + 1) s = (run n s).bind step by rfl]
+  rw [run_spaces x y n s hpc hsm (by simpa only [← hdir] using hspaces)]
+  rw [hdir]
+  rw [show (some { s with
+        pc := runPos w h n d (x % w, y % h),
+        dir := d }).bind step
+      = step { s with
+        pc := runPos w h n d (x % w, y % h),
+        dir := d } by rfl]
+  cases d' with
+  | up =>
+      rw [show Direction.char Direction.up = '^' by rfl] at hturn
+      rw [step_dir_up]
+      · change s.stringMode = false
+        exact hsm
+      · exact hturn
+  | down =>
+      rw [show Direction.char Direction.down = 'v' by rfl] at hturn
+      rw [step_dir_down]
+      · change s.stringMode = false
+        exact hsm
+      · exact hturn
+  | left =>
+      rw [show Direction.char Direction.left = '<' by rfl] at hturn
+      rw [step_dir_left]
+      · change s.stringMode = false
+        exact hsm
+      · exact hturn
+  | right =>
+      rw [show Direction.char Direction.right = '>' by rfl] at hturn
+      rw [step_dir_right]
+      · change s.stringMode = false
+        exact hsm
+      · exact hturn
 
 /-- A run of spaces followed by a `v` turn leaves the pointer moving down at
     the cell below the `v`: the corridor pattern that drops the pointer into a

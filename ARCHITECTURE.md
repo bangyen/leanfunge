@@ -160,8 +160,8 @@ project convention that `Core` files contain only definitions.
   `Routing.lean` proves the run-level geometry of the corridors: `run_spaces`
   moves the pointer through a run of spaces via `runPos` without touching the
   stack, the grid, the direction, string mode, the output, or the input, and
-  `run_spaces_v` composes a horizontal run with a `v` turn, the pattern that
-  drops the pointer into a target row.
+  `run_spaces_turn` (with `run_spaces_v` as a special case) composes a run of
+  spaces with a turn cell of any direction, the general corridor pattern.
   `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
   then prove a fully generic simulation of the branch-free fragment: a
   program of `inc` instructions followed by a `halt` is compiled to a single
@@ -178,7 +178,10 @@ project convention that `Core` files contain only definitions.
   encoded pair on the stack. `Loop.lean` does the same for a program with a
   genuine backward jump (`jump 0`), routing the loop-back up a dedicated
   column and into instruction 0's block; the two-counter machine instruction
-  set includes the standard unconditional `jump`.
+  set includes the standard unconditional `jump`. The loop's backward-jump
+  corridor is also proved symbolically (`loop_routing_back`) by composing
+  `run_spaces_turn` segments with `run_append`, so the corridor geometry is
+  verified by proof rather than kernel computation alone.
 
 ## Verified Example Programs
 

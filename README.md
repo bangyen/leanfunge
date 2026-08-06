@@ -59,8 +59,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   followed by a `halt` is compiled to a single playfield row, and the
   interpreter run is proved to match the two-counter machine step for step. A
   concrete program with a genuine backward jump (a loop that moves counter 1
-  into counter 2) is verified by kernel computation, exercising the jump
-  corridor that routes the pointer back up into instruction 0's block.
+  into counter 2) is verified by kernel computation, and its backward-jump
+  corridor is also proved symbolically: the general `run_spaces_turn` routing
+  lemma composes the `^`-up, `<`-left, and `v`-down turns that carry the
+  pointer back into instruction 0's block.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

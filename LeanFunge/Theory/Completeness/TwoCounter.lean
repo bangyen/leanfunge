@@ -15,7 +15,7 @@ decrement-if-nonzero instruction the model is Turing complete.
 
 ## Main definitions
 
-* `CMInstr`: The instruction set `inc`, `decz`, and `halt`.
+* `CMInstr`: The instruction set `inc`, `decz`, `jump`, and `halt`.
 * `CMProgram`: A 2CM program (a list of instructions indexed by the pc).
 * `CMState`: The machine state `(pc, c1, c2)`.
 * `CMInstr.read`: Read a named counter.
@@ -38,6 +38,7 @@ decrement-if-nonzero instruction the model is Turing complete.
 * `step_decz_zero`: `decz` jumps to its target when the counter is zero.
 * `step_decz_nonzero`: `decz` decrements and advances when the counter is
   nonzero.
+* `step_jump`: `jump` moves the pc to its target.
 * `step_halt`: `halt` stops the machine.
 * `run_halts_mono`: Once a machine halts, it stays halted.
 * `halts_of_run_eq_none`: A `none` run witnesses halting.
@@ -52,6 +53,7 @@ namespace Completeness
 inductive CMInstr where
   | inc (c : Fin 2)        -- increment counter `c`, advance
   | decz (c : Fin 2) (k : ℕ)  -- jump to `k` when counter `c` is zero, else decrement
+  | jump (k : ℕ)           -- unconditional jump to `k`
   | halt                   -- stop
   deriving DecidableEq, Repr
 
@@ -101,6 +103,7 @@ def step (prog : CMProgram) (s : CMState) : Option CMState :=
   | .decz c k =>
       if read c s = 0 then some { s with pc := k }
       else some { (decCounter c s) with pc := s.pc + 1 }
+  | .jump k => some { s with pc := k }
 
 /-- Run the machine for `n` steps, threading `none` once it halts. -/
 def run (prog : CMProgram) (n : ℕ) (s : CMState) : Option CMState :=
@@ -152,6 +155,12 @@ theorem step_decz_nonzero (prog : CMProgram) (s : CMState) (c : Fin 2) (k : ℕ)
     (hget : instrAt prog s.pc = .decz c k) (hpos : read c s ≠ 0) :
     step prog s = some { (decCounter c s) with pc := s.pc + 1 } := by
   simp only [step, hget, hpos, if_false]
+
+/-- `jump` moves the pc to its target. -/
+theorem step_jump (prog : CMProgram) (s : CMState) (k : ℕ)
+    (hget : instrAt prog s.pc = .jump k) :
+    step prog s = some { s with pc := k } := by
+  simp only [step, hget]
 
 /-- `halt` stops the machine. -/
 theorem step_halt (prog : CMProgram) (s : CMState)

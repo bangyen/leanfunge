@@ -175,7 +175,10 @@ project convention that `Core` files contain only definitions.
   through to the decrement `2/` on an even encoding and jumps to the halt
   block on an odd one, and `^`/`<` corridors for routing — and verifies by
   kernel computation that the interpreter simulates the machine with the
-  encoded pair on the stack.
+  encoded pair on the stack. `Loop.lean` does the same for a program with a
+  genuine backward jump (`jump 0`), routing the loop-back up a dedicated
+  column and into instruction 0's block; the two-counter machine instruction
+  set includes the standard unconditional `jump`.
 
 ## Verified Example Programs
 

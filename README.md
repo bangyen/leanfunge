@@ -57,7 +57,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   counters carried in the single encoded stack value. A generic simulation is
   proven for the branch-free fragment: any program of `inc` instructions
   followed by a `halt` is compiled to a single playfield row, and the
-  interpreter run is proved to match the two-counter machine step for step.
+  interpreter run is proved to match the two-counter machine step for step. A
+  concrete program with a genuine backward jump (a loop that moves counter 1
+  into counter 2) is verified by kernel computation, exercising the jump
+  corridor that routes the pointer back up into instruction 0's block.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -69,7 +72,7 @@ work.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic 2CM simulation** | High | The branch-free fragment is proven; needs the branch (`decz`) routing so that arbitrary programs, including loops, are simulated. |
+| **Generic 2CM simulation** | High | The branch-free fragment is proven and a concrete program with a backward jump is verified; needs the generic branch (`decz`) routing for arbitrary jump targets. |
 | **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
 | **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
 | **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |

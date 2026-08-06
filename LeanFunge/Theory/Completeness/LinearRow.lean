@@ -10,7 +10,7 @@ import Mathlib.Data.Nat.Notation
 # The Branch-Free Playfield Row
 
 The cells of a branch-free program form a single row; this module proves the
-list and cell facts needed to read instruction `j`'s cells out of the row.
+cell facts needed to read instruction `j`'s cells out of the row.
 
 ## Theorems
 
@@ -18,14 +18,11 @@ list and cell facts needed to read instruction `j`'s cells out of the row.
 * `getD_eq_drop_getD`: Reading at `n` equals reading the `n`-drop at zero.
 * `getD_add_getD_drop`: Reading at `n + m` equals reading the `n`-drop at `m`.
 * `getD_append_getD`: Reading an append at `n` inside the prefix.
-* `linearRowAux_drop`: Dropping the cells of the first `j` increments leaves
-  the cells of the remaining program.
+* `linearRowAux_drop`: Dropping the cells of the first `j` increments.
 * `linearRowAux_cons`: The cells of a program are the first instruction's cells
   followed by the rest.
-* `linearRow_get_first`: The cell at the start of instruction `j` is the first
-  cell of its own cells.
-* `linearRow_get_second`: The cell after the start of instruction `j` is the
-  second cell of its own cells.
+* `linearRow_get_first`: The cell at the start of instruction `j`.
+* `linearRow_get_second`: The cell after the start of instruction `j`.
 * `linearGrid_get`: A grid cell is the corresponding row cell.
 * `linearRowAux_nonempty`: The cell list is never empty.
 * `linearRow_length`: The row is long enough to reach instruction `j`.
@@ -106,6 +103,9 @@ theorem linearRowAux_drop (prog : CMProgram) (j : ℕ)
               rw [List.nil_append]
               exact hih
           | decz c k =>
+              exfalso
+              rcases hinc 0 (Nat.succ_pos j) with h | h <;> cases h
+          | jump k =>
               exfalso
               rcases hinc 0 (Nat.succ_pos j) with h | h <;> cases h
           | halt =>

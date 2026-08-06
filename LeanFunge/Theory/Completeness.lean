@@ -5,6 +5,7 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.Block
 import LeanFunge.Theory.Completeness.BlockC2
+import LeanFunge.Theory.Completeness.Layout
 import LeanFunge.Theory.Completeness.Linear
 import LeanFunge.Theory.Completeness.LinearMain
 import LeanFunge.Theory.Completeness.LinearRow

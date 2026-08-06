@@ -168,7 +168,11 @@ project convention that `Core` files contain only definitions.
   decrement cells `2 /`/`3 /` divide the value by 2/3.
   `Loop.lean`/`LoopC2.lean` verify concrete looping programs that move one
   counter into the other — testing counter 1 with `% 2` and counter 2 with
-  `% 3` respectively — by kernel computation.
+  `% 3` respectively — by kernel computation. `Layout.lean` begins the generic
+  simulation: it defines the block geometry (entry columns chain by the block
+  widths, block rows by the heights, both strictly increasing) and a
+  `playfieldOf` generator that places every instruction's block cells, with
+  concrete placement checks verified by kernel computation.
   `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
   then prove a fully generic simulation of the branch-free fragment: a
   program of `inc` instructions followed by a `halt` is compiled to a single

@@ -69,6 +69,11 @@ The implementation is organized into `Core` (definitions), `Theory`
   instruction 0's block. The counter-2 analogue (moving counter 2 into
   counter 1, testing with `% 3` and dividing by `3 /`) is verified the same
   way, exercising the counter-2 branch of the `decz` snippet.
+  The generic simulation's layout foundation is in place: a `playfieldOf`
+  generator lays each instruction's block at a chained entry column and block
+  row (the `decz` branch one column left of the next entry, so drop columns
+  stay clean of `|` cells), with the entry columns and block rows proven
+  strictly increasing.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

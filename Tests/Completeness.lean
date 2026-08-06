@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import Tests.Completeness.Block
+import Tests.Completeness.Layout
 import Tests.Completeness.Linear
 import Tests.Completeness.Loop
 import Tests.Completeness.LoopC2

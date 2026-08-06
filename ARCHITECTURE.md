@@ -148,6 +148,21 @@ project convention that `Core` files contain only definitions.
   covers single counters, and `rankedMachine_terminates` generalizes it to any
   state type with a strictly decreasing ranking function, instantiated by the
   two-counter machine.
+- `Theory/Completeness/`: Turing-completeness groundwork. `TwoCounter.lean`
+  formalizes a Minsky two-counter machine (`inc`, `decz`, `halt`) with total,
+  deterministic `step`/`run` semantics. `PairEncoding.lean` proves the
+  arithmetic of the counter-pair encoding `2^c1 * 3^c2` used to carry both
+  counters in a single stack value: increment is multiplication by `2`/`3`,
+  decrement is division by `2`/`3`, and the zero tests are `value % 2 = 0`
+  (counter 1 positive, even) and `value % 3 = 0` (counter 2 positive,
+  divisible by 3). Both the `ℕ`-level identities and their `Int`-level
+  counterparts (via `Int.natCast_ediv`/`natCast_emod`) are proven. 
+  `Simulation.lean` then lays out a concrete playfield for a small 2CM
+  program — one horizontal instruction block per instruction, a `|` branch
+  that falls through to the decrement `2/` on an even encoding and jumps to
+  the halt block on an odd one, and `^`/`<` corridors for routing — and
+  verifies by kernel computation that the interpreter simulates the machine
+  with the encoded pair on the stack.
 
 ## Verified Example Programs
 
@@ -198,7 +213,7 @@ verify the loop programs without hitting the default recursion limit.
 - `LeanFunge/Core`: Definitions (Direction, Stack, Grid, Instruction, State,
   Semantics, Parser).
 - `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step, StepOps,
-  Invariance, Random, Parser, Output, Run, Termination).
+  Invariance, Random, Parser, Output, Run, Termination, Completeness).
 - `LeanFunge/Examples`: Verified example programs.
 - `Tests`: Executable `example` statements that re-assert the theorems.
 - `scripts`: Repository guard checks (naming, imports, copyright, formatting).

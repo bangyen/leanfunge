@@ -161,12 +161,21 @@ project convention that `Core` files contain only definitions.
   moves the pointer through a run of spaces via `runPos` without touching the
   stack, the grid, the direction, string mode, the output, or the input, and
   `run_spaces_v` composes a horizontal run with a `v` turn, the pattern that
-  drops the pointer into a target row. `Simulation.lean` then lays out a
-  concrete playfield for a small 2CM program — one horizontal instruction
-  block per instruction, a `|` branch that falls through to the decrement
-  `2/` on an even encoding and jumps to the halt block on an odd one, and
-  `^`/`<` corridors for routing — and verifies by kernel computation that the
-  interpreter simulates the machine with the encoded pair on the stack.
+  drops the pointer into a target row.
+  `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
+  then prove a fully generic simulation of the branch-free fragment: a
+  program of `inc` instructions followed by a `halt` is compiled to a single
+  playfield row `> 2* 3* ... @`, the list and cell lemmas read each
+  instruction's cells out of the row, `linear_prefix` shows by induction that
+  the interpreter reaches each instruction with the encoded prefix on the
+  stack, and `linear_simulation` equates the interpreter stack with the
+  encoding of the two-counter machine's final counters.
+  `Simulation.lean` lays out a concrete playfield for a small 2CM program —
+  one horizontal instruction block per instruction, a `|` branch that falls
+  through to the decrement `2/` on an even encoding and jumps to the halt
+  block on an odd one, and `^`/`<` corridors for routing — and verifies by
+  kernel computation that the interpreter simulates the machine with the
+  encoded pair on the stack.
 
 ## Verified Example Programs
 

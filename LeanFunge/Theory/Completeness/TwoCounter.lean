@@ -26,6 +26,7 @@ decrement-if-nonzero instruction the model is Turing complete.
 * `CMInstr.step`: The single-step transition.
 * `CMInstr.run`: Run the machine for finitely many steps.
 * `CMInstr.halts`: Whether a state halts.
+* `CMInstr.startCM`: The initial state for given counters.
 
 ## Theorems
 
@@ -110,6 +111,10 @@ def run (prog : CMProgram) (n : ℕ) (s : CMState) : Option CMState :=
 /-- A state halts if it reaches `none` after finitely many steps. -/
 def halts (prog : CMProgram) (s : CMState) : Prop :=
   ∃ n : ℕ, run prog n s = none
+
+/-- The initial state for counters `(c1, c2)`: the pc at zero. -/
+def startCM (c1 c2 : ℕ) : CMState :=
+  { pc := 0, c1 := c1, c2 := c2 }
 
 /-- Writing a counter then reading it back recovers the written value. -/
 theorem read_write (c : Fin 2) (v : ℕ) (s : CMState) :

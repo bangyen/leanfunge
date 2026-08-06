@@ -54,8 +54,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   the zero tests are `% 2`/`% 3`), run-level straight-line routing lemmas
   (`run_spaces`, `run_spaces_v`) for the corridor geometry, and a concrete
   playfield that simulates a small two-counter machine step-for-step with the
-  counters carried in the single encoded stack value — the seed of a full
-  universality proof that stays within the fixed-grid Befunge-93 semantics.
+  counters carried in the single encoded stack value. A generic simulation is
+  proven for the branch-free fragment: any program of `inc` instructions
+  followed by a `halt` is compiled to a single playfield row, and the
+  interpreter run is proved to match the two-counter machine step for step.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -67,7 +69,7 @@ work.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic 2CM simulation** | High | Straight-line routing (`run_spaces`, `run_spaces_v`) is proven; needs the block-layout generator and the composition of snippet arithmetic with corridor routing for arbitrary jump targets. |
+| **Generic 2CM simulation** | High | The branch-free fragment is proven; needs the branch (`decz`) routing so that arbitrary programs, including loops, are simulated. |
 | **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
 | **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
 | **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |

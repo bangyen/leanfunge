@@ -13,10 +13,10 @@ namespace LeanFunge.Tests
 
 open LeanFunge.Completeness
 
-example : CMInstr.run transferProgram 3 (startCM 1 0) = some { pc := 3, c1 := 1, c2 := 1 } :=
+example : CMInstr.run transferProgram 3 (CMInstr.startCM 1 0) = some { pc := 3, c1 := 1, c2 := 1 } :=
   program_end
 
-example : CMInstr.run transferProgram 4 (startCM 1 0) = none :=
+example : CMInstr.run transferProgram 4 (CMInstr.startCM 1 0) = none :=
   program_halts
 
 example : (run 39 (start 1 0)).map (fun s => s.stack) = some [Int.ofNat (encode 1 1)] :=
@@ -45,7 +45,7 @@ example :
 
 example :
     (run 39 (start 1 0)).map (fun s => s.stack)
-      = (CMInstr.run transferProgram 3 (startCM 1 0)).map
+      = (CMInstr.run transferProgram 3 (CMInstr.startCM 1 0)).map
           (fun s => [Int.ofNat (encode s.c1 s.c2)]) :=
   transfer_simulation
 

@@ -40,7 +40,6 @@ block). Routing happens in the left column and the `^`/`<` corridors.
 * `transferRows`, `transferGrid`: The playfield and its rows.
 * `transferProgram`: The two-counter machine above.
 * `start`: The initial Befunge state for counters `(c1, c2)`.
-* `startCM`: The initial two-counter machine state for counters `(c1, c2)`.
 
 ## Theorems
 
@@ -93,17 +92,13 @@ def start (c1 c2 : ℕ) : State 12 10 :=
     stack := [Int.ofNat (encode c1 c2)],
     pc := (0, 3) }
 
-/-- The initial two-counter machine state for counters `(c1, c2)`. -/
-def startCM (c1 c2 : ℕ) : CMState :=
-  { pc := 0, c1 := c1, c2 := c2 }
-
 /-- The two-counter machine reaches `(pc, c1, c2) = (3, 1, 1)`. -/
 theorem program_end :
-    CMInstr.run transferProgram 3 (startCM 1 0) = some { pc := 3, c1 := 1, c2 := 1 } := by
+    CMInstr.run transferProgram 3 (CMInstr.startCM 1 0) = some { pc := 3, c1 := 1, c2 := 1 } := by
   decide
 
 /-- The two-counter machine halts. -/
-theorem program_halts : CMInstr.run transferProgram 4 (startCM 1 0) = none := by
+theorem program_halts : CMInstr.run transferProgram 4 (CMInstr.startCM 1 0) = none := by
   decide
 
 /-- The interpreter leaves the encoding of `(1, 1)` on the stack. -/
@@ -147,7 +142,7 @@ theorem decz_jump_entry :
     two-counter machine counters. -/
 theorem transfer_simulation :
     (run 39 (start 1 0)).map (fun s => s.stack)
-      = (CMInstr.run transferProgram 3 (startCM 1 0)).map
+      = (CMInstr.run transferProgram 3 (CMInstr.startCM 1 0)).map
           (fun s => [Int.ofNat (encode s.c1 s.c2)]) := by
   decide
 

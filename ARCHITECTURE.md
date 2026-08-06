@@ -162,6 +162,10 @@ project convention that `Core` files contain only definitions.
   stack, the grid, the direction, string mode, the output, or the input, and
   `run_spaces_turn` (with `run_spaces_v` as a special case) composes a run of
   spaces with a turn cell of any direction, the general corridor pattern.
+  `Block.lean`/`BlockC2.lean` prove the `decz` block snippets: the test cells
+  `: 2 % |`/`: 3 % |` leave the encoded pair on the stack and branch down on
+  the even/divisible case and up on the odd/non-divisible case, and the
+  decrement cells `2 /`/`3 /` divide the value by 2/3.
   `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
   then prove a fully generic simulation of the branch-free fragment: a
   program of `inc` instructions followed by a `halt` is compiled to a single

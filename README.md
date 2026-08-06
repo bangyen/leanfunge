@@ -57,12 +57,16 @@ The implementation is organized into `Core` (definitions), `Theory`
   counters carried in the single encoded stack value. A generic simulation is
   proven for the branch-free fragment: any program of `inc` instructions
   followed by a `halt` is compiled to a single playfield row, and the
-  interpreter run is proved to match the two-counter machine step for step. A
-  concrete program with a genuine backward jump (a loop that moves counter 1
-  into counter 2) is verified by kernel computation, and its backward-jump
-  corridor is also proved symbolically: the general `run_spaces_turn` routing
-  lemma composes the `^`-up, `<`-left, and `v`-down turns that carry the
-  pointer back into instruction 0's block.
+  interpreter run is proved to match the two-counter machine step for step.
+  The `decz` block snippets are proven generically: running the test cells
+  `: 2 % |` or `: 3 % |` leaves the encoded pair on the stack and branches
+  down on the even/divisible case, up on the odd/non-divisible case, and the
+  decrement cells `2 /`/`3 /` divide it. A concrete program with a genuine
+  backward jump (a loop that moves counter 1 into counter 2) is verified by
+  kernel computation, and its backward-jump corridor is also proved
+  symbolically: the general `run_spaces_turn` routing lemma composes the
+  `^`-up, `<`-left, and `v`-down turns that carry the pointer back into
+  instruction 0's block.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

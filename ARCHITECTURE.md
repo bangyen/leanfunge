@@ -166,6 +166,9 @@ project convention that `Core` files contain only definitions.
   `: 2 % |`/`: 3 % |` leave the encoded pair on the stack and branch down on
   the even/divisible case and up on the odd/non-divisible case, and the
   decrement cells `2 /`/`3 /` divide the value by 2/3.
+  `Loop.lean`/`LoopC2.lean` verify concrete looping programs that move one
+  counter into the other — testing counter 1 with `% 2` and counter 2 with
+  `% 3` respectively — by kernel computation.
   `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
   then prove a fully generic simulation of the branch-free fragment: a
   program of `inc` instructions followed by a `halt` is compiled to a single

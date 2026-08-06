@@ -24,10 +24,7 @@ the encoding by 2.
 * `decz_test_prefix_c2`: Running `: 3 %` leaves the test on top of the value.
 * `decz_test_c1_even`: Running `: 2 % |` on an even value branches down.
 * `decz_test_c1_odd`: Running `: 2 % |` on an odd value branches up.
-* `decz_test_c2_even`: Running `: 3 % |` on a divisible value branches down.
-* `decz_test_c2_odd`: Running `: 3 % |` on a non-divisible value branches up.
 * `decz_dec_c1`: Running `2 /` divides the value by 2.
-* `decz_dec_c2`: Running `3 /` divides the value by 3.
 -/
 
 namespace LeanFunge

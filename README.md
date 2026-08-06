@@ -66,7 +66,9 @@ The implementation is organized into `Core` (definitions), `Theory`
   kernel computation, and its backward-jump corridor is also proved
   symbolically: the general `run_spaces_turn` routing lemma composes the
   `^`-up, `<`-left, and `v`-down turns that carry the pointer back into
-  instruction 0's block.
+  instruction 0's block. The counter-2 analogue (moving counter 2 into
+  counter 1, testing with `% 3` and dividing by `3 /`) is verified the same
+  way, exercising the counter-2 branch of the `decz` snippet.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

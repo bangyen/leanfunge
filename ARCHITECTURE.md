@@ -156,13 +156,17 @@ project convention that `Core` files contain only definitions.
   decrement is division by `2`/`3`, and the zero tests are `value % 2 = 0`
   (counter 1 positive, even) and `value % 3 = 0` (counter 2 positive,
   divisible by 3). Both the `ℕ`-level identities and their `Int`-level
-  counterparts (via `Int.natCast_ediv`/`natCast_emod`) are proven. 
-  `Simulation.lean` then lays out a concrete playfield for a small 2CM
-  program — one horizontal instruction block per instruction, a `|` branch
-  that falls through to the decrement `2/` on an even encoding and jumps to
-  the halt block on an odd one, and `^`/`<` corridors for routing — and
-  verifies by kernel computation that the interpreter simulates the machine
-  with the encoded pair on the stack.
+  counterparts (via `Int.natCast_ediv`/`natCast_emod`) are proven.
+  `Routing.lean` proves the run-level geometry of the corridors: `run_spaces`
+  moves the pointer through a run of spaces via `runPos` without touching the
+  stack, the grid, the direction, string mode, the output, or the input, and
+  `run_spaces_v` composes a horizontal run with a `v` turn, the pattern that
+  drops the pointer into a target row. `Simulation.lean` then lays out a
+  concrete playfield for a small 2CM program — one horizontal instruction
+  block per instruction, a `|` branch that falls through to the decrement
+  `2/` on an even encoding and jumps to the halt block on an odd one, and
+  `^`/`<` corridors for routing — and verifies by kernel computation that the
+  interpreter simulates the machine with the encoded pair on the stack.
 
 ## Verified Example Programs
 

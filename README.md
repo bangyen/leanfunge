@@ -51,10 +51,11 @@ The implementation is organized into `Core` (definitions), `Theory`
 - **Turing-completeness groundwork** (`Theory.Completeness`): a formalized
   two-counter Minsky machine, the `2^c1 * 3^c2` counter-pair encoding with
   its stack arithmetic (increment is `*2`/`*3`, decrement is `/2`/`/3`, and
-  the zero tests are `% 2`/`% 3`), and a concrete playfield that simulates a
-  small two-counter machine step-for-step with the counters carried in the
-  single encoded stack value — the seed of a full universality proof that
-  stays within the fixed-grid Befunge-93 semantics.
+  the zero tests are `% 2`/`% 3`), run-level straight-line routing lemmas
+  (`run_spaces`, `run_spaces_v`) for the corridor geometry, and a concrete
+  playfield that simulates a small two-counter machine step-for-step with the
+  counters carried in the single encoded stack value — the seed of a full
+  universality proof that stays within the fixed-grid Befunge-93 semantics.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -66,7 +67,7 @@ work.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic 2CM simulation** | High | Needs a geometric routing lemma carrying the instruction pointer between instruction blocks for arbitrary jump targets in a fixed toroidal playfield. |
+| **Generic 2CM simulation** | High | Straight-line routing (`run_spaces`, `run_spaces_v`) is proven; needs the block-layout generator and the composition of snippet arithmetic with corridor routing for arbitrary jump targets. |
 | **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
 | **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
 | **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |

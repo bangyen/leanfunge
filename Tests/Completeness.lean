@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import Tests.Completeness.PairEncoding
+import Tests.Completeness.Routing
 import Tests.Completeness.Simulation
 import Tests.Completeness.TwoCounter
 

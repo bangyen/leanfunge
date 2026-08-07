@@ -13,6 +13,7 @@ import Tests.Completeness.LayoutCorridor
 import Tests.Completeness.LayoutDecz
 import Tests.Completeness.LayoutDeczBranch
 import Tests.Completeness.LayoutFallthrough
+import Tests.Completeness.LayoutHeader
 import Tests.Completeness.LayoutJump
 import Tests.Completeness.LayoutJumpBlock
 import Tests.Completeness.LayoutRouting

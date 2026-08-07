@@ -213,9 +213,13 @@ project convention that `Core` files contain only definitions.
   pointer up its corridor column, and `halt` stops the machine.
   `LayoutRouting.lean` proves the generic fall-through drop: the bottom-right
   corner of a block's body is a space, and one step down from a block's
-  bottom row lands the pointer on the next block's entry. Remaining: the
-  generic corridor routing for arbitrary jump targets, then the simulation
-  induction equating the interpreter run with the two-counter machine's run
+  bottom row lands the pointer on the next block's entry. The jump corridor's
+  drop foundations (`LayoutCorridor`: a run down through spaces and exit
+  `v`s), the block lookup at any column (`LayoutRowAt`), and the header-row
+  lookup (`LayoutHeader`: a header cell is the corridor's turn or drop) are
+  proven. Remaining: the corridor up-turn-drop for arbitrary jump targets,
+  then the simulation induction equating the interpreter run with the
+  two-counter machine's run
   for every program.
 
 ## Verified Example Programs

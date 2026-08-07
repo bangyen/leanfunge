@@ -14,6 +14,7 @@ import LeanFunge.Theory.Completeness.LayoutCorridor
 import LeanFunge.Theory.Completeness.LayoutDecz
 import LeanFunge.Theory.Completeness.LayoutDeczBranch
 import LeanFunge.Theory.Completeness.LayoutFallthrough
+import LeanFunge.Theory.Completeness.LayoutHeader
 import LeanFunge.Theory.Completeness.LayoutJump
 import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.LayoutRouting

@@ -13,7 +13,11 @@ import Mathlib.Tactic
 /-!
 # The Corridor Routing Foundations
 
-A jump edge routes the pointer up its branch column to the header, across the corridor row, and down to the target block. This module proves the foundations: a run that drops down through cells that are spaces or `v`s (a drop passes the exit `v` of the preceding block), the single-step version of that drop, and the fact that a block body holds no cell beyond its width. The header-row lookup, the generalized block lookup, and the up-turn-drop routing complete the corridor.
+A jump edge routes the pointer up its branch column to the header, across
+the corridor row, and down to the target block. This module proves the drop
+foundations: a run that drops down through cells that are spaces or `v`s (a
+drop passes the exit `v` of the preceding block), the single-step version of
+that drop, and the fact that a block body holds no cell beyond its width.
 
 ## Main definitions
 
@@ -21,7 +25,8 @@ A jump edge routes the pointer up its branch column to the header, across the co
 
 ## Theorems
 
-* `step_down_cell`: A step through a space or a `v` while going down keeps the pointer down.
+* `step_down_cell`: A step through a space or a `v` while going down keeps
+  the pointer down.
 * `run_down`: Running down through spaces and `v`s keeps the pointer down.
 * `blockBodyAt_out`: A block body has no cell beyond its width.
 -/

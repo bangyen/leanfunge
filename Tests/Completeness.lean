@@ -5,6 +5,7 @@ Authors: Bangyen Pham
 -/
 import Tests.Completeness.Block
 import Tests.Completeness.Layout
+import Tests.Completeness.LayoutFallthrough
 import Tests.Completeness.Linear
 import Tests.Completeness.Loop
 import Tests.Completeness.LoopC2

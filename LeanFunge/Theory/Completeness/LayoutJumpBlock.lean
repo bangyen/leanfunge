@@ -5,8 +5,8 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutBlock
 import LeanFunge.Theory.Completeness.LayoutCellMain
-import LeanFunge.Theory.Step
 import LeanFunge.Theory.Run.Relational
+import LeanFunge.Theory.Step
 import Mathlib.Tactic
 
 /-!

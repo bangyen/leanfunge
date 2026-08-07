@@ -207,11 +207,13 @@ project convention that `Core` files contain only definitions.
   back exactly the block's body cell (`playfield_block_get`), for arbitrary
   programs. `LayoutBlock.lean` proves the generic block executions: an `inc`
   block multiplies the stack top by its counter digit and exits down its
-  fall-through column, a `jump` block sends the pointer up its corridor
-  column, and `halt` stops the machine. Remaining: the generic `decz` block
-  execution and the generic corridor routing for arbitrary jump targets,
-  then the simulation induction equating the interpreter run with the
-  two-counter machine's run for every program.
+  fall-through column, a `decz` block tests the remainder at the branch cell
+  and either divides the value and falls through (counter positive) or sends
+  the pointer up its corridor column (counter zero), a `jump` block sends the
+  pointer up its corridor column, and `halt` stops the machine. Remaining:
+  the generic corridor routing for arbitrary jump targets, then the
+  simulation induction equating the interpreter run with the two-counter
+  machine's run for every program.
 
 ## Verified Example Programs
 

@@ -83,10 +83,12 @@ The implementation is organized into `Core` (definitions), `Theory`
   computation, with the forward and backward corridors verified. The generic
   cell lookup is proven: any cell within a block's row range reads back
   exactly the block's body cell (`playfield_block_get`), and generic block
-  execution is proven for `inc`, `jump`, and `halt` — an arbitrary `inc`
-  block multiplies the stack top by its counter digit and exits down its
-  fall-through column, a `jump` block sends the pointer up its corridor
-  column, and `halt` stops the machine.
+  execution is proven for every instruction — an arbitrary `inc` block
+  multiplies the stack top by its counter digit and exits down its
+  fall-through column, a `decz` block tests the remainder at the branch cell
+  and either divides the value and falls through (counter positive) or sends
+  the pointer up its corridor column (counter zero), a `jump` block sends the
+  pointer up its corridor column, and `halt` stops the machine.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -100,7 +102,7 @@ steps are:
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic `decz` block execution** | High | The `: digit % |` test and both branches (decrement down, jump up) on the playfield, reusing the snippet theorems. |
+| **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
 | **Generic routing** | High | The fall-through drop and the corridor up-turn-drop for arbitrary jump targets, including running through `v` cells. |
 | **Simulation induction** | High | Assembling the block and routing lemmas into a step-for-step simulation of `CMInstr.run` for arbitrary programs. |
 | **Universality statement** | High | Every two-counter machine has a simulating playfield; hence Befunge-93 is computationally universal. |

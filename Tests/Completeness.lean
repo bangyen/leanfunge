@@ -9,6 +9,8 @@ import Tests.Completeness.LayoutBlock
 import Tests.Completeness.LayoutCellMain
 import Tests.Completeness.LayoutCellRange
 import Tests.Completeness.LayoutCells
+import Tests.Completeness.LayoutDecz
+import Tests.Completeness.LayoutDeczBranch
 import Tests.Completeness.LayoutFallthrough
 import Tests.Completeness.LayoutJump
 import Tests.Completeness.LayoutJumpBlock

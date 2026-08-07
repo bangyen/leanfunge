@@ -69,6 +69,10 @@ def blockWidth : CMInstr → ℕ
   | .jump _ => 2
   | .halt => 2
 
+/-- The digit that tests or multiplies a named counter: `2` for counter 1,
+    `3` for counter 2. -/
+def counterDigit (c : Fin 2) : Char := if c = 0 then '2' else '3'
+
 /-- The row height of an instruction's block: `decz` needs room for the
     decrement cells and the jog back to the entry column, the others one row
     plus a gap. -/
@@ -169,13 +173,9 @@ def blockCellList (prog : CMProgram) (i : ℕ) : List ((ℕ × ℕ) × Char) :=
   let D := entryColumn prog i
   let y := blockRow prog i
   match prog.getD i .halt with
-  | .inc 0 => [((D, y), '>'), ((D + 1, y), '2'), ((D + 2, y), '*'), ((D + 3, y), 'v')]
-  | .inc 1 => [((D, y), '>'), ((D + 1, y), '3'), ((D + 2, y), '*'), ((D + 3, y), 'v')]
-  | .decz 0 k => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '2'), ((D + 3, y), '%'),
-                 ((D + 4, y), '|'), ((D + 4, y + 1), '2'), ((D + 4, y + 2), '/'),
-                 ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')] ++ corridorCells prog i k
-  | .decz 1 k => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '3'), ((D + 3, y), '%'),
-                 ((D + 4, y), '|'), ((D + 4, y + 1), '3'), ((D + 4, y + 2), '/'),
+  | .inc c => [((D, y), '>'), ((D + 1, y), counterDigit c), ((D + 2, y), '*'), ((D + 3, y), 'v')]
+  | .decz c k => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), counterDigit c), ((D + 3, y), '%'),
+                 ((D + 4, y), '|'), ((D + 4, y + 1), counterDigit c), ((D + 4, y + 2), '/'),
                  ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')] ++ corridorCells prog i k
   | .jump k => [((D, y), '>'), ((D + 1, y), '^')] ++ corridorCells prog i k
   | .halt => [((D, y), '>'), ((D + 1, y), '@')]

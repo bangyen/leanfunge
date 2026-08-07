@@ -221,8 +221,11 @@ project convention that `Core` files contain only definitions.
   the up segment's cells are spaces, the along row's cells other than the
   turn and drop are spaces, the drop column's cells are spaces or `v`s, and
   `corridor_run` composes the up-turn, along-drop, and down runs for arbitrary
-  well-formed jump targets). Remaining: the simulation induction equating the
-  interpreter run with the two-counter machine's run
+  well-formed jump targets). The simulation (`LayoutSimulation*`) composes the
+  block and routing runs into a step-for-step simulation of the two-counter
+  machine: `sim_run` shows that for a well-placed program the playfield run
+  reaches the successor block with the encoding of the successor state, or
+  stops when the machine stops. Remaining: the universality statement
   for every program.
 
 ## Verified Example Programs

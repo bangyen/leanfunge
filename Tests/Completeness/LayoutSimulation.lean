@@ -1,0 +1,60 @@
+/-
+Copyright (c) 2026 Bangyen Pham. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bangyen Pham
+-/
+import LeanFunge.Theory.Completeness.LayoutSimulationRun
+
+/-!
+# Simulation Tests
+-/
+
+namespace LeanFunge.Tests
+
+open LeanFunge
+open LeanFunge.Completeness
+
+/-- `layoutProgram` is well placed: well-formed with a `halt` at the end. -/
+example : wellPlaced layoutProgram := by
+  constructor
+  · unfold wellFormed
+    intro i hi c k hk
+    simp [layoutProgram] at hi
+    fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+  · intro i hi
+    simp [layoutProgram] at hi
+    interval_cases i <;> simp [CMInstr.instrAt, layoutProgram]
+
+/-- The two-counter machine run is simulated by the playfield run. -/
+example :
+    ∃ m, (run m (playfieldStart layoutProgram (CMInstr.startCM 1 0))).map (fun s => (s.pc, s.stack))
+      = (CMInstr.run layoutProgram 3 (CMInstr.startCM 1 0)).map
+          (fun s => (blockEntry layoutProgram s.pc, [encodeState s])) := by
+  have hwellPlaced : wellPlaced layoutProgram := by
+    constructor
+    · unfold wellFormed
+      intro i hi c k hk
+      simp [layoutProgram] at hi
+      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+    · intro i hi
+      simp [layoutProgram] at hi
+      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram]
+  rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, hb⟩
+  refine ⟨m, ?_⟩
+  rw [hrun]
+  rw [Option.map_map]
+  congr 1
+
+/-- The machine run leaves the counters `(1, 1)`. -/
+example : CMInstr.run layoutProgram 3 (CMInstr.startCM 1 0)
+    = some { pc := 3, c1 := 1, c2 := 1 } := by
+  decide
+
+/-- The playfield reaches the `halt` block entry with the encoding of `(1, 1)`
+    after the inc, decz, and inc blocks. -/
+example :
+    ((run 20 (playfieldStart layoutProgram (CMInstr.startCM 1 0))).map (fun s => (s.pc, s.stack)))
+      = some (blockEntry layoutProgram 3, [encodeState { pc := 3, c1 := 1, c2 := 1 }]) := by
+  decide
+
+end LeanFunge.Tests

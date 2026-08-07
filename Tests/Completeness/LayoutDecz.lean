@@ -24,7 +24,7 @@ example :
     { State.init (playfieldOf layoutProgram) with stack := [Int.ofNat 8], pc := (3, 6) }
   change ((run 4 S).map (fun s => (s.stack, s.pc))) = some ([Int.ofNat 0, Int.ofNat 8], (7, 6))
   have h := deczBlock_prefix layoutProgram 1 (by decide)
-      (show layoutProgram.getD 1 .halt = .decz 0 3 by decide) S rfl rfl rfl rfl rfl
+      (show layoutProgram.getD 1 .halt = .decz 0 3 by decide) S rfl rfl rfl rfl
   simp only [h, counterVal, Option.map]
   decide
 

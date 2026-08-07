@@ -46,7 +46,7 @@ theorem corridor_run (prog : CMProgram) (i k : ℕ) (c : Fin 2)
            else branchColumn prog i - entryColumn prog k)
         + (blockRow prog k - i - 1)
         = (blockRow prog i - i) + (entryColumn prog k - branchColumn prog i) + (blockRow prog k - i - 1) by
-      simp [hge]]
+      simp [hge]] -- no_squeeze: corridor route
     exact h
   · have h := corridorRunLeft prog i k c hi hk hwell hget s hsm hpc hdir hgrid hge
     rw [show (blockRow prog i - i)
@@ -54,7 +54,7 @@ theorem corridor_run (prog : CMProgram) (i k : ℕ) (c : Fin 2)
            else branchColumn prog i - entryColumn prog k)
         + (blockRow prog k - i - 1)
         = (blockRow prog i - i) + (branchColumn prog i - entryColumn prog k) + (blockRow prog k - i - 1) by
-      simp [hge]]
+      simp [hge]] -- no_squeeze: corridor route
     exact h
 
 end Completeness

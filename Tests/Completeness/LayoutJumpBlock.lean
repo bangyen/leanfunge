@@ -24,7 +24,7 @@ example :
     { State.init (playfieldOf ([.jump 0, .halt] : CMProgram)) with stack := [Int.ofNat 5], pc := (0, 2) }
   change ((run 2 S).map (fun s => (s.pc, s.dir))) = some ((1, 1), .up)
   have h := jumpBlock_run ([.jump 0, .halt] : CMProgram) 0 (by decide)
-      (show ([.jump 0, .halt] : CMProgram).getD 0 .halt = .jump 0 by decide) S rfl rfl rfl rfl
+      (show ([.jump 0, .halt] : CMProgram).getD 0 .halt = .jump 0 by decide) S rfl rfl rfl
   simp only [h, Option.map]
   decide
 

@@ -41,7 +41,7 @@ theorem jumpBlock_run (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length)
     (hjump : prog.getD i .halt = .jump k)
     (s : State (playfieldWidth prog) (playfieldHeight prog))
     (hsm : s.stringMode = false) (hpc : s.pc = (entryColumn prog i, blockRow prog i))
-    (hdir : s.dir = .right) (hgrid : s.grid = playfieldOf prog) :
+    (hgrid : s.grid = playfieldOf prog) :
     run 2 s = some { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up } := by
   have hW : entryColumn prog i + blockWidth (prog.getD i .halt) < playfieldWidth prog := by
     rw [playfieldWidth]
@@ -68,21 +68,21 @@ theorem jumpBlock_run (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length)
     have hpb := playfield_block_get prog i hi1 1 0 (by rw [hjump]; norm_num [blockWidth]) (by exact blockHeight_pos _)
     rw [hjump] at hpb
     simpa only [blockBodyAt] using hpb
-  have h1 : run 1 s = some { s with pc := (entryColumn prog i + 1, blockRow prog i) } := by
+  have h1 : run 1 s = some { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } := by
     rw [show run 1 s = step s by rfl]
     unfold step
     have hdec : decodeChar '>' = .right := by unfold decodeChar; rfl
     simp only [hsm, hpc, hc0, hdec, stepState]
-    rw [hdir, stepPos_right (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i) (blockRow prog i) (by omega) (by omega)]
-  have h2 : run 1 { s with pc := (entryColumn prog i + 1, blockRow prog i) } =
+    rw [stepPos_right (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i) (blockRow prog i) (by omega) (by omega)]
+  have h2 : run 1 { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } =
       some { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up } := by
-    rw [show run 1 { s with pc := (entryColumn prog i + 1, blockRow prog i) } = step { s with pc := (entryColumn prog i + 1, blockRow prog i) } by rfl]
+    rw [show run 1 { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } = step { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } by rfl]
     unfold step
     have hdec : decodeChar '^' = .up := by unfold decodeChar; rfl
     simp only [hsm, hc1, hdec, stepState]
     rw [stepPos_up (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i + 1) (blockRow prog i) (by omega) (by omega) (by omega)]
   have h12 : run (1 + 1) s = some { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up } := by
-    exact run_append s { s with pc := (entryColumn prog i + 1, blockRow prog i) }
+    exact run_append s { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) }
       (some { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up }) 1 1 h1 h2
   rw [show 2 = 1 + 1 by omega]
   rw [h12]
@@ -92,7 +92,7 @@ theorem haltBlock_run (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length)
     (hhalt : prog.getD i .halt = .halt)
     (s : State (playfieldWidth prog) (playfieldHeight prog))
     (hsm : s.stringMode = false) (hpc : s.pc = (entryColumn prog i, blockRow prog i))
-    (hdir : s.dir = .right) (hgrid : s.grid = playfieldOf prog) :
+    (hgrid : s.grid = playfieldOf prog) :
     run 2 s = none := by
   have hW : entryColumn prog i + blockWidth (prog.getD i .halt) < playfieldWidth prog := by
     rw [playfieldWidth]
@@ -116,19 +116,19 @@ theorem haltBlock_run (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length)
     have hpb := playfield_block_get prog i hi1 1 0 (by rw [hhalt]; norm_num [blockWidth]) (by exact blockHeight_pos _)
     rw [hhalt] at hpb
     simpa only [blockBodyAt] using hpb
-  have h1 : run 1 s = some { s with pc := (entryColumn prog i + 1, blockRow prog i) } := by
+  have h1 : run 1 s = some { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } := by
     rw [show run 1 s = step s by rfl]
     unfold step
     have hdec : decodeChar '>' = .right := by unfold decodeChar; rfl
     simp only [hsm, hpc, hc0, hdec, stepState]
-    rw [hdir, stepPos_right (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i) (blockRow prog i) (by omega) (by omega)]
-  have h2 : run 1 { s with pc := (entryColumn prog i + 1, blockRow prog i) } = none := by
-    rw [show run 1 { s with pc := (entryColumn prog i + 1, blockRow prog i) } = step { s with pc := (entryColumn prog i + 1, blockRow prog i) } by rfl]
+    rw [stepPos_right (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i) (blockRow prog i) (by omega) (by omega)]
+  have h2 : run 1 { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } = none := by
+    rw [show run 1 { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } = step { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } by rfl]
     unfold step
     have hdec : decodeChar '@' = .halt := by unfold decodeChar; rfl
     simp only [hsm, hc1, hdec, stepState]
   have h12 : run (1 + 1) s = none := by
-    exact run_append s { s with pc := (entryColumn prog i + 1, blockRow prog i) } none 1 1 h1 h2
+    exact run_append s { s with dir := .right, pc := (entryColumn prog i + 1, blockRow prog i) } none 1 1 h1 h2
   rw [show 2 = 1 + 1 by omega]
   rw [h12]
 

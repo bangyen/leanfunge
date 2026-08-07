@@ -19,7 +19,10 @@ facts used to compose a corridor run.
 ## Theorems
 
 * `mod_step_up`: `(b + k * (n - 1)) % n = b - k` for an up-run staying in range.
-* `runPos_up_pos`, `runPos_right_pos`, `runPos_left_pos`, `runPos_down_pos`: Iterated steps inside the playfield land at the un-wrapped position.
+* `runPos_up_pos`: Iterated up steps land at the un-wrapped row.
+* `runPos_right_pos`: Iterated right steps land at the un-wrapped column.
+* `runPos_left_pos`: Iterated left steps land at the un-wrapped column.
+* `runPos_down_pos`: Iterated down steps land at the un-wrapped row.
 * `stepPos_left_pos`: A left step inside the playfield does not wrap.
 * `corridor_turn`: The turn cell of a jump edge points toward the target.
 * `corridor_drop`: The drop cell of a jump edge is a `v`.
@@ -147,13 +150,13 @@ theorem corridor_turn (prog : CMProgram) (i k : ℕ) (c : Fin 2)
       norm_num [blockWidth]
     unfold corridorRowAt
     rw [hget]
-    simp [hCeq]
+    simp [hCeq] -- no_squeeze: corridor route
   · have hCeq : branchColumn prog i = entryColumn prog i + 1 := by
       rw [branchColumn, hget]
       norm_num [blockWidth]
     unfold corridorRowAt
     rw [hget]
-    simp [hCeq]
+    simp [hCeq] -- no_squeeze: corridor route
 
 /-- The drop cell of a jump edge on its header row is a `v`. -/
 theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
@@ -169,7 +172,7 @@ theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         rw [branchColumn, hget]
         norm_num [blockWidth]
         exact h.symm)
-    simp [hne]
+    simp [hne] -- no_squeeze: corridor route
   · unfold corridorRowAt
     rw [hget]
     have hne : entryColumn prog k ≠ entryColumn prog i + 1 := by
@@ -178,7 +181,7 @@ theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         rw [branchColumn, hget]
         norm_num [blockWidth]
         exact h.symm)
-    simp [hne]
+    simp [hne] -- no_squeeze: corridor route
 
 end Completeness
 

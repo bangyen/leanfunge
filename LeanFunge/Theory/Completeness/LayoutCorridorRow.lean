@@ -18,9 +18,12 @@ block cell at all: the corridor's up column is clean. This module proves the
 row-finding and cell lookups that show the up segment of a corridor is a run
 of spaces.
 
+## Main definitions
+
+* `branchColumn`: The branch column of a block.
+
 ## Theorems
 
-* `branchColumn`: The branch column of a block (a definition).
 * `blockRow_find`: Every row in the block region lies in a block's row range.
 * `blockBodyAt_exit_or_space`: The cells on a block's exit column are a `v` or a space.
 * `corridorUp_cell`: The cells on the branch column above a block are spaces.
@@ -44,11 +47,11 @@ theorem blockRow_find (prog : CMProgram) (r : ℕ) (hr0 : prog.length ≤ r)
     have hz : prog.length = 0 := by omega
     have h0 : playfieldHeight prog = 0 := by
       unfold playfieldHeight
-      simpa [blockRow, hz]
+      simpa [blockRow, hz] -- no_squeeze: corridor route
     omega
   have hfirst : ∃ j : ℕ, j ≤ prog.length ∧ r < blockRow prog j := by
     refine ⟨prog.length, by rfl, ?_⟩
-    simpa [playfieldHeight] using hr
+    simpa [playfieldHeight] using hr -- no_squeeze: corridor route
   set j := Nat.find hfirst
   have hjle : j ≤ prog.length := (Nat.find_spec hfirst).1
   have hjr : r < blockRow prog j := (Nat.find_spec hfirst).2
@@ -63,7 +66,7 @@ theorem blockRow_find (prog : CMProgram) (r : ℕ) (hr0 : prog.length ≤ r)
   have hjpos : 0 < j := by
     by_contra h
     have hj0 : j = 0 := by omega
-    have hjr0 : r < blockRow prog 0 := by simpa [hj0] using hjr
+    have hjr0 : r < blockRow prog 0 := by simpa [hj0] using hjr -- no_squeeze: corridor route
     have hbr0 : blockRow prog 0 ≤ r := by
       unfold blockRow
       exact hr0
@@ -91,13 +94,13 @@ theorem blockBodyAt_exit_or_space (instr : CMInstr) (dy : ℕ) (hdy : dy < block
     blockBodyAt instr (blockWidth instr) dy = ' ' ∨ blockBodyAt instr (blockWidth instr) dy = 'v' := by
   cases instr with
   | inc c0 =>
-      fin_cases c0 <;> by_cases h : dy = 0 <;> simp [blockBodyAt, blockWidth, h]
+      fin_cases c0 <;> by_cases h : dy = 0 <;> simp [blockBodyAt, blockWidth, h] -- no_squeeze: corridor route
   | decz c0 _ =>
-      fin_cases c0 <;> by_cases h : dy = 3 <;> simp [blockBodyAt, blockWidth, h]
+      fin_cases c0 <;> by_cases h : dy = 3 <;> simp [blockBodyAt, blockWidth, h] -- no_squeeze: corridor route
   | jump _ =>
-      simp [blockBodyAt, blockWidth]
+      simp [blockBodyAt, blockWidth] -- no_squeeze: corridor route
   | halt =>
-      simp [blockBodyAt, blockWidth]
+      simp [blockBodyAt, blockWidth] -- no_squeeze: corridor route
 
 /-- The cells on the branch column of block `i`, strictly above the block,
     are spaces. -/
@@ -143,7 +146,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
         have hCne_k : C ≠ entryColumn prog k' := hCnotentry k'
         unfold corridorRowAt
         rw [hget]
-        simp [hCne, hCne_k]
+        simp [hCne, hCne_k] -- no_squeeze: corridor route
     | jump k' =>
         have hCne : C ≠ entryColumn prog r + 1 := by
           intro h
@@ -154,7 +157,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
         have hCne_k : C ≠ entryColumn prog k' := hCnotentry k'
         unfold corridorRowAt
         rw [hget]
-        simp [hCne, hCne_k]
+        simp [hCne, hCne_k] -- no_squeeze: corridor route
     | inc c0 =>
         unfold corridorRowAt
         rw [hget]
@@ -194,7 +197,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
     have hc2 : blockRow prog j + (r - blockRow prog j) = r := by omega
     rw [hc1, hc2] at hcell
     rw [blockBodyAt_out (prog.getD j .halt) (C - entryColumn prog j) (r - blockRow prog j) hdx] at hcell
-    simpa using hcell
+    simpa using hcell -- no_squeeze: corridor route
 
 end Completeness
 

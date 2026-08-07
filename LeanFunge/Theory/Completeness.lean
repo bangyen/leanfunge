@@ -26,6 +26,11 @@ import LeanFunge.Theory.Completeness.LayoutJump
 import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.LayoutRouting
 import LeanFunge.Theory.Completeness.LayoutRowAt
+import LeanFunge.Theory.Completeness.LayoutSimulation
+import LeanFunge.Theory.Completeness.LayoutSimulationBlock
+import LeanFunge.Theory.Completeness.LayoutSimulationDecz
+import LeanFunge.Theory.Completeness.LayoutSimulationRun
+import LeanFunge.Theory.Completeness.LayoutSimulationStep
 import LeanFunge.Theory.Completeness.Linear
 import LeanFunge.Theory.Completeness.LinearMain
 import LeanFunge.Theory.Completeness.LinearRow

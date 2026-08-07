@@ -5,8 +5,8 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCorridorCell
-import LeanFunge.Theory.Completeness.LayoutCorridorRun
 import LeanFunge.Theory.Completeness.LayoutCorridorRow
+import LeanFunge.Theory.Completeness.LayoutCorridorRun
 import LeanFunge.Theory.Completeness.LayoutHeader
 import LeanFunge.Theory.Direction
 import LeanFunge.Theory.Run.Relational
@@ -27,7 +27,7 @@ namespace LeanFunge
 
 namespace Completeness
 
-    theorem corridorRunLeft (prog : CMProgram)
+theorem corridorRunLeft (prog : CMProgram)
     (i k : ℕ) (c : Fin 2) (hi : i < prog.length) (hk : k < prog.length) (hwell : wellFormed prog)
     (hget : prog.getD i .halt = .decz c k ∨ prog.getD i .halt = .jump k)
     (s : State (playfieldWidth prog) (playfieldHeight prog))
@@ -46,12 +46,12 @@ namespace Completeness
       rw [playfieldWidth]
       exact entryColumn_mono prog (i + 1) prog.length (by omega)
     rw [entryColumn_succ] at hmono
-    dsimp [w]
+    dsimp [w] -- no_squeeze: corridor route
     rw [hC]
     have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
     omega
   have hDK : Dk < w := by
-    dsimp [w, Dk]
+    dsimp [w, Dk] -- no_squeeze: corridor route
     rw [playfieldWidth]
     exact entryColumn_strict_mono prog hk
   have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
@@ -69,13 +69,13 @@ namespace Completeness
       omega
   have hblock : blockRow prog i - 1 < h := by
     have hbr : blockRow prog i ≤ h := by
-      dsimp [h]
+      dsimp [h] -- no_squeeze: corridor route
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
     omega
   have hiH : i + 1 < h := by
     have h1 : blockRow prog (i + 1) ≤ h := by
-      dsimp [h]
+      dsimp [h] -- no_squeeze: corridor route
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
     have h3 : blockRow prog i < blockRow prog (i + 1) := by
@@ -84,7 +84,7 @@ namespace Completeness
       omega
     omega
   have hkHlt : blockRow prog k < h := by
-    dsimp [h]
+    dsimp [h] -- no_squeeze: corridor route
     rw [playfieldHeight]
     exact blockRow_strict_mono prog hk
   have hBRk : prog.length ≤ blockRow prog k := blockRow_ge_length prog k
@@ -108,7 +108,7 @@ namespace Completeness
     change corridorRowAt prog (branchColumn prog i) i = Direction.char Direction.left
     rw [corridor_turn prog i k c hget]
     have hge' : ¬(entryColumn prog k ≥ branchColumn prog i) := hge
-    simp [Direction.char, hge']
+    simp [Direction.char, hge'] -- no_squeeze: corridor route
   have hdropCell : (playfieldOf prog).get Dk i = 'v' := by
     have hcell := playfield_header_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk') (by exact hDK)
     rw [hcell]
@@ -127,7 +127,7 @@ namespace Completeness
       rw [runPos_up_pos (x := C) (y := blockRow prog i - 1) (k := nUp) (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp]
+      · dsimp [nUp] -- no_squeeze: corridor route
         omega
     rw [hpos]
     rw [hgrid]
@@ -143,7 +143,7 @@ namespace Completeness
       rw [runPos_up_pos (x := C) (y := blockRow prog i - 1) (k := nUp) (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp]
+      · dsimp [nUp] -- no_squeeze: corridor route
         omega
     rw [hpos]
     rw [stepPos_left_pos w h C i (by omega) hCW (by omega)]
@@ -163,12 +163,12 @@ namespace Completeness
       change (C - 1, i) = ((C - 1) % w, i % h)
       congr
       · exact (Nat.mod_eq_of_lt (by omega : C - 1 < w)).symm
-      · exact (Nat.mod_eq_of_lt (by omega : i < h)).symm) (by exact hsm) (by rfl) (by simpa using hspacesAl)
+      · exact (Nat.mod_eq_of_lt (by omega : i < h)).symm) (by exact hsm) (by rfl) (by simpa using hspacesAl) -- no_squeeze: corridor route
     (by
       have hpos : runPos w h nAlong Direction.left ((C - 1) % w, i % h) = (Dk, i) := by
         rw [runPos_left_pos (x := C - 1) (y := i) (k := nAlong) (hy := by omega) (hk := by omega) (hx := by omega)]
         congr
-        · dsimp [nAlong]
+        · dsimp [nAlong] -- no_squeeze: corridor route
           omega
       rw [hpos]
       rw [hgrid]
@@ -177,7 +177,7 @@ namespace Completeness
     have hpos : runPos w h nAlong Direction.left ((C - 1) % w, i % h) = (Dk, i) := by
       rw [runPos_left_pos (x := C - 1) (y := i) (k := nAlong) (hy := by omega) (hk := by omega) (hx := by omega)]
       apply Prod.ext
-      · dsimp [nAlong]
+      · dsimp [nAlong] -- no_squeeze: corridor route
         omega
       · rfl
     rw [hpos]
@@ -206,17 +206,17 @@ namespace Completeness
       congr
       · exact (Nat.mod_eq_of_lt hDK).symm
       · exact (Nat.mod_eq_of_lt (by omega : i + 1 < h)).symm) (by rfl)
-    (by simpa using hspacesDown)
+    (by simpa using hspacesDown) -- no_squeeze: corridor route
   have hDownPos : runPos w h downSteps Direction.down (Dk % w, (i + 1) % h) = (Dk, blockRow prog k) := by
     rw [runPos_down_pos (x := Dk) (y := i + 1) (k := downSteps) (hx := hDK) (hb := by
         have : i + 1 + downSteps = blockRow prog k := by
-          dsimp [downSteps]
+          dsimp [downSteps] -- no_squeeze: corridor route
           omega
         rw [this]
         exact hkHlt)]
     apply Prod.ext
     · rfl
-    · dsimp [downSteps]
+    · dsimp [downSteps] -- no_squeeze: corridor route
       omega
   have hDown : run downSteps { s with pc := (Dk, i + 1), dir := .down } =
       some { s with pc := (Dk, blockRow prog k), dir := .down } := by

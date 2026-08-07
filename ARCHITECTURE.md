@@ -166,8 +166,7 @@ project convention that `Core` files contain only definitions.
   (entry columns chain by the block widths, block rows by the heights, both
   strictly increasing) and a `playfieldOf` generator that places every
   instruction's block cells.
-  The generic cell lookup is proven by
-  `LayoutCells.lean`/`LayoutCellRange.lean`/`LayoutCellMain.lean`: the
+  The generic cell lookup is proven by `LayoutCells.lean`: the
   playfield readback equals a last-cell lookup over the flattened placed
   cells, each block's body cells sit in its own row range and its corridor on
   its header row, and therefore any cell within a block's row range reads
@@ -180,20 +179,21 @@ project convention that `Core` files contain only definitions.
   pointer up its corridor column, and `halt` stops the machine.
   `LayoutRouting.lean` proves the generic fall-through drop: the bottom-right
   corner of a block's body is a space, and one step down from a block's
-  bottom row lands the pointer on the next block's entry. The jump corridor's
-  routing is proven generically: the drop foundations (`LayoutCorridor`: a run
-  down through spaces and exit `v`s), the block lookup at any column
-  (`LayoutRowAt`), the header-row lookup (`LayoutHeader`: a header cell is the
-  corridor's turn or drop), and the corridor composition (`LayoutCorridor*`:
-  the up segment's cells are spaces, the along row's cells other than the
-  turn and drop are spaces, the drop column's cells are spaces or `v`s, and
-  `corridor_run` composes the up-turn, along-drop, and down runs for arbitrary
-  well-formed jump targets). The simulation (`LayoutSimulation*`) composes the
+  bottom row lands the pointer on the next block's entry, the block lookup at
+  any column, and the header-row lookup (a header cell is the corridor's turn
+  or drop); it also holds the corridor drop foundations (a run down through
+  spaces and exit `v`s) and the block-row lemma. The jump corridor's routing
+  is then composed in `LayoutCorridor.lean`: the up segment's cells are
+  spaces, the along row's cells other than the turn and drop are spaces, the
+  drop column's cells are spaces or `v`s, and `corridor_run` composes the
+  up-turn, along-drop, and down runs for arbitrary well-formed jump targets.
+  The simulation (`LayoutSimulation.lean`) composes the
   block and routing runs into a step-for-step simulation of the two-counter
   machine: `sim_run` shows that for a well-placed program the playfield run
   reaches the successor block with the encoding of the successor state, or
-  stops when the machine stops. The normalization (`LayoutSimulationNormalize*`)
-  shows every two-counter machine is equivalent to a well-placed one (clamp the
+  stops when the machine stops. The normalization
+  (`LayoutSimulationNormalize.lean`) shows every two-counter machine is
+  equivalent to a well-placed one (clamp the
   targets, append a `halt`), so `universal_simulation` provides a simulating
   playfield for every machine: its run matches the machine's encoded run and it
   halts whenever the machine does.

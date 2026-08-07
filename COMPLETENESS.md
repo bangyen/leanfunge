@@ -78,7 +78,7 @@ corridor on its header row. Therefore `playfield_block_get` shows that any cell
 within a block's row range reads back exactly that block's body cell — for
 arbitrary programs, not just checked ones.
 
-**2. Block execution (`LayoutBlock`, `LayoutDecz`, `LayoutJumpBlock`).** With
+**2. Block execution (`LayoutBlock`).** With
 the cells in place, each block's run is verified generically:
 
 - an `inc` block multiplies the stack top by its counter digit and exits down
@@ -89,7 +89,7 @@ the cells in place, each block's run is verified generically:
 - a `jump` block sends the pointer up its corridor column;
 - a `halt` block stops the run.
 
-**3. Routing (`LayoutRouting`, `LayoutCorridor*`).** The pointer must *get*
+**3. Routing (`LayoutRouting`, `LayoutCorridor`).** The pointer must *get*
 from one block to the next. The fall-through case: the bottom-right corner of a
 block's body is a space and one step down lands on the next block's entry. The
 jump case is the corridor: `run_spaces` (a run of spaces moves the pointer
@@ -100,7 +100,7 @@ the down segment into a single run from the source block's branch cell to the
 target block's entry, for any well-formed jump target. Because the header has
 one row per block, every jump edge has a dedicated route.
 
-**4. Simulation (`LayoutSimulation*`).** `wellPlaced` packages the two
+**4. Simulation (`LayoutSimulation`).** `wellPlaced` packages the two
 properties the construction needs — every jump target is in range, and the last
 instruction is a `halt` (so the machine never falls off the end of its own
 program). Then `sim_run` is the core induction: for a well-placed program, the
@@ -117,7 +117,7 @@ halt case each prove one instruction; the induction composes them with
 steps is the encoded machine state after `n`) and `simulation_halts` (if the
 machine halts, the playfield halts) make the statement usable.
 
-**5. Universality (`LayoutSimulationNormalize*`, `LayoutSimulationUniversal`).**
+**5. Universality (`LayoutSimulationNormalize`).**
 `sim_run` requires a *well-placed* program, but an arbitrary program may jump
 out of range or lack a trailing `halt`. Normalization fixes both: clamp every
 jump target into range and append a `halt`. The normalization theorems show
@@ -162,12 +162,12 @@ grid. The construction sidesteps both by design:
 | `PairEncoding` | the `2^c1 · 3^c2` counter arithmetic |
 | `Routing` | `run_spaces`, `run_spaces_turn`: corridor primitives |
 | `Layout` | block geometry, `playfieldOf` |
-| `LayoutCells`, `LayoutCellRange`, `LayoutCellMain` | playfield readback = placed-cell lookup |
-| `LayoutBlock`, `LayoutDecz`, `LayoutDeczBranch`, `LayoutJumpBlock` | generic block executions |
-| `LayoutRouting`, `LayoutRowAt`, `LayoutHeader(Row)`, `LayoutCorridor*`, `LayoutCorridorRoute` | fall-through and jump routing |
-| `LayoutSimulation` | state encoding, `wellFormed`, `wellPlaced`, `playfieldStart` |
-| `LayoutSimulationBlock`, `LayoutSimulationStep`, `LayoutSimulationStepRun`, `LayoutSimulationDecz`, `LayoutSimulationRun` | `sim_step`, `sim_run`, `simulation_map`, `simulation_halts` |
-| `LayoutSimulationNormalize*`, `LayoutSimulationUniversal` | normalization and `universal_simulation` |
+| `LayoutCells` | playfield readback = placed-cell lookup |
+| `LayoutBlock` | generic block executions |
+| `LayoutRouting` | fall-through drop, column/header lookups, corridor foundations |
+| `LayoutCorridor` | the up-turn, along-drop, down runs and `corridor_run` |
+| `LayoutSimulation` | encoding, `wellFormed`, `wellPlaced`, `playfieldStart`, `sim_step`, `sim_run`, `simulation_map`, `simulation_halts` |
+| `LayoutSimulationNormalize` | normalization and `universal_simulation` |
 
 `Tests/Completeness/LayoutCorridorRoute.lean` and
 `Tests/Completeness/LayoutSimulation.lean` pin the construction down with

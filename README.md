@@ -57,27 +57,26 @@ The implementation is organized into `Core` (definitions), `Theory`
   row per block so every jump edge has a dedicated route, are formalized. The
   layout is proved well formed (strictly increasing entries and rows), and the
   generated playfield is verified generically:
-  - **Cell lookup** (`Layout*Cell*`, `LayoutRowAt`, `LayoutHeader`,
-    `LayoutHeaderRow`): any cell in a block's row range reads back the block's
-    body (`playfield_block_get`), the header rows hold only a block's corridor
-    turn and drop, and a block's branch column is pure space above it.
-  - **Block execution** (`LayoutBlock`, `LayoutDecz`, `LayoutDeczBranch`,
-    `LayoutJumpBlock`): an `inc` block multiplies the stack top by its counter
+  - **Cell lookup** (`LayoutCells`): any cell in a block's row range reads
+    back the block's body (`playfield_block_get`), the header rows hold only a
+    block's corridor turn and drop, and a block's branch column is pure space
+    above it.
+  - **Block execution** (`LayoutBlock`): an `inc` block multiplies the stack top by its counter
     digit and exits down its fall-through column; a `decz` block tests the
     remainder at the branch cell and either divides the value and falls
     through (counter positive) or sends the pointer up its corridor column
     (counter zero); a `jump` block sends the pointer up its corridor column;
     `halt` stops the machine. The block theorems accept any arrival direction,
     since the entry `>` forces right.
-  - **Routing** (`LayoutRouting`, `LayoutCorridor*`): the fall-through drop
+  - **Routing** (`LayoutRouting`, `LayoutCorridor`): the fall-through drop
     lands the pointer on the next block's entry, and the jump corridor's
     up-turn-drop is proved generically (`corridor_run`), with the drop column
     passing only spaces and exit `v`s.
-  - **Simulation** (`LayoutSimulation*`): `sim_run` proves a step-for-step
+  - **Simulation** (`LayoutSimulation`): `sim_run` proves a step-for-step
     simulation — for a well-placed program (well-formed targets, `halt` last)
     the playfield run reaches the successor block with the encoding of the
     successor machine state, or stops when the machine stops.
-  - **Universality** (`LayoutSimulationNormalize*`, `LayoutSimulationUniversal`):
+  - **Universality** (`LayoutSimulationNormalize`):
     every two-counter machine is equivalent to a well-placed program (clamp
     the targets, append a `halt`), so `universal_simulation` provides a
     simulating playfield for every machine: its run matches the machine's

@@ -17,6 +17,7 @@ import LeanFunge.Theory.Completeness.LayoutFallthrough
 import LeanFunge.Theory.Completeness.LayoutJump
 import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.LayoutRouting
+import LeanFunge.Theory.Completeness.LayoutRowAt
 import LeanFunge.Theory.Completeness.Linear
 import LeanFunge.Theory.Completeness.LinearMain
 import LeanFunge.Theory.Completeness.LinearRow

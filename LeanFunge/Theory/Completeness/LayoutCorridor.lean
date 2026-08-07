@@ -11,15 +11,9 @@ import LeanFunge.Theory.Step
 import Mathlib.Tactic
 
 /-!
-# The Corridor Routing on the Generated Playfield
+# The Corridor Routing Foundations
 
-A jump edge routes the pointer up its branch column to the header, across
-the corridor row to the target's entry column, and down to the target block.
-This module proves the foundations of that routing: a run that drops down
-through cells that are spaces or `v`s (a drop passes the exit `v` of the
-preceding block), and the fact that a block body holds no cell beyond its
-width. The header-row lookup and the generalized block lookup, and the
-up-turn-drop routing itself, complete the corridor.
+A jump edge routes the pointer up its branch column to the header, across the corridor row, and down to the target block. This module proves the foundations: a run that drops down through cells that are spaces or `v`s (a drop passes the exit `v` of the preceding block), the single-step version of that drop, and the fact that a block body holds no cell beyond its width. The header-row lookup, the generalized block lookup, and the up-turn-drop routing complete the corridor.
 
 ## Main definitions
 
@@ -27,13 +21,9 @@ up-turn-drop routing itself, complete the corridor.
 
 ## Theorems
 
-* `step_down_cell`: A step through a space or a `v` while going down keeps
-  the pointer down.
+* `step_down_cell`: A step through a space or a `v` while going down keeps the pointer down.
 * `run_down`: Running down through spaces and `v`s keeps the pointer down.
 * `blockBodyAt_out`: A block body has no cell beyond its width.
-* `lastCellAt_body_out`: A body readback beyond the block's width is a space.
-* `lastCellAt_body_any`: A body readback at any column is the body cell or a
-  space.
 -/
 
 namespace LeanFunge
@@ -113,81 +103,6 @@ theorem blockBodyAt_out (instr : CMInstr) (dx dy : ℕ) (hdx : blockWidth instr 
   | jump _ => simp only [blockBodyAt, blockWidth] at hdx ⊢ <;> split_ifs <;> first | rfl | omega
   | halt => simp only [blockBodyAt, blockWidth] at hdx ⊢ <;> split_ifs <;> first | rfl | omega
 
-/-- A body readback beyond the block's width is a space. -/
-theorem lastCellAt_body_out {w h : ℕ} (instr : CMInstr) (D y dx dy : ℕ)
-    (hout : blockWidth instr < dx) (hdy : dy < blockHeight instr)
-    (hW : D + blockWidth instr < w) (hH : y + blockHeight instr < h)
-    (hx : D + dx < w) (hy : y + dy < h) :
-    lastCellAt w h ' ' (blockBodyCells instr D y) (D + dx) (y + dy) = ' ' := by
-  cases instr with
-  | inc c0 =>
-      fin_cases c0 <;> (simp only [blockWidth] at hW hout; simp only [blockHeight] at hH hdy)
-      <;> (have hD : D % w = D := by rw [Nat.mod_eq_of_lt]; omega
-           have hD0 : (D + 0) % w = D + 0 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD1 : (D + 1) % w = D + 1 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD2 : (D + 2) % w = D + 2 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD3 : (D + 3) % w = D + 3 := by rw [Nat.mod_eq_of_lt]; omega
-           have hDx : (D + dx) % w = D + dx := by rw [Nat.mod_eq_of_lt]; omega
-           have hy' : y % h = y := by rw [Nat.mod_eq_of_lt]; omega
-           have hY0 : (y + 0) % h = y + 0 := by rw [Nat.mod_eq_of_lt]; omega
-           have hYq : (y + dy) % h = y + dy := by rw [Nat.mod_eq_of_lt]; omega
-           simp only [lastCellAt, blockBodyCells, List.foldl_cons, List.foldl_nil,
-             hD, hD0, hD1, hD2, hD3, hDx, hy', hY0, hYq, add_left_cancel_iff]
-           split_ifs <;> first | rfl | omega)
-  | decz c0 _ =>
-      fin_cases c0 <;> (simp only [blockWidth] at hW hout; simp only [blockHeight] at hH hdy)
-      <;> (have hD : D % w = D := by rw [Nat.mod_eq_of_lt]; omega
-           have hD0 : (D + 0) % w = D + 0 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD1 : (D + 1) % w = D + 1 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD2 : (D + 2) % w = D + 2 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD3 : (D + 3) % w = D + 3 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD4 : (D + 4) % w = D + 4 := by rw [Nat.mod_eq_of_lt]; omega
-           have hD5 : (D + 5) % w = D + 5 := by rw [Nat.mod_eq_of_lt]; omega
-           have hDx : (D + dx) % w = D + dx := by rw [Nat.mod_eq_of_lt]; omega
-           have hy' : y % h = y := by rw [Nat.mod_eq_of_lt]; omega
-           have hY0 : (y + 0) % h = y + 0 := by rw [Nat.mod_eq_of_lt]; omega
-           have hY1 : (y + 1) % h = y + 1 := by rw [Nat.mod_eq_of_lt]; omega
-           have hY2 : (y + 2) % h = y + 2 := by rw [Nat.mod_eq_of_lt]; omega
-           have hY3 : (y + 3) % h = y + 3 := by rw [Nat.mod_eq_of_lt]; omega
-           have hYq : (y + dy) % h = y + dy := by rw [Nat.mod_eq_of_lt]; omega
-           simp only [lastCellAt, blockBodyCells, List.foldl_cons, List.foldl_nil,
-             hD, hD0, hD1, hD2, hD3, hD4, hD5, hDx, hy', hY0, hY1, hY2, hY3, hYq, add_left_cancel_iff]
-           split_ifs <;> first | rfl | omega)
-  | jump _ =>
-      simp only [blockWidth] at hW hout
-      simp only [blockHeight] at hH hdy
-      have hD : D % w = D := by rw [Nat.mod_eq_of_lt]; omega
-      have hD0 : (D + 0) % w = D + 0 := by rw [Nat.mod_eq_of_lt]; omega
-      have hD1 : (D + 1) % w = D + 1 := by rw [Nat.mod_eq_of_lt]; omega
-      have hDx : (D + dx) % w = D + dx := by rw [Nat.mod_eq_of_lt]; omega
-      have hy' : y % h = y := by rw [Nat.mod_eq_of_lt]; omega
-      have hY0 : (y + 0) % h = y + 0 := by rw [Nat.mod_eq_of_lt]; omega
-      have hYq : (y + dy) % h = y + dy := by rw [Nat.mod_eq_of_lt]; omega
-      simp only [lastCellAt, blockBodyCells, List.foldl_cons, List.foldl_nil,
-        hD, hD0, hD1, hDx, hy', hY0, hYq, add_left_cancel_iff]
-      split_ifs <;> first | rfl | omega
-  | halt =>
-      simp only [blockWidth] at hW hout
-      simp only [blockHeight] at hH hdy
-      have hD : D % w = D := by rw [Nat.mod_eq_of_lt]; omega
-      have hD0 : (D + 0) % w = D + 0 := by rw [Nat.mod_eq_of_lt]; omega
-      have hD1 : (D + 1) % w = D + 1 := by rw [Nat.mod_eq_of_lt]; omega
-      have hDx : (D + dx) % w = D + dx := by rw [Nat.mod_eq_of_lt]; omega
-      have hy' : y % h = y := by rw [Nat.mod_eq_of_lt]; omega
-      have hY0 : (y + 0) % h = y + 0 := by rw [Nat.mod_eq_of_lt]; omega
-      have hYq : (y + dy) % h = y + dy := by rw [Nat.mod_eq_of_lt]; omega
-      simp only [lastCellAt, blockBodyCells, List.foldl_cons, List.foldl_nil,
-        hD, hD0, hD1, hDx, hy', hY0, hYq, add_left_cancel_iff]
-      split_ifs <;> first | rfl | omega
+end Completeness
 
-/-- A body readback at any column is the body cell or a space. -/
-theorem lastCellAt_body_any {w h : ℕ} (instr : CMInstr) (D y dx dy : ℕ)
-    (hdy : dy < blockHeight instr)
-    (hW : D + blockWidth instr < w) (hH : y + blockHeight instr < h)
-    (hx : D + dx < w) (hy : y + dy < h) :
-    lastCellAt w h ' ' (blockBodyCells instr D y) (D + dx) (y + dy) = blockBodyAt instr dx dy := by
-  by_cases hle : dx ≤ blockWidth instr
-  · exact lastCellAt_body instr D y dx dy hle hdy hW hH
-  · have hout : blockWidth instr < dx := by omega
-    rw [blockBodyAt_out instr dx dy hout]
-    exact lastCellAt_body_out instr D y dx dy hout hdy hW hH hx hy
+end LeanFunge

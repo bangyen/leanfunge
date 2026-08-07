@@ -37,6 +37,7 @@ increasing.
 * `blockRow`: The top row of a block.
 * `playfieldWidth`, `playfieldHeight`: The generated playfield dimensions.
 * `blockCellList`: The cells of a block, positioned by the layout.
+* `corridorCells`: The jump corridor cells for a jump edge.
 * `playfieldOf`: Generate the playfield of a program.
 * `layoutProgram`: A concrete program for the placement check.
 
@@ -152,6 +153,17 @@ def playfieldWidth (prog : CMProgram) : ℕ :=
 def playfieldHeight (prog : CMProgram) : ℕ :=
   blockRow prog prog.length
 
+/-- The jump corridor of a jump edge: a turn at the source's up column and a
+    drop at the target's entry column, on the gap row above the higher of the
+    two blocks. -/
+def corridorCells (prog : CMProgram) (i k : ℕ) : List ((ℕ × ℕ) × Char) :=
+  let D := entryColumn prog i
+  let Dk := entryColumn prog k
+  let C := D + blockWidth (prog.getD i .halt) - 1
+  let cy := min (blockRow prog i) (blockRow prog k) - 1
+  let turn := if Dk ≥ C then '>' else '<'
+  [((C, cy), turn), ((Dk, cy), 'v')]
+
 /-- The cells of block `i`, positioned by the entry column and block row. -/
 def blockCellList (prog : CMProgram) (i : ℕ) : List ((ℕ × ℕ) × Char) :=
   let D := entryColumn prog i
@@ -159,13 +171,13 @@ def blockCellList (prog : CMProgram) (i : ℕ) : List ((ℕ × ℕ) × Char) :=
   match prog.getD i .halt with
   | .inc 0 => [((D, y), '>'), ((D + 1, y), '2'), ((D + 2, y), '*'), ((D + 3, y), 'v')]
   | .inc 1 => [((D, y), '>'), ((D + 1, y), '3'), ((D + 2, y), '*'), ((D + 3, y), 'v')]
-  | .decz 0 _ => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '2'), ((D + 3, y), '%'),
+  | .decz 0 k => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '2'), ((D + 3, y), '%'),
                  ((D + 4, y), '|'), ((D + 4, y + 1), '2'), ((D + 4, y + 2), '/'),
-                 ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')]
-  | .decz 1 _ => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '3'), ((D + 3, y), '%'),
+                 ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')] ++ corridorCells prog i k
+  | .decz 1 k => [((D, y), '>'), ((D + 1, y), ':'), ((D + 2, y), '3'), ((D + 3, y), '%'),
                  ((D + 4, y), '|'), ((D + 4, y + 1), '3'), ((D + 4, y + 2), '/'),
-                 ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')]
-  | .jump _ => [((D, y), '>'), ((D + 1, y), '^')]
+                 ((D + 4, y + 3), '>'), ((D + 5, y + 3), 'v')] ++ corridorCells prog i k
+  | .jump k => [((D, y), '>'), ((D + 1, y), '^')] ++ corridorCells prog i k
   | .halt => [((D, y), '>'), ((D + 1, y), '@')]
 
 /-- Generate the playfield of a program: place every block's cells over the

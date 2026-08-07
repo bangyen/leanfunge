@@ -18,14 +18,12 @@ generated playfield of the transfer program fully simulates the two-counter
 machine on both branches: counter 1 zero jumps to the halt, counter 1
 positive falls through the decrement.
 
-The corridor is placed on the gap row just above the `decz` block (row 1):
-a `>` at the branch column `(7, 1)` turns the up-flow right toward the
-target's entry column, and a `v` at `(11, 1)` drops it down column 11 to the
-halt block.
+The generator itself emits the corridor: `corridorCells` places a `>` at the
+branch column and a `v` at the target's entry column on the gap row above the
+higher of the two blocks.
 
 ## Main definitions
 
-* `corridorGrid`: The generated playfield with the jump corridor.
 * `jumpStart`: The initial interpreter state for counters `(c1, c2)`.
 
 ## Theorems
@@ -44,16 +42,10 @@ namespace LeanFunge
 
 namespace Completeness
 
-/-- The generated playfield of the transfer program plus the jump corridor:
-    the `>` at `(7, 1)` turns the branch-up flow right, and the `v` at
-    `(11, 1)` drops it down the halt block's entry column. -/
-def corridorGrid : Grid (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
-  Grid.put (Grid.put (playfieldOf layoutProgram) 7 1 '>') 11 1 'v'
-
 /-- The initial interpreter state for counters `(c1, c2)`: the encoded pair on
     the stack and the pointer at the first block's entry. -/
 def jumpStart (c1 c2 : ℕ) : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
-  { State.init corridorGrid with
+  { State.init (playfieldOf layoutProgram) with
     stack := [Int.ofNat (encode c1 c2)],
     pc := (0, 0) }
 

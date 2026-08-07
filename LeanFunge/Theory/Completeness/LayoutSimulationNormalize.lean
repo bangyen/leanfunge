@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bangyen Pham. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bangyen Pham
+-/
 import LeanFunge.Theory.Completeness.LayoutSimulation
 import LeanFunge.Theory.Completeness.LayoutSimulationRun
 import LeanFunge.Theory.Step
@@ -17,6 +22,10 @@ and append a `halt`.
 
 ## Theorems
 
+* `instrAt_normalize_lt`: The normalized program's in-range instruction is the
+  clamped original.
+* `instrAt_normalize_ge`: Past the appended halt instruction, the normalized
+  program is a halt.
 * `wellPlaced_normalize`: Every program normalizes to a well-placed one.
 -/
 
@@ -37,39 +46,39 @@ def clampInstr (n : ℕ) : CMInstr → CMInstr
 def normalize (prog : CMProgram) : CMProgram :=
   (prog.map (clampInstr prog.length)) ++ [.halt]
 
-lemma getD_append_lt {α : Type} (l₁ l₂ : List α) (n : ℕ) (hn : n < l₁.length) (d : α) :
+private lemma getD_append_lt {α : Type} (l₁ l₂ : List α) (n : ℕ) (hn : n < l₁.length) (d : α) :
     (l₁ ++ l₂).getD n d = l₁.getD n d := by
   induction l₁ generalizing n with
   | nil =>
-      simp [List.length] at hn
+      simp [List.length] at hn -- no_squeeze: simulation
   | cons x xs ih =>
       cases n with
       | zero => rfl
       | succ n =>
-          simp [List.length] at hn
+          simp [List.length] at hn -- no_squeeze: simulation
           have hn' : n < xs.length := by omega
-          simpa using ih n hn'
+          simpa using ih n hn' -- no_squeeze: simulation
 
-lemma getD_map {α β : Type} (f : α → β) (l : List α) (n : ℕ) (d : α) :
+private lemma getD_map {α β : Type} (f : α → β) (l : List α) (n : ℕ) (d : α) :
     (l.map f).getD n (f d) = f (l.getD n d) := by
   induction l generalizing n with
-  | nil => simp
+  | nil => simp -- no_squeeze: simulation
   | cons x xs ih =>
       cases n with
       | zero => rfl
       | succ n => exact ih n
 
-lemma getD_append_right {α : Type} (l₁ l₂ : List α) (n : ℕ) (hn : l₁.length ≤ n) (d : α) :
+private lemma getD_append_right {α : Type} (l₁ l₂ : List α) (n : ℕ) (hn : l₁.length ≤ n) (d : α) :
     (l₁ ++ l₂).getD n d = l₂.getD (n - l₁.length) d := by
   induction l₁ generalizing n with
-  | nil => simp
+  | nil => simp -- no_squeeze: simulation
   | cons x xs ih =>
       cases n with
-      | zero => simp at hn
+      | zero => simp at hn -- no_squeeze: simulation
       | succ n =>
-          simp [List.length] at hn
+          simp [List.length] at hn -- no_squeeze: simulation
           have hn' : xs.length ≤ n := by omega
-          simpa using ih n hn'
+          simpa using ih n hn' -- no_squeeze: simulation
 
 /-- The normalized program's instruction at an in-range index is the clamped
     original instruction. -/
@@ -77,7 +86,7 @@ lemma instrAt_normalize_lt (prog : CMProgram) (i : ℕ) (hi : i < prog.length) :
     instrAt (normalize prog) i = clampInstr prog.length (instrAt prog i) := by
   unfold instrAt normalize
   have hlen : i < (prog.map (clampInstr prog.length)).length := by
-    simpa using hi
+    simpa using hi -- no_squeeze: simulation
   rw [getD_append_lt (prog.map (clampInstr prog.length)) [.halt] i hlen .halt]
   change (prog.map (clampInstr prog.length)).getD i (clampInstr prog.length .halt)
       = clampInstr prog.length (prog.getD i .halt)
@@ -88,15 +97,15 @@ lemma instrAt_normalize_ge (prog : CMProgram) (i : ℕ) (hi : prog.length ≤ i)
     instrAt (normalize prog) i = .halt := by
   unfold instrAt normalize
   have hlen : (prog.map (clampInstr prog.length)).length ≤ i := by
-    simpa using hi
+    simpa using hi -- no_squeeze: simulation
   rw [getD_append_right (prog.map (clampInstr prog.length)) [.halt] i hlen .halt]
   have hsub : i - (prog.map (clampInstr prog.length)).length = i - prog.length := by
-    simp
+    simp -- no_squeeze: simulation
   rw [hsub]
   by_cases h0 : i - prog.length = 0
-  · simp [h0]
+  · simp [h0] -- no_squeeze: simulation
   · have hpos : 0 < i - prog.length := by omega
-    simp [h0]
+    simp [h0] -- no_squeeze: simulation
 
 /-- The normalized program is well placed. -/
 theorem wellPlaced_normalize (prog : CMProgram) : wellPlaced (normalize prog) := by
@@ -117,33 +126,33 @@ theorem wellPlaced_normalize (prog : CMProgram) : wellPlaced (normalize prog) :=
     · cases hget : instrAt prog i with
       | decz c0 k₀ =>
           have hk' : c0 = c ∧ min k₀ prog.length = k := by
-            simpa [clampInstr, hget] using hk
+            simpa [clampInstr, hget] using hk -- no_squeeze: simulation
           rw [← hk'.2]
           have hm : min k₀ prog.length ≤ prog.length := Nat.min_le_right k₀ prog.length
           have hlen' : (normalize prog).length = prog.length + 1 := by
-            dsimp [normalize]
-            simp
+            dsimp [normalize] -- no_squeeze: simulation
+            simp -- no_squeeze: simulation
           omega
       | jump k₀ =>
-          simp [clampInstr, hget] at hk ⊢
-      | _ => simp [clampInstr, hget] at hk ⊢
+          simp [clampInstr, hget] at hk ⊢ -- no_squeeze: simulation
+      | _ => simp [clampInstr, hget] at hk ⊢ -- no_squeeze: simulation
     · cases hget : instrAt prog i with
       | decz c0 k₀ =>
-          simp [clampInstr, hget] at hk ⊢
+          simp [clampInstr, hget] at hk ⊢ -- no_squeeze: simulation
       | jump k₀ =>
           have hk' : min k₀ prog.length = k := by
-            simpa [clampInstr, hget] using hk
+            simpa [clampInstr, hget] using hk -- no_squeeze: simulation
           rw [← hk']
           have hm : min k₀ prog.length ≤ prog.length := Nat.min_le_right k₀ prog.length
           have hlen' : (normalize prog).length = prog.length + 1 := by
-            dsimp [normalize]
-            simp
+            dsimp [normalize] -- no_squeeze: simulation
+            simp -- no_squeeze: simulation
           omega
-      | _ => simp [clampInstr, hget] at hk ⊢
+      | _ => simp [clampInstr, hget] at hk ⊢ -- no_squeeze: simulation
   · intro i hi
     have hlen : (normalize prog).length = prog.length + 1 := by
-      dsimp [normalize]
-      simp
+      dsimp [normalize] -- no_squeeze: simulation
+      simp -- no_squeeze: simulation
     rw [hlen] at hi
     by_cases hlt : i < prog.length
     · right

@@ -162,43 +162,10 @@ project convention that `Core` files contain only definitions.
   stack, the grid, the direction, string mode, the output, or the input, and
   `run_spaces_turn` (with `run_spaces_v` as a special case) composes a run of
   spaces with a turn cell of any direction, the general corridor pattern.
-  `Block.lean`/`BlockC2.lean` prove the `decz` block snippets: the test cells
-  `: 2 % |`/`: 3 % |` leave the encoded pair on the stack and branch down on
-  the even/divisible case and up on the odd/non-divisible case, and the
-  decrement cells `2 /`/`3 /` divide the value by 2/3.
-  `Loop.lean`/`LoopC2.lean` verify concrete looping programs that move one
-  counter into the other — testing counter 1 with `% 2` and counter 2 with
-  `% 3` respectively — by kernel computation. `Layout.lean` begins the generic
-  simulation: it defines the block geometry (entry columns chain by the block
-  widths, block rows by the heights, both strictly increasing) and a
-  `playfieldOf` generator that places every instruction's block cells, with
-  concrete placement checks verified by kernel computation.
-  `Linear.lean`/`LinearRow.lean`/`LinearSimulation.lean`/`LinearMain.lean`
-  then prove a fully generic simulation of the branch-free fragment: a
-  program of `inc` instructions followed by a `halt` is compiled to a single
-  playfield row `> 2* 3* ... @`, the list and cell lemmas read each
-  instruction's cells out of the row, `linear_prefix` shows by induction that
-  the interpreter reaches each instruction with the encoded prefix on the
-  stack, and `linear_simulation` equates the interpreter stack with the
-  encoding of the two-counter machine's final counters.
-  `Simulation.lean` lays out a concrete playfield for a small 2CM program —
-  one horizontal instruction block per instruction, a `|` branch that falls
-  through to the decrement `2/` on an even encoding and jumps to the halt
-  block on an odd one, and `^`/`<` corridors for routing — and verifies by
-  kernel computation that the interpreter simulates the machine with the
-  encoded pair on the stack. `Loop.lean` does the same for a program with a
-  genuine backward jump (`jump 0`), routing the loop-back up a dedicated
-  column and into instruction 0's block; the two-counter machine instruction
-  set includes the standard unconditional `jump`. The loop's backward-jump
-  corridor is also proved symbolically (`loop_routing_back`) by composing
-  `run_spaces_turn` segments with `run_append`, so the corridor geometry is
-  verified by proof rather than kernel computation alone.
-  `LayoutFallthrough.lean`, `LayoutJump.lean`, and `LoopCorridor.lean` verify
-  the generated playfield end to end: the fall-through drops and the forward
-  and backward jump corridors of the transfer and looping programs, all on
-  the playfield emitted by `playfieldOf`. The corridor rows are a header of
-  one row per block, so every jump edge has a dedicated route and a jump
-  involving block 0 does not collide.
+  `Layout.lean` begins the generic simulation: it defines the block geometry
+  (entry columns chain by the block widths, block rows by the heights, both
+  strictly increasing) and a `playfieldOf` generator that places every
+  instruction's block cells.
   The generic cell lookup is proven by
   `LayoutCells.lean`/`LayoutCellRange.lean`/`LayoutCellMain.lean`: the
   playfield readback equals a last-cell lookup over the flattened placed
@@ -230,7 +197,6 @@ project convention that `Core` files contain only definitions.
   targets, append a `halt`), so `universal_simulation` provides a simulating
   playfield for every machine: its run matches the machine's encoded run and it
   halts whenever the machine does.
-  for every program.
 
 ## Verified Example Programs
 

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bangyen Pham. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bangyen Pham
+-/
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalizeStep
 import LeanFunge.Theory.Completeness.LayoutSimulationRun
@@ -8,9 +13,9 @@ import Mathlib.Tactic
 # The Universality Statement
 
 The normalized run agrees with the original run on the encoding, so the
-playfield simulation applies to every two-counter machine: the universal
-theorem provides a well-placed program whose playfield matches the machine's
-encoded run and halts whenever the machine does.
+playfield simulation applies to every two-counter machine: for any machine the
+construction yields a well-placed program whose playfield matches the
+machine's encoded run and halts whenever the machine does.
 
 ## Theorems
 
@@ -29,7 +34,7 @@ open CMInstr
 
 /-- The normalized run agrees with the original run on the encoding, and
     preserves the state agreement. -/
-lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMState)
+private lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMState)
     (hagree : normalizeAgree prog s t) :
     (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s'])
       = (CMInstr.run prog n t).map (fun s' => [encodeState s'])
@@ -37,9 +42,9 @@ lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMState)
   induction n with
   | zero =>
       constructor
-      · simp [CMInstr.run, encodeState, hagree.1, hagree.2.1]
+      · simp [CMInstr.run, encodeState, hagree.1, hagree.2.1] -- no_squeeze: simulation
       · intro s' t' h1 h2
-        simp [CMInstr.run] at h1 h2
+        simp [CMInstr.run] at h1 h2 -- no_squeeze: simulation
         subst s'
         subst t'
         exact hagree
@@ -52,36 +57,36 @@ lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMState)
             cases h2 : CMInstr.run prog n t with
             | none => exact h h2
             | some tₙ =>
-                have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = none := by simp [hnorm]
-                have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = some [encodeState tₙ] := by simp [h2]
+                have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = none := by simp [hnorm] -- no_squeeze: simulation
+                have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = some [encodeState tₙ] := by simp [h2] -- no_squeeze: simulation
                 rw [← hih.1] at hright
                 rw [hleft] at hright
-                simp at hright
+                simp at hright -- no_squeeze: simulation
           constructor
           · rw [CMInstr.run_succ, hnorm, CMInstr.run_succ, htn]
-            simp
+            simp -- no_squeeze: simulation
           · intro s' t' h1 h2
             rw [CMInstr.run_succ, hnorm] at h1
-            simp at h1
+            simp at h1 -- no_squeeze: simulation
       | some sₙ =>
           cases hprog : CMInstr.run prog n t with
           | none =>
-              have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = some [encodeState sₙ] := by simp [hnorm]
-              have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = none := by simp [hprog]
+              have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = some [encodeState sₙ] := by simp [hnorm] -- no_squeeze: simulation
+              have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = none := by simp [hprog] -- no_squeeze: simulation
               rw [hih.1] at hleft
               rw [hright] at hleft
-              simp at hleft
+              simp at hleft -- no_squeeze: simulation
           | some tₙ =>
               have hsync : normalizeAgree prog sₙ tₙ := hih.2 sₙ tₙ hnorm hprog
               have hstep := normalize_step_encode prog sₙ tₙ hsync
               constructor
               · rw [CMInstr.run_succ, hnorm, CMInstr.run_succ, hprog]
-                simp [hstep.1]
+                simp [hstep.1] -- no_squeeze: simulation
               · intro s' t' h1 h2
                 rw [CMInstr.run_succ, hnorm] at h1
                 rw [CMInstr.run_succ, hprog] at h2
-                simp at h1
-                simp at h2
+                simp at h1 -- no_squeeze: simulation
+                simp at h2 -- no_squeeze: simulation
                 exact hstep.2 s' t' h1 h2
 
 /-- The normalized program's encoded run matches the original's. -/
@@ -106,7 +111,7 @@ theorem normalize_halts_iff (prog : CMProgram) (s₀ : CMState) :
     have hmap := normalize_run_encode prog s₀ n
     rw [hn] at hmap
     have hprogmap : (CMInstr.run prog n s₀).map (fun s' => [encodeState s']) = none := by
-      simpa using hmap.symm
+      simpa using hmap.symm -- no_squeeze: simulation
     have hrun : CMInstr.run prog n s₀ = none := by
       by_contra h
       cases h2 : CMInstr.run prog n s₀ with
@@ -124,7 +129,7 @@ theorem normalize_halts_iff (prog : CMProgram) (s₀ : CMState) :
     have hmap := normalize_run_encode prog s₀ n
     rw [hn] at hmap
     have hnormmap : (CMInstr.run (normalize prog) n s₀).map (fun s' => [encodeState s']) = none := by
-      simpa using hmap
+      simpa using hmap -- no_squeeze: simulation
     have hrun : CMInstr.run (normalize prog) n s₀ = none := by
       by_contra h
       cases h2 : CMInstr.run (normalize prog) n s₀ with
@@ -149,22 +154,22 @@ theorem universal_simulation (prog : CMProgram) (s₀ : CMState) (hs₀ : s₀.p
   refine ⟨normalize prog, wellPlaced_normalize prog, ?_, ?_⟩
   · intro h
     have hlen : s₀.pc < (normalize prog).length := by
-      dsimp [normalize]
-      simp
+      dsimp [normalize] -- no_squeeze: simulation
+      simp -- no_squeeze: simulation
       omega
     exact simulation_halts (normalize prog) (wellPlaced_normalize prog) s₀ hlen
       ((normalize_halts_iff prog s₀).mpr h)
   · intro n
     have hlen : s₀.pc < (normalize prog).length := by
-      dsimp [normalize]
-      simp
+      dsimp [normalize] -- no_squeeze: simulation
+      simp -- no_squeeze: simulation
       omega
     rcases (simulation_map (normalize prog) (wellPlaced_normalize prog) s₀ hlen n) with ⟨m, hmap⟩
     refine ⟨m, ?_⟩
     have hstack : (run m (playfieldStart (normalize prog) s₀)).map (fun s => s.stack)
         = (CMInstr.run (normalize prog) n s₀).map (fun s => [encodeState s]) := by
       have hproj := congrArg (fun o : Option ((ℕ × ℕ) × List Int) => o.map (fun t => t.2)) hmap
-      simpa using hproj
+      simpa using hproj -- no_squeeze: stack projection
     rw [hstack]
     exact normalize_run_encode prog s₀ n
 

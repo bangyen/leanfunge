@@ -82,9 +82,14 @@ The implementation is organized into `Core` (definitions), `Theory`
     the targets, append a `halt`), so `universal_simulation` provides a
     simulating playfield for every machine: its run matches the machine's
     encoded run and it halts whenever the machine does.
-  Earlier concrete verifications — the transfer program, a looping program
-  with a genuine backward jump, and the branch-free single-row fragment — are
-  retained as kernel-checked examples.
+  The earlier concrete verifications — the transfer program, a looping program
+  with a backward jump, and the branch-free single-row fragment — were the
+  stepping stones for this generic development and are now subsumed by it;
+  the modern `Tests/Completeness/LayoutSimulation.lean` re-verifies a concrete
+  run by computation.
+  A readable walkthrough of the whole construction — the machine, the
+  encoding, the compilation scheme, the five proof layers, and the capstone
+  theorem — is in [`COMPLETENESS.md`](COMPLETENESS.md).
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -94,7 +99,7 @@ The implementation is organized into `Core` (definitions), `Theory`
 The generic simulation of arbitrary two-counter machines on the generated
 playfield is complete. The construction — the layout, the cell lookups, the
 block executions, the corridor routing, the step-for-step simulation, and the
-universality statement — is verified for every well-placed program:
+universality statement — is verified for every program (via normalization):
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
@@ -108,7 +113,6 @@ untried work.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic 2CM simulation** | High | The branch-free fragment is proven and a concrete program with a backward jump is verified; needs the generic branch (`decz`) routing for arbitrary jump targets. |
 | **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
 | **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
 | **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |

@@ -37,17 +37,17 @@ popped most recent first).
 
 * `step_string_general`: In string mode, a non-quote cell pushes its code and
   advances the pointer.
-* `run_string`: A string-mode run of `n` steps over non-quote cells pushes the
-  `n` codes and moves the pointer by `runPos`.
+* `run_string`: A string-mode run over non-quote cells pushes each character's
+  code and moves the pointer by `runPos`.
 * `run_string_block`: An opening `"`, a string run, and a closing `"` push the
   block's codes, leave string mode, and land the pointer past the closing
   quote.
 * `step_printChar_general`: A `,` cell outside string mode pops the top value
   and prints its character.
-* `run_print`: A run of `n` `,` cells pops `n` codes and appends their
-  characters to the output.
-* `run_string_block_print`: A string block followed by `n` print cells outputs
-  the block's characters in reverse, restoring the stack.
+* `run_print`: A run of `,` cells pops each code and appends its character to
+  the output.
+* `run_string_block_print`: A string block followed by print cells outputs the
+  block's characters in reverse, restoring the stack.
 -/
 
 namespace LeanFunge
@@ -307,8 +307,8 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
       rw [hn]
       rw [htotal]
       congr 1
-      simp [s₂, s₁, runPos_right, List.map_cons, push_ofList_cons,
-        Nat.add_comm, Nat.add_left_comm] -- no_squeeze: print composition
+      simp [s₂, s₁, runPos_right, List.map_cons, push_ofList_cons, -- no_squeeze: print composition
+        Nat.add_comm, Nat.add_left_comm]
 
 /-- A string block followed by `n` print cells outputs the block's characters
     in reverse (the codes are popped most recent first), restoring the stack

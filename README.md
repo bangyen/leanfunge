@@ -107,18 +107,13 @@ universality statement — is verified for every program (via normalization):
 | **Simulation induction** | High | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
 | **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts whenever the machine does. |
 
-The following items have all been attempted and are confirmed roadblocks, not
-untried work.
-
-| Task | Priority | Status |
-| :--- | :--- | :--- |
-| **String-mode block semantics** | Done | `run_string_block` proves the opening quote, string run, and closing quote push the block's codes and leave string mode (`LeanFunge.Theory.Run.String`). |
-| **Run-level output monotonicity** | Done | `run_output_prefix` shows a run only appends to the output; the single-step `step_output_prefix` covers the full instruction set (`LeanFunge.Theory.Run.IO`). |
-| **Nop-run pointer movement** | Done | `run_spaces` moves the pointer through a run of spaces via `runPos`, preserving the rest of the state (`LeanFunge.Theory.Completeness.Routing`). |
-| **Input consumption is prefix-only** | Done | `parseInt_suffix` shows parsing leaves a suffix; `run_input_prefix` lifts it to a whole run (`LeanFunge.Theory.Parser`, `LeanFunge.Theory.Run.IO`). |
-| **String-mode block output round-trip** | Done | `run_print` pops printed codes back into characters, and `run_string_block_print` composes the string block with the print run (`LeanFunge.Theory.Run.String`). |
-| **Halting characterization** | Done | `halts_iff_at` characterizes halting as reaching the `@` cell outside string mode, via `step_none_iff_halt` and `decodeChar_halt_iff` (`LeanFunge.Theory.Run.Halt`). |
-| **I/O separation** | Done | `step_input_prefix`/`step_output_prefix` separate reading from printing over the 27-instruction case analysis; the run-level versions are `run_input_prefix`/`run_output_prefix` (`LeanFunge.Theory.Run.IO`). |
+The remaining language tracks are complete: the string-mode block semantics
+(`run_string_block`), the run-level output monotonicity (`run_output_prefix`),
+the nop-run pointer movement (`run_spaces`), the prefix-only input consumption
+(`parseInt_suffix`, `run_input_prefix`), the string-mode output round-trip
+(`run_print`, `run_string_block_print`), the halting characterization
+(`halts_iff_at`), and the I/O separation (`step_input_prefix`/`step_output_prefix`,
+`run_input_prefix`/`run_output_prefix`) are all proven.
 
 ## Scope & Limitations
 

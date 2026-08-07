@@ -76,7 +76,11 @@ The implementation is organized into `Core` (definitions), `Theory`
   strictly increasing. The generated playfield's fall-through is verified:
   from a block's exit the pointer drops down the entry column through the
   gap to the next block's `>`, both for an `inc` exit and for the `decz`
-  branch jog, proved symbolically with the routing lemmas.
+  branch jog, proved symbolically with the routing lemmas. Adding the jump
+  corridor — a `>` at the branch column and a `v` at the target's entry column
+  on the gap row above the block — makes the generated playfield of the
+  transfer program fully simulate both branches: counter 1 zero jumps to the
+  halt through the corridor, counter 1 positive falls through the decrement.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

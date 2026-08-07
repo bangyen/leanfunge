@@ -42,6 +42,9 @@ popped most recent first).
 * `run_string_block`: An opening `"`, a string run, and a closing `"` push the
   block's codes, leave string mode, and land the pointer past the closing
   quote.
+* `String_ofList_cons`: `String.ofList` distributes over a cons.
+* `push_ofList_cons`: Appending a pushed character before a string is the same
+  as printing the character then the rest.
 * `step_printChar_general`: A `,` cell outside string mode pops the top value
   and prints its character.
 * `run_print`: A run of `,` cells pops each code and appends its character to

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutSimulationRun
+import LeanFunge.Theory.Completeness.LayoutSimulationUniversal
 
 /-!
 # Simulation Tests
@@ -85,5 +86,20 @@ example :
       simp [layoutProgram] at hi -- no_squeeze: concrete
       interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
   exact simulation_map layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3
+
+/-- `layoutProgram` normalizes to itself with an appended `halt`. -/
+example : normalize layoutProgram = [.inc 1, .decz 0 3, .inc 0, .halt, .halt] := by
+  decide
+
+/-- The normalization of `layoutProgram` is well placed. -/
+example : wellPlaced (normalize layoutProgram) := by
+  exact wellPlaced_normalize layoutProgram
+
+/-- Every two-counter machine has a simulating playfield: the capstone. -/
+example :
+    ∃ prog' : CMProgram, wellPlaced prog' ∧
+      (CMInstr.halts layoutProgram (CMInstr.startCM 1 0) → halts (playfieldStart prog' (CMInstr.startCM 1 0))) := by
+  rcases (universal_simulation layoutProgram (CMInstr.startCM 1 0) (by decide)) with ⟨prog', hw, hh, hr⟩
+  exact ⟨prog', hw, hh⟩
 
 end LeanFunge.Tests

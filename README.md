@@ -48,51 +48,43 @@ The implementation is organized into `Core` (definitions), `Theory`
 - **Invariance, termination, divergence** (`Theory.Invariance`, `Theory.Run`,
   `Theory.Termination`): only `p` writes the playfield, ranked machines
   terminate, and all-space runs never halt.
-- **Turing-completeness groundwork** (`Theory.Completeness`): a formalized
-  two-counter Minsky machine, the `2^c1 * 3^c2` counter-pair encoding with
-  its stack arithmetic (increment is `*2`/`*3`, decrement is `/2`/`/3`, and
-  the zero tests are `% 2`/`% 3`), run-level straight-line routing lemmas
-  (`run_spaces`, `run_spaces_v`) for the corridor geometry, and a concrete
-  playfield that simulates a small two-counter machine step-for-step with the
-  counters carried in the single encoded stack value. A generic simulation is
-  proven for the branch-free fragment: any program of `inc` instructions
-  followed by a `halt` is compiled to a single playfield row, and the
-  interpreter run is proved to match the two-counter machine step for step.
-  The `decz` block snippets are proven generically: running the test cells
-  `: 2 % |` or `: 3 % |` leaves the encoded pair on the stack and branches
-  down on the even/divisible case, up on the odd/non-divisible case, and the
-  decrement cells `2 /`/`3 /` divide it. A concrete program with a genuine
-  backward jump (a loop that moves counter 1 into counter 2) is verified by
-  kernel computation, and its backward-jump corridor is also proved
-  symbolically: the general `run_spaces_turn` routing lemma composes the
-  `^`-up, `<`-left, and `v`-down turns that carry the pointer back into
-  instruction 0's block. The counter-2 analogue (moving counter 2 into
-  counter 1, testing with `% 3` and dividing by `3 /`) is verified the same
-  way, exercising the counter-2 branch of the `decz` snippet.
-  The generic simulation's layout foundation is in place: a `playfieldOf`
-  generator lays each instruction's block at a chained entry column and block
-  row (the `decz` branch one column left of the next entry, so drop columns
-  stay clean of `|` cells), with the entry columns and block rows proven
-  strictly increasing, and one header corridor row per block so every jump
-  edge has a dedicated route. The generated playfield's fall-through is
-  verified: from a block's exit the pointer drops down the entry column
-  through the gap to the next block's `>`, both for an `inc` exit and for the
-  `decz` branch jog, proved symbolically with the routing lemmas. The
-  generated playfields of the transfer program and of a looping program (a
-  genuine backward jump) fully simulate their two-counter machines by kernel
-  computation, with the forward and backward corridors verified. The generic
-  cell lookup is proven: any cell within a block's row range reads back
-  exactly the block's body cell (`playfield_block_get`), and generic block
-  execution is proven for every instruction — an arbitrary `inc` block
-  multiplies the stack top by its counter digit and exits down its
-  fall-through column, a `decz` block tests the remainder at the branch cell
-  and either divides the value and falls through (counter positive) or sends
-  the pointer up its corridor column (counter zero), a `jump` block sends the
-  pointer up its corridor column, and `halt` stops the machine. The generic
-  fall-through drop is proven: one step down from a block's bottom row lands
-  the pointer on the next block's entry, and a run down through spaces and
-  the exit `v`s of preceding blocks keeps the pointer down, the basis of the
-  jump corridor's drop.
+- **Turing completeness** (`Theory.Completeness`): a fully verified
+  construction showing Befunge-93 computes what every two-counter machine
+  computes. The two-counter Minsky machine semantics (`TwoCounter`), the
+  `2^c1 * 3^c2` counter-pair encoding with its stack arithmetic
+  (`PairEncoding`), and a `playfieldOf` generator that lays each instruction
+  as a block at a chained entry column and block row, with one header corridor
+  row per block so every jump edge has a dedicated route, are formalized. The
+  layout is proved well formed (strictly increasing entries and rows), and the
+  generated playfield is verified generically:
+  - **Cell lookup** (`Layout*Cell*`, `LayoutRowAt`, `LayoutHeader`,
+    `LayoutHeaderRow`): any cell in a block's row range reads back the block's
+    body (`playfield_block_get`), the header rows hold only a block's corridor
+    turn and drop, and a block's branch column is pure space above it.
+  - **Block execution** (`LayoutBlock`, `LayoutDecz`, `LayoutDeczBranch`,
+    `LayoutJumpBlock`): an `inc` block multiplies the stack top by its counter
+    digit and exits down its fall-through column; a `decz` block tests the
+    remainder at the branch cell and either divides the value and falls
+    through (counter positive) or sends the pointer up its corridor column
+    (counter zero); a `jump` block sends the pointer up its corridor column;
+    `halt` stops the machine. The block theorems accept any arrival direction,
+    since the entry `>` forces right.
+  - **Routing** (`LayoutRouting`, `LayoutCorridor*`): the fall-through drop
+    lands the pointer on the next block's entry, and the jump corridor's
+    up-turn-drop is proved generically (`corridor_run`), with the drop column
+    passing only spaces and exit `v`s.
+  - **Simulation** (`LayoutSimulation*`): `sim_run` proves a step-for-step
+    simulation — for a well-placed program (well-formed targets, `halt` last)
+    the playfield run reaches the successor block with the encoding of the
+    successor machine state, or stops when the machine stops.
+  - **Universality** (`LayoutSimulationNormalize*`, `LayoutSimulationUniversal`):
+    every two-counter machine is equivalent to a well-placed program (clamp
+    the targets, append a `halt`), so `universal_simulation` provides a
+    simulating playfield for every machine: its run matches the machine's
+    encoded run and it halts whenever the machine does.
+  Earlier concrete verifications — the transfer program, a looping program
+  with a genuine backward jump, and the branch-free single-row fragment — are
+  retained as kernel-checked examples.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -100,16 +92,16 @@ The implementation is organized into `Core` (definitions), `Theory`
 ## Roadmap
 
 The generic simulation of arbitrary two-counter machines on the generated
-playfield is in progress. The cell-correctness foundation and the `inc`,
-`jump`, and `halt` block executions are proven generically; the remaining
-steps are:
+playfield is complete. The construction — the layout, the cell lookups, the
+block executions, the corridor routing, the step-for-step simulation, and the
+universality statement — is verified for every well-placed program:
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
 | **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
 | **Generic routing** | High | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
 | **Simulation induction** | High | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
-| **Universality statement** | High | `simulation_halts` shows that a well-placed program's playfield halts whenever the two-counter machine does, so every such machine has a simulating playfield. |
+| **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts whenever the machine does. |
 
 The following items have all been attempted and are confirmed roadblocks, not
 untried work.

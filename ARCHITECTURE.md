@@ -225,7 +225,11 @@ project convention that `Core` files contain only definitions.
   block and routing runs into a step-for-step simulation of the two-counter
   machine: `sim_run` shows that for a well-placed program the playfield run
   reaches the successor block with the encoding of the successor state, or
-  stops when the machine stops. Remaining: the universality statement
+  stops when the machine stops. The normalization (`LayoutSimulationNormalize*`)
+  shows every two-counter machine is equivalent to a well-placed one (clamp the
+  targets, append a `halt`), so `universal_simulation` provides a simulating
+  playfield for every machine: its run matches the machine's encoded run and it
+  halts whenever the machine does.
   for every program.
 
 ## Verified Example Programs

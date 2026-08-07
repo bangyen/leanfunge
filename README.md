@@ -114,10 +114,10 @@ untried work.
 | :--- | :--- | :--- |
 | **String-mode block semantics** | Medium | Needs a grid-suffix run lemma relating a sub-block run to a narrow-grid induction. |
 | **Run-level output monotonicity** | Medium | Single-step cases are proven; the remaining ~23 instructions are a mechanical case analysis. |
-| **Nop-run pointer movement** | Low | Needs run-level lemmas on top of the `stepPos` threading. |
+| **Nop-run pointer movement** | Done | `run_spaces` moves the pointer through a run of spaces via `runPos`, preserving the rest of the state (`LeanFunge.Theory.Completeness.Routing`). |
 | **Input consumption is prefix-only** | Medium | Suffix helpers are proven; `parseInt_suffix` needs a match-reduction lemma. |
 | **String-mode block output round-trip** | Medium | Shares the block roadblock, plus the `,` composition. |
-| **Halting characterization** | Medium | Needs a `decodeChar` match lemma for a generic cell. |
+| **Halting characterization** | Done | `halts_iff_at` characterizes halting as reaching the `@` cell outside string mode, via `step_none_iff_halt` and `decodeChar_halt_iff` (`LeanFunge.Theory.Run.Halt`). |
 | **I/O separation** | Medium | The 27-instruction case analysis. |
 
 ## Scope & Limitations

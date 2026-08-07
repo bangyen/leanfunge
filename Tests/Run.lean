@@ -59,4 +59,23 @@ example (w h k x y : ℕ) :
     run k { State.init (Grid.space w h) with pc := (x, y), dir := .right } ≠ none :=
   run_space_some w h k x y
 
+example (c : Char) : decodeChar c = .halt ↔ c = '@' :=
+  decodeChar_halt_iff c
+
+example (s : State w h) :
+    step s = none ↔ (¬ s.stringMode ∧ decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt) :=
+  step_none_iff_halt s
+
+example (s : State w h) (n : ℕ) (hnone : run n s = none) :
+    ∃ m sₘ, m < n ∧ run m s = some sₘ ∧ step sₘ = none :=
+  run_none_exists_halt s n hnone
+
+example (s : State w h) : halts s ↔ ∃ m sₘ, run m s = some sₘ ∧ step sₘ = none :=
+  halts_iff_reaches_halt s
+
+example (s : State w h) :
+    halts s ↔ ∃ m sₘ, run m s = some sₘ ∧ ¬ sₘ.stringMode ∧
+      sₘ.grid.get sₘ.pc.1 sₘ.pc.2 = '@' :=
+  halts_iff_at s
+
 end LeanFunge.Tests

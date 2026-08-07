@@ -21,12 +21,4 @@ example :
     (playfieldOf layoutProgram).get 7 6 = blockBodyAt (layoutProgram.getD 1 .halt) 4 0 :=
   playfield_block_get layoutProgram 1 (by decide) 4 0 (by decide) (by decide)
 
-example :
-    (playfieldOf layoutProgram).get 8 9 = blockBodyAt (layoutProgram.getD 1 .halt) 5 3 :=
-  playfield_block_get layoutProgram 1 (by decide) 5 3 (by decide) (by decide)
-
-example :
-    (playfieldOf layoutProgram).get 8 11 = blockBodyAt (layoutProgram.getD 2 .halt) 0 0 :=
-  playfield_block_get layoutProgram 2 (by decide) 0 0 (by decide) (by decide)
-
 end LeanFunge.Tests

@@ -5,34 +5,33 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.Layout
 import LeanFunge.Theory.Completeness.Routing
+import LeanFunge.Theory.Run.Relational
+import LeanFunge.Theory.Step
 import Mathlib.Tactic
 
 /-!
 # The Generated Playfield Cell Lookup
 
-The generated playfield places exactly the block bodies and the jump
-corridors: a cell within a block's row range holds the block's body cell (or
-a space if the block has no cell there), a cell on a header row holds the
-corridor cell of that block's jump edge (or a space), and every other cell is
-a space. This is the lookup foundation for the block-execution and routing
-lemmas.
+The generated playfield places exactly the block bodies and the jump corridors. This module defines the placed cells and the last-cell lookup over them: a run of puts reads back the last placed cell, and the playfield readback equals the lookup over the flattened placed cells.
 
 ## Main definitions
 
 * `blockBodyCells`: The cells of a block's body, positioned.
-* `playfieldCells`: The flattened list of all placed cells, in fold order.
-* `lastCellAt`: The value of the last placed cell at a position.
 * `blockBodyAt`: The block body cell at an offset, or a space.
+* `blockCorridorCells`: The corridor cells of a block's jump edge, or none.
+* `playfieldCells`: The flattened list of all placed cells, in fold order.
+* `lastCellAt`: The value of the last placed cell at a position, or the initial value.
 
 ## Theorems
 
-* `Grid.put_get`: A put reads back its cell and leaves others unchanged.
+* `blockCellList_eq`: The block cell list splits into the body and the corridor.
+* `put_get`: A put reads back its cell and leaves other cells unchanged.
+* `foldl_bind_put`: Folding the blocks one at a time equals folding the flattened cells.
 * `foldl_put_get`: A run of puts reads back the last placed cell.
-* `lastCellAt_skip_row`: A run of cells whose rows miss the lookup row does
-  not change the lookup.
-* `blockBodyCells_row_range`: The body cells of a block sit in its row range.
-* `playfield_block_get`: A cell within a block's row range is the block's
-  body cell.
+* `playfieldOf_get_eq_lastCellAt`: The playfield readback equals the last cell lookup over the flattened cells.
+* `lastCellAt_skip_row`: A run of cells whose rows miss the lookup row does not change the lookup.
+* `lastCellAt_append`: The lookup over a concatenation composes the accumulators.
+* `flatMap_range_succ`: A flat map over a successor range splits off the last block.
 -/
 
 namespace LeanFunge
@@ -104,10 +103,8 @@ theorem Grid.put_get (g : Grid w h) (px py x y : ℕ) (c : Char) :
     (Grid.put g px py c).get x y = if px % w = x % w ∧ py % h = y % h then c else g.get x y := by
   unfold Grid.put Grid.get
   by_cases h : px % w = x % w ∧ py % h = y % h
-  · simp [h, eq_comm]
-  · simp [h, eq_comm]
-
-
+  · simp only [h, eq_comm, and_comm, if_false]
+  · simp only [h, eq_comm, and_comm, if_false]
 
 /-- Folding the blocks one at a time equals folding the flattened cells. -/
 theorem foldl_bind_put (prog : CMProgram)
@@ -137,7 +134,6 @@ theorem foldl_put_get (g : Grid w h) (cells : List ((ℕ × ℕ) × Char)) (x y 
       congr
       rw [Grid.put_get]
 
-
 /-- The playfield readback equals the last-cell lookup over the flattened
     cells. -/
 theorem playfieldOf_get_eq_lastCellAt (prog : CMProgram) (x y : ℕ) :
@@ -150,7 +146,6 @@ theorem playfieldOf_get_eq_lastCellAt (prog : CMProgram) (x y : ℕ) :
         exact foldl_bind_put prog (Grid.space (playfieldWidth prog) (playfieldHeight prog))]
   rw [foldl_put_get]
   rfl
-
 
 /-- A cell whose row misses the lookup row does not change the lookup. -/
 theorem lastCellAt_skip_row (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ) × Char))
@@ -166,293 +161,23 @@ theorem lastCellAt_skip_row (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ
       have hnot : ¬(cell.1.1 % w = x % w ∧ cell.1.2 % h = y % h) := by
         intro hm
         have hy' : cell.1.2 % h = y % h := hm.2
-        have hrowc : cell.1.2 < h := hrow cell (by simp)
+        have hrowc : cell.1.2 < h := hrow cell (by exact List.mem_cons_self)
         have hmod : cell.1.2 % h = cell.1.2 := Nat.mod_eq_of_lt hrowc
         rw [hmod] at hy'
         rw [Nat.mod_eq_of_lt hy] at hy'
-        exact hdiff cell (by simp) hy'
-      simp [hnot, if_false]
-      exact ih init (by intro c hc; exact hrow c (by simp [hc]))
-                     (by intro c hc; exact hdiff c (by simp [hc]))
+        exact hdiff cell (by exact List.mem_cons_self) hy'
+      simp only [hnot, if_false]
+      exact ih init (by intro c hc; exact hrow c (by exact List.mem_cons.mpr (Or.inr hc)))
+                     (by intro c hc; exact hdiff c (by exact List.mem_cons.mpr (Or.inr hc)))
 
-/-- The body cells of a block sit in its row range. -/
-theorem blockBodyCells_row_range (instr : CMInstr) (D y : ℕ)
-    (c : (ℕ × ℕ) × Char) (hc : c ∈ blockBodyCells instr D y) :
-    y ≤ c.1.2 ∧ c.1.2 < y + blockHeight instr := by
-  cases instr with
-  | inc _ =>
-      simp [blockBodyCells, blockHeight] at hc
-      rcases hc with hc | hc | hc | hc <;> simp [hc, blockHeight]
-  | decz _ _ =>
-      simp [blockBodyCells, blockHeight] at hc
-      rcases hc with hc | hc | hc | hc | hc | hc | hc | hc | hc <;> simp [hc, blockHeight]
-  | jump _ =>
-      simp [blockBodyCells, blockHeight] at hc
-      rcases hc with hc | hc <;> simp [hc, blockHeight]
-  | halt =>
-      simp [blockBodyCells, blockHeight] at hc
-      rcases hc with hc | hc <;> simp [hc, blockHeight]
-
-/-- The corridor cells of a block sit on its header row. -/
-theorem corridorCells_row_lt (prog : CMProgram) (i k : ℕ) (hi : i < prog.length)
-    (c : (ℕ × ℕ) × Char) (hc : c ∈ corridorCells prog i k) :
-    c.1.2 < prog.length := by
-  simp [corridorCells] at hc
-  rcases hc with hc | hc <;> subst c <;> exact hi
-
-/-- Every block row is at or below the header. -/
-theorem blockRow_ge_length (prog : CMProgram) (i : ℕ) :
-    prog.length ≤ blockRow prog i := by
-  by_cases hi : 0 < i
-  · exact le_of_lt (blockRow_strict_mono prog hi)
-  · have : i = 0 := by omega
-    subst i
-    rfl
-
-/-- The end of a block's row range is at or below a later block's row. -/
-theorem blockRow_range_le (prog : CMProgram) (i j : ℕ) (hij : i < j) :
-    blockRow prog i + blockHeight (prog.getD i .halt) ≤ blockRow prog j := by
-  have hmono : blockRow prog (i + 1) ≤ blockRow prog j := by
-    by_cases h : i + 1 < j
-    · exact le_of_lt (blockRow_strict_mono prog h)
-    · have h : i + 1 = j := by omega
-      rw [h]
-  rwa [blockRow_succ] at hmono
-
-/-- The option `getD` reads the same value as `List.getD`. -/
-theorem getD_option {α : Type} (l : List α) (i : ℕ) (d : α) :
-    (l[i]?).getD d = l.getD i d := by
-  simp
-
-/-- A corridor cell of a block lies in that block's jump corridor. -/
-theorem blockCorridorCells_mem (prog : CMProgram) (i : ℕ) (instr : CMInstr)
-    (c : (ℕ × ℕ) × Char) (hc : c ∈ blockCorridorCells prog i instr) :
-    ∃ k : ℕ, (instr = .decz 0 k ∨ instr = .decz 1 k ∨ instr = .jump k) ∧
-      c ∈ corridorCells prog i k := by
-  unfold blockCorridorCells at hc
-  cases instr with
-  | inc _ => simp at hc
-  | decz c0 k =>
-      fin_cases c0
-      · exact ⟨k, by simp [hc]⟩
-      · exact ⟨k, by simp [hc]⟩
-  | jump k => exact ⟨k, by simp [hc]⟩
-  | halt => simp at hc
-
-/-- Every cell of block `j` sits strictly above block `i`'s row when `j < i`. -/
-theorem blockCellList_row_before (prog : CMProgram) (i j : ℕ) (hji : j < i)
-    (hi : i < prog.length)
-    (c : (ℕ × ℕ) × Char) (hc : c ∈ blockCellList prog j) :
-    c.1.2 < blockRow prog i := by
-  rw [blockCellList_eq] at hc
-  simp only [List.mem_append] at hc
-  rcases hc with hc | hc
-  · have hrange := blockBodyCells_row_range (prog.getD j .halt) (entryColumn prog j) (blockRow prog j) c hc
-    have hle := blockRow_range_le prog j i hji
-    omega
-  · have hm := blockCorridorCells_mem prog j (prog.getD j .halt) c hc
-    rcases hm with ⟨k, hk, hck⟩
-    have hcorr := corridorCells_row_lt prog j k (by omega) c hck
-    have h0 : prog.length ≤ blockRow prog j := blockRow_ge_length prog j
-    have hj : blockRow prog j < blockRow prog i := blockRow_strict_mono prog hji
-    omega
-
-/-- `lastCellAt` over a concatenation composes the accumulators. -/
 theorem lastCellAt_append (w h : ℕ) (init : Char) (l1 l2 : List ((ℕ × ℕ) × Char)) (x y : ℕ) :
     lastCellAt w h init (l1 ++ l2) x y = lastCellAt w h (lastCellAt w h init l1 x y) l2 x y := by
-  simp [lastCellAt, List.foldl_append]
+  simp only [lastCellAt, List.foldl_append]
 
 /-- `flatMap` over a successor range splits off the last block. -/
 theorem flatMap_range_succ {β : Type} (f : ℕ → List β) (k : ℕ) :
     List.flatMap f (List.range (k + 1)) = List.flatMap f (List.range k) ++ f k := by
-  rw [List.range_succ, List.flatMap_append]
-  simp
-
-/-- The body of a block reads back its cell at an offset, within the
-    playfield. -/
-theorem lastCellAt_body {w h : ℕ} (instr : CMInstr) (D y dx dy : ℕ)
-    (hdx : dx ≤ blockWidth instr) (hdy : dy < blockHeight instr)
-    (hW : D + blockWidth instr < w) (hH : y + blockHeight instr < h) :
-    lastCellAt w h ' ' (blockBodyCells instr D y) (D + dx) (y + dy) = blockBodyAt instr dx dy := by
-  have hmodx : ∀ i : ℕ, i ≤ blockWidth instr → (D + i) % w = D + i := by
-    intro i hi
-    rw [Nat.mod_eq_of_lt]
-    omega
-  have hmody : ∀ i : ℕ, i < blockHeight instr → (y + i) % h = y + i := by
-    intro i hi
-    rw [Nat.mod_eq_of_lt]
-    omega
-  have hdxm : (D + dx) % w = D + dx := by
-    rw [Nat.mod_eq_of_lt]
-    omega
-  have hdym : (y + dy) % h = y + dy := by
-    rw [Nat.mod_eq_of_lt]
-    omega
-  have h0y : y % h = y := by
-    rw [Nat.mod_eq_of_lt]
-    omega
-  have hD : D % w = D := by
-    rw [Nat.mod_eq_of_lt]
-    omega
-  cases instr with
-  | inc c0 =>
-      fin_cases c0
-      · simp [blockWidth, blockHeight] at hdx hdy
-        interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-            blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-      · simp [blockWidth, blockHeight] at hdx hdy
-        interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-            blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-  | decz c0 _ =>
-      fin_cases c0
-      · simp [blockWidth, blockHeight] at hdx hdy
-        interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-            blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-      · simp [blockWidth, blockHeight] at hdx hdy
-        interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-            blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-  | jump _ =>
-      simp [blockWidth, blockHeight] at hdx hdy
-      interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-          blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-  | halt =>
-      simp [blockWidth, blockHeight] at hdx hdy
-      interval_cases dx <;> interval_cases dy <;> simp [blockBodyCells, blockBodyAt, lastCellAt,
-          blockWidth, blockHeight, hmodx, hmody, hdxm, hdym, h0y, hD]
-
-/-- A block after `i` does not touch a cell in block `i`'s row range. -/
-theorem lastCellAt_block_after (prog : CMProgram) (i j dx dy : ℕ) (hij : i < j)
-    (hj : j < prog.length) (hdy : dy < blockHeight (prog.getD i .halt))
-    (hH : blockRow prog i + dy < playfieldHeight prog) (init : Char) :
-    lastCellAt (playfieldWidth prog) (playfieldHeight prog) init (blockCellList prog j)
-      (entryColumn prog i + dx) (blockRow prog i + dy) = init := by
-  apply lastCellAt_skip_row (w := playfieldWidth prog) (h := playfieldHeight prog) init
-    (blockCellList prog j) (entryColumn prog i + dx) (blockRow prog i + dy) hH
-  · intro c hc
-    rw [blockCellList_eq] at hc
-    simp only [List.mem_append] at hc
-    rcases hc with hc | hc
-    · have hrange := blockBodyCells_row_range (prog.getD j .halt) (entryColumn prog j) (blockRow prog j) c hc
-      have hle : blockRow prog j + blockHeight (prog.getD j .halt) ≤ playfieldHeight prog := by
-        rw [playfieldHeight]
-        exact blockRow_range_le prog j prog.length hj
-      omega
-    · rcases blockCorridorCells_mem prog j (prog.getD j .halt) c hc with ⟨k, hk, hck⟩
-      have hcorr := corridorCells_row_lt prog j k (by omega) c hck
-      have hn : prog.length ≤ playfieldHeight prog := by
-        rw [playfieldHeight]
-        exact blockRow_ge_length prog prog.length
-      omega
-  · intro c hc
-    rw [blockCellList_eq] at hc
-    simp only [List.mem_append] at hc
-    rcases hc with hc | hc
-    · have hrange := blockBodyCells_row_range (prog.getD j .halt) (entryColumn prog j) (blockRow prog j) c hc
-      have hle := blockRow_range_le prog i j hij
-      omega
-    · rcases blockCorridorCells_mem prog j (prog.getD j .halt) c hc with ⟨k, hk, hck⟩
-      have hcorr := corridorCells_row_lt prog j k (by omega) c hck
-      have hge := blockRow_ge_length prog i
-      omega
-
-/-- A block before `i` does not touch a cell in block `i`'s row range. -/
-theorem lastCellAt_flatMap_before (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
-    (dx dy : ℕ) (hH : blockRow prog i + dy < playfieldHeight prog) :
-    lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' '
-      (List.flatMap (fun j => blockCellList prog j) (List.range i))
-      (entryColumn prog i + dx) (blockRow prog i + dy) = ' ' := by
-  apply lastCellAt_skip_row (w := playfieldWidth prog) (h := playfieldHeight prog) ' '
-    (List.flatMap (fun j => blockCellList prog j) (List.range i))
-    (entryColumn prog i + dx) (blockRow prog i + dy) hH
-  · intro c hc
-    rcases (List.mem_flatMap.mp hc) with ⟨j, hj, hcj⟩
-    have hjlt : j < i := by simpa using hj
-    have hb := blockCellList_row_before prog i j hjlt hi c hcj
-    have hyl : blockRow prog i < playfieldHeight prog := by
-      rw [playfieldHeight]
-      exact blockRow_strict_mono prog hi
-    omega
-  · intro c hc
-    rcases (List.mem_flatMap.mp hc) with ⟨j, hj, hcj⟩
-    have hjlt : j < i := by simpa using hj
-    have hb := blockCellList_row_before prog i j hjlt hi c hcj
-    omega
-
-/-- Block `i` reads back its body cell at an offset. -/
-theorem lastCellAt_block_i (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
-    (dx dy : ℕ) (hdx : dx ≤ blockWidth (prog.getD i .halt))
-    (hdy : dy < blockHeight (prog.getD i .halt))
-    (hW : entryColumn prog i + blockWidth (prog.getD i .halt) < playfieldWidth prog)
-    (hH0 : blockRow prog i + blockHeight (prog.getD i .halt) < playfieldHeight prog)
-    (hH : blockRow prog i + dy < playfieldHeight prog) :
-    lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' ' (blockCellList prog i)
-      (entryColumn prog i + dx) (blockRow prog i + dy)
-      = blockBodyAt (prog.getD i .halt) dx dy := by
-  rw [blockCellList_eq]
-  rw [lastCellAt_append]
-  rw [lastCellAt_body (prog.getD i .halt) (entryColumn prog i) (blockRow prog i) dx dy hdx hdy hW hH0]
-  have hskip : lastCellAt (playfieldWidth prog) (playfieldHeight prog) (blockBodyAt (prog.getD i .halt) dx dy)
-      (blockCorridorCells prog i (prog.getD i .halt)) (entryColumn prog i + dx) (blockRow prog i + dy)
-      = blockBodyAt (prog.getD i .halt) dx dy := by
-    apply lastCellAt_skip_row (w := playfieldWidth prog) (h := playfieldHeight prog)
-      (blockBodyAt (prog.getD i .halt) dx dy) (blockCorridorCells prog i (prog.getD i .halt))
-      (entryColumn prog i + dx) (blockRow prog i + dy) hH
-    · intro c hc
-      rcases blockCorridorCells_mem prog i (prog.getD i .halt) c hc with ⟨k, hk, hck⟩
-      have hcorr := corridorCells_row_lt prog i k hi c hck
-      have hn : prog.length ≤ playfieldHeight prog := by
-        rw [playfieldHeight]
-        exact blockRow_ge_length prog prog.length
-      omega
-    · intro c hc
-      rcases blockCorridorCells_mem prog i (prog.getD i .halt) c hc with ⟨k, hk, hck⟩
-      have hcorr := corridorCells_row_lt prog i k hi c hck
-      have hge : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
-      omega
-  rw [hskip]
-
-/-- A cell within a block's row range is the block's body cell. -/
-theorem playfield_block_get (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length)
-    (dx dy : ℕ) (hdx : dx ≤ blockWidth (prog.getD i .halt))
-    (hdy : dy < blockHeight (prog.getD i .halt)) :
-    (playfieldOf prog).get (entryColumn prog i + dx) (blockRow prog i + dy)
-      = blockBodyAt (prog.getD i .halt) dx dy := by
-  let pw := playfieldWidth prog
-  let ph := playfieldHeight prog
-  have hW : entryColumn prog i + blockWidth (prog.getD i .halt) < playfieldWidth prog := by
-    rw [playfieldWidth]
-    rw [← entryColumn_succ]
-    exact entryColumn_strict_mono prog hi1
-  have hx : entryColumn prog i + dx < playfieldWidth prog := by
-    omega
-  have hH0 : blockRow prog i + blockHeight (prog.getD i .halt) < playfieldHeight prog := by
-    rw [playfieldHeight]
-    rw [← blockRow_succ]
-    exact blockRow_strict_mono prog hi1
-  have hH : blockRow prog i + dy < playfieldHeight prog := by
-    omega
-  rw [playfieldOf_get_eq_lastCellAt]
-  unfold playfieldCells
-  have hmain : ∀ k : ℕ, i < k → k ≤ prog.length →
-      lastCellAt pw ph ' ' (List.flatMap (fun j => blockCellList prog j) (List.range k))
-        (entryColumn prog i + dx) (blockRow prog i + dy)
-        = blockBodyAt (prog.getD i .halt) dx dy := by
-    intro k hik hkn
-    induction k with
-    | zero => omega
-    | succ k ih =>
-        by_cases hik' : i < k
-        · have hprev := ih hik' (by omega)
-          rw [flatMap_range_succ, lastCellAt_append, hprev]
-          exact lastCellAt_block_after prog i k dx dy (by omega) (by omega) hdy hH
-              (blockBodyAt (prog.getD i .halt) dx dy)
-        · have heq : i = k := by omega
-          subst i
-          rw [flatMap_range_succ, lastCellAt_append]
-          rw [lastCellAt_flatMap_before prog k (by omega) dx dy hH]
-          exact lastCellAt_block_i prog k (by omega) dx dy hdx hdy hW hH0 hH
-  have hres := hmain prog.length (by omega) (by rfl)
-  rw [hres]
+  rw [List.range_succ, List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil]
 
 end Completeness
 

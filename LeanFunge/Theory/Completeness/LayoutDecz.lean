@@ -5,8 +5,8 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutBlock
 import LeanFunge.Theory.Completeness.LayoutCellMain
-import LeanFunge.Theory.Step
 import LeanFunge.Theory.Run.Relational
+import LeanFunge.Theory.Step
 import Mathlib.Tactic
 
 /-!
@@ -78,7 +78,7 @@ theorem deczBlock_prefix (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length
     have hdec : decodeChar ':' = .dup := by unfold decodeChar; rfl
     simp only [hsm, hc1, hdec, stepState, Stack.dup]
     rw [hdir, stepPos_right (playfieldWidth prog) (playfieldHeight prog) (entryColumn prog i + 1) (blockRow prog i) (by omega) (by omega)]
-    simp [hstack]
+    simp only [hstack, Stack.dup]
   have h3 : run 1 { s with stack := [n, n], pc := (entryColumn prog i + 2, blockRow prog i) } =
       some { s with stack := [counterVal c, n, n], pc := (entryColumn prog i + 3, blockRow prog i) } := by
     rw [show run 1 { s with stack := [n, n], pc := (entryColumn prog i + 2, blockRow prog i) } = step { s with stack := [n, n], pc := (entryColumn prog i + 2, blockRow prog i) } by rfl]
@@ -106,7 +106,6 @@ theorem deczBlock_prefix (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.length
       (some { s with stack := [n % counterVal c, n], pc := (entryColumn prog i + 4, blockRow prog i) }) (1 + 1 + 1) 1 h123 h4
   rw [show 4 = 1 + 1 + 1 + 1 by omega]
   rw [h1234]
-
 
 end Completeness
 

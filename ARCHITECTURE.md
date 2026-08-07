@@ -210,10 +210,13 @@ project convention that `Core` files contain only definitions.
   fall-through column, a `decz` block tests the remainder at the branch cell
   and either divides the value and falls through (counter positive) or sends
   the pointer up its corridor column (counter zero), a `jump` block sends the
-  pointer up its corridor column, and `halt` stops the machine. Remaining:
-  the generic corridor routing for arbitrary jump targets, then the
-  simulation induction equating the interpreter run with the two-counter
-  machine's run for every program.
+  pointer up its corridor column, and `halt` stops the machine.
+  `LayoutRouting.lean` proves the generic fall-through drop: the bottom-right
+  corner of a block's body is a space, and one step down from a block's
+  bottom row lands the pointer on the next block's entry. Remaining: the
+  generic corridor routing for arbitrary jump targets, then the simulation
+  induction equating the interpreter run with the two-counter machine's run
+  for every program.
 
 ## Verified Example Programs
 

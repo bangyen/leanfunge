@@ -88,7 +88,9 @@ The implementation is organized into `Core` (definitions), `Theory`
   fall-through column, a `decz` block tests the remainder at the branch cell
   and either divides the value and falls through (counter positive) or sends
   the pointer up its corridor column (counter zero), a `jump` block sends the
-  pointer up its corridor column, and `halt` stops the machine.
+  pointer up its corridor column, and `halt` stops the machine. The generic
+  fall-through drop is proven: one step down from a block's bottom row lands
+  the pointer on the next block's entry.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
@@ -103,7 +105,7 @@ steps are:
 | Task | Priority | Status |
 | :--- | :--- | :--- |
 | **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
-| **Generic routing** | High | The fall-through drop and the corridor up-turn-drop for arbitrary jump targets, including running through `v` cells. |
+| **Generic routing** | High | The fall-through drop is proven; remaining: the corridor up-turn-drop for arbitrary jump targets, including running through `v` cells. |
 | **Simulation induction** | High | Assembling the block and routing lemmas into a step-for-step simulation of `CMInstr.run` for arbitrary programs. |
 | **Universality statement** | High | Every two-counter machine has a simulating playfield; hence Befunge-93 is computationally universal. |
 

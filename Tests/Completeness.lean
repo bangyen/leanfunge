@@ -14,6 +14,7 @@ import Tests.Completeness.LayoutDeczBranch
 import Tests.Completeness.LayoutFallthrough
 import Tests.Completeness.LayoutJump
 import Tests.Completeness.LayoutJumpBlock
+import Tests.Completeness.LayoutRouting
 import Tests.Completeness.Linear
 import Tests.Completeness.Loop
 import Tests.Completeness.LoopC2

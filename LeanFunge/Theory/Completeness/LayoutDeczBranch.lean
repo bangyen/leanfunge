@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutBlock
-import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.LayoutCellMain
-import LeanFunge.Theory.Step
+import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Run.Relational
+import LeanFunge.Theory.Step
 import Mathlib.Tactic
 
 /-!

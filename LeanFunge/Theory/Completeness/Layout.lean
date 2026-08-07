@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Completeness.PairEncoding
+import LeanFunge.Theory.Completeness.Routing
 import LeanFunge.Theory.Completeness.TwoCounter
 import Mathlib.Data.Nat.Notation
+import Mathlib.Tactic.Ring
 
 /-!
 # The Block Layout Geometry
@@ -87,11 +90,11 @@ def blockRow (prog : CMProgram) : ℕ → ℕ
 
 /-- A block is at least one column wide. -/
 theorem blockWidth_pos (instr : CMInstr) : 1 ≤ blockWidth instr := by
-  cases instr <;> simp [blockWidth]
+  cases instr <;> norm_num [blockWidth]
 
 /-- A block is at least one row tall. -/
 theorem blockHeight_pos (instr : CMInstr) : 1 ≤ blockHeight instr := by
-  cases instr <;> simp [blockHeight]
+  cases instr <;> norm_num [blockHeight]
 
 /-- The entry columns chain by the block widths. -/
 theorem entryColumn_succ (prog : CMProgram) (i : ℕ) :

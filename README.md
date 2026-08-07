@@ -73,7 +73,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   generator lays each instruction's block at a chained entry column and block
   row (the `decz` branch one column left of the next entry, so drop columns
   stay clean of `|` cells), with the entry columns and block rows proven
-  strictly increasing.
+  strictly increasing. The generated playfield's fall-through is verified:
+  from a block's exit the pointer drops down the entry column through the
+  gap to the next block's `>`, both for an `inc` exit and for the `decz`
+  branch jog, proved symbolically with the routing lemmas.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

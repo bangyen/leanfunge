@@ -16,13 +16,14 @@ finite run halts exactly when some intermediate state satisfies it.
 
 ## Theorems
 
-* `decodeChar_halt_iff`: A character decodes to `halt` exactly when it is `@`.
+* `decodeChar_halt_iff`: A character decodes to the halt instruction exactly
+  when it is `@`.
 * `step_none_iff_halt`: A step halts exactly when the pointer is outside
-  string mode at a `halt` cell.
+  string mode at a halt cell.
 * `run_none_exists_halt`: A halting run reaches a state whose next step halts.
 * `halts_iff_reaches_halt`: A run halts exactly when it reaches a state whose
   next step halts.
-* `halts_iff`: A run halts exactly when it reaches a `halt` cell outside
+* `halts_iff`: A run halts exactly when it reaches a halt cell outside
   string mode.
 * `halts_iff_at`: A run halts exactly when it reaches the `@` cell outside
   string mode.
@@ -36,7 +37,7 @@ theorem decodeChar_halt_iff (c : Char) : decodeChar c = .halt ↔ c = '@' := by
   constructor
   · intro h
     unfold decodeChar at h
-    split at h <;> simp at h
+    split at h <;> simp at h -- no_squeeze: decode match
     · rfl
   · intro h
     rw [h]
@@ -50,18 +51,20 @@ theorem step_none_iff_halt (s : State w h) :
   · intro h
     unfold step at h
     cases hsm : s.stringMode with
-    | true => simp [hsm] at h
+    | true => simp [hsm] at h -- no_squeeze: string mode
     | false =>
         rw [hsm] at h
         cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) with
-        | halt => exact ⟨by simp, rfl⟩
-        | _ => simp [hdec] at h
+        | halt => exact ⟨by simp -- no_squeeze: non-halt cell
+            , rfl⟩
+        | _ => simp [hdec] at h -- no_squeeze: non-halt cell
   · intro h
     rcases h with ⟨hsm, hdec⟩
     unfold step
     cases hm : s.stringMode with
-    | true => exfalso; exact hsm (by simp [hm])
-    | false => simp [hdec]
+    | true => exfalso; exact hsm (by simp [hm] -- no_squeeze: non-halt cell
+        )
+    | false => simp [hdec] -- no_squeeze: non-halt cell
 
 /-- A halting run reaches a state whose next step halts. -/
 theorem run_none_exists_halt (s : State w h) (n : ℕ) (hnone : run n s = none) :

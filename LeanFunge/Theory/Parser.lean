@@ -30,6 +30,19 @@ import Mathlib.Data.Nat.Init
 * `skipSpaces_no_space`: `skipSpaces` leaves a stream without spaces unchanged.
 * `parseInt_natDigits`: Parsing the digit characters of a natural number
   consumes everything and reconstructs the number.
+* `skipSpaces_suffix`: `skipSpaces` returns a suffix of the input stream.
+* `takeDigits_suffix`: `takeDigits` returns the leading digits and the rest,
+  a suffix of the input.
+* `parseInt_skip_nil`: Parsing an all-space input consumes everything and
+  yields the value zero.
+* `parseInt_skip_digits`: Parsing a non-negative input consumes the leading
+  digits after skipping spaces.
+* `parseInt_skip_minus_zero`: A minus sign with no following digits leaves
+  the stream unchanged.
+* `parseInt_skip_minus`: A minus sign with digits consumes the sign and the
+  leading digits.
+* `parseInt_suffix`: Parsing consumes only a prefix of the input, leaving a
+  suffix.
 -/
 
 namespace LeanFunge
@@ -214,5 +227,107 @@ theorem parseInt_natDigits (n : Nat) :
       rw [← hc, htake]
       simp only [true_and]
       simpa only using congrArg (fun v : Nat => (v : Int)) (digitsValue_natDigits n)
+
+/-- `skipSpaces` returns a suffix of the input stream. -/
+theorem skipSpaces_suffix (input : List Char) :
+    ∃ pre : List Char, input = pre ++ skipSpaces input := by
+  induction input with
+  | nil => exact ⟨[], rfl⟩
+  | cons c rest ih =>
+      by_cases hc : c = ' '
+      · rw [hc]
+        rcases ih with ⟨pre, hpre⟩
+        refine ⟨c :: pre, ?_⟩
+        simp [skipSpaces, hc] -- no_squeeze: space prefix
+        rw [← hpre]
+      · refine ⟨[], ?_⟩
+        simp [skipSpaces, hc] -- no_squeeze: space prefix
+
+/-- `takeDigits` returns the leading digits and the rest, which is a suffix of
+    the input. -/
+theorem takeDigits_suffix (input : List Char) :
+    input = (takeDigits input).1 ++ (takeDigits input).2 := by
+  induction input with
+  | nil => rfl
+  | cons c rest ih =>
+      by_cases hc : 48 ≤ c.toNat ∧ c.toNat ≤ 57
+      · unfold takeDigits
+        rw [if_pos hc]
+        rcases htake : takeDigits rest with ⟨ds, rest'⟩
+        have hih : rest = ds ++ rest' := by simpa [htake] using ih -- no_squeeze: digit prefix
+        simp [hih] -- no_squeeze: digit prefix
+      · unfold takeDigits
+        rw [if_neg hc]
+        rfl
+
+/-- Parsing an all-space input consumes everything and yields `0`. -/
+theorem parseInt_skip_nil (input : List Char) (hsp : skipSpaces input = []) :
+    parseInt input = ([], 0) := by
+  unfold parseInt
+  rw [hsp]
+  rfl
+
+/-- Parsing a non-negative input leaves the digit-run remainder: the parse
+    consumes the leading digits of the stream after skipping spaces. -/
+theorem parseInt_skip_digits (input : List Char) (c : Char) (rest : List Char)
+    (hsp : skipSpaces input = c :: rest) (hc : c ≠ '-') :
+    parseInt input =
+      ((takeDigits (c :: rest)).2, Int.ofNat (digitsValue (takeDigits (c :: rest)).1)) := by
+  unfold parseInt
+  rw [hsp]
+  simp [hc] -- no_squeeze: non-negative parse
+
+/-- Parsing a minus sign with no following digits consumes nothing after the
+    sign. -/
+theorem parseInt_skip_minus_zero (input : List Char) (rest ds rest' : List Char)
+    (hsp : skipSpaces input = '-' :: rest) (htake : takeDigits rest = (ds, rest'))
+    (hds : ds = []) :
+    parseInt input = ('-' :: rest, 0) := by
+  unfold parseInt
+  rw [hsp]
+  simp [htake, hds] -- no_squeeze: no digits
+
+/-- Parsing a minus sign with digits leaves the remainder after the digits:
+    the parse consumes the sign and the leading digits. -/
+theorem parseInt_skip_minus (input : List Char) (rest ds rest' : List Char)
+    (hsp : skipSpaces input = '-' :: rest) (htake : takeDigits rest = (ds, rest'))
+    (hds : ds ≠ []) :
+    parseInt input = (rest', -Int.ofNat (digitsValue ds)) := by
+  unfold parseInt
+  rw [hsp]
+  simp [htake, hds] -- no_squeeze: minus digits
+
+/-- Parsing consumes only a prefix of the input: the remaining stream is a
+    suffix of the original. -/
+theorem parseInt_suffix (input : List Char) :
+    ∃ pre : List Char, input = pre ++ (parseInt input).1 := by
+  cases hsp : skipSpaces input with
+  | nil =>
+      exact ⟨input, by simp [parseInt_skip_nil input hsp] -- no_squeeze: empty input
+        ⟩
+  | cons c rest =>
+      by_cases hneg : c = '-'
+      · rw [hneg] at hsp
+        rcases htake : takeDigits rest with ⟨ds, rest'⟩
+        by_cases hds : ds = []
+        · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
+          refine ⟨pre, ?_⟩
+          conv => lhs; rw [hpre]
+          rw [parseInt_skip_minus_zero input rest ds rest' hsp htake hds]
+          simp [hsp] -- no_squeeze: minus no digits
+        · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
+          have hre : rest = ds ++ rest' := by simpa [htake] using takeDigits_suffix rest -- no_squeeze: digit remainder
+          refine ⟨pre ++ ('-' :: ds), ?_⟩
+          conv => lhs; rw [hpre]
+          rw [parseInt_skip_minus input rest ds rest' hsp htake hds]
+          rw [hsp, hre]
+          simp [List.append_assoc] -- no_squeeze: minus digits
+      · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
+        refine ⟨pre ++ (takeDigits (c :: rest)).1, ?_⟩
+        conv => lhs; rw [hpre]
+        rw [parseInt_skip_digits input c rest hsp hneg]
+        rw [hsp]
+        conv => lhs; rw [takeDigits_suffix (c :: rest)]
+        simp only [List.append_assoc]
 
 end LeanFunge

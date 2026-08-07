@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Theory.Run.Divergence
 import LeanFunge.Theory.Run.Grid
 import LeanFunge.Theory.Run.Halt
+import LeanFunge.Theory.Run.IO
 import LeanFunge.Theory.Run.Relational
 import LeanFunge.Theory.Run.Stack
 

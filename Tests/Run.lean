@@ -78,4 +78,20 @@ example (s : State w h) :
       sₘ.grid.get sₘ.pc.1 sₘ.pc.2 = '@' :=
   halts_iff_at s
 
+example (s s' : State w h) (hstep : step s = some s') :
+    ∃ pre : List Char, s.input = pre ++ s'.input :=
+  step_input_prefix s s' hstep
+
+example (s s' : State w h) (hstep : step s = some s') :
+    ∃ suf : String, s'.output = s.output ++ suf :=
+  step_output_prefix s s' hstep
+
+example (s : State w h) (n : ℕ) (s' : State w h) (h : run n s = some s') :
+    ∃ pre : List Char, s.input = pre ++ s'.input :=
+  run_input_prefix s n s' h
+
+example (s : State w h) (n : ℕ) (s' : State w h) (h : run n s = some s') :
+    ∃ suf : String, s'.output = s.output ++ suf :=
+  run_output_prefix s n s' h
+
 end LeanFunge.Tests

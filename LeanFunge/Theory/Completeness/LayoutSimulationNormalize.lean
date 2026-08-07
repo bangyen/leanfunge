@@ -68,6 +68,8 @@ namespace Completeness
 
 open CMInstr
 
+/-- Clamp a jump target into range: a target above `n` becomes `n`, and other
+    instructions pass through unchanged. -/
 def clampInstr (n : ℕ) : CMInstr → CMInstr
   | .jump k => .jump (min k n)
   | .decz c k => .decz c (min k n)

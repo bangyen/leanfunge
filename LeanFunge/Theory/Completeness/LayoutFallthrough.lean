@@ -38,7 +38,7 @@ theorem layout_transfer_block0 :
 /-- The fall-through from the first block's exit: the `v` at `(3, 0)` drops
     through the space at `(3, 1)` to the `>` at `(3, 2)`. -/
 theorem layout_fallthrough_0 (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram))
-    (hpc : s.pc = (3, 0)) (hdir : s.dir = .down) (hsm : s.stringMode = false)
+    (hpc : s.pc = (3, 0)) (hsm : s.stringMode = false)
     (hgrid : s.grid = playfieldOf layoutProgram) :
     run 3 s = some { s with dir := .right, pc := (4, 2) } := by
   have hv : s.grid.get 3 0 = 'v' := by rw [hgrid]; decide

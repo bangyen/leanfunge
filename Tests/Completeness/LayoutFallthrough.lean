@@ -20,10 +20,10 @@ example :
   layout_transfer_block0
 
 example (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram))
-    (hpc : s.pc = (3, 0)) (hdir : s.dir = .down) (hsm : s.stringMode = false)
+    (hpc : s.pc = (3, 0)) (hsm : s.stringMode = false)
     (hgrid : s.grid = playfieldOf layoutProgram) :
     run 3 s = some { s with dir := .right, pc := (4, 2) } :=
-  layout_fallthrough_0 s hpc hdir hsm hgrid
+  layout_fallthrough_0 s hpc hsm hgrid
 
 example (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram))
     (hpc : s.pc = (8, 5)) (hsm : s.stringMode = false)

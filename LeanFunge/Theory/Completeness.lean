@@ -12,6 +12,7 @@ import LeanFunge.Theory.Completeness.LayoutCellRange
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutFallthrough
 import LeanFunge.Theory.Completeness.LayoutJump
+import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.Linear
 import LeanFunge.Theory.Completeness.LinearMain
 import LeanFunge.Theory.Completeness.LinearRow

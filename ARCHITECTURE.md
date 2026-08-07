@@ -193,6 +193,25 @@ project convention that `Core` files contain only definitions.
   corridor is also proved symbolically (`loop_routing_back`) by composing
   `run_spaces_turn` segments with `run_append`, so the corridor geometry is
   verified by proof rather than kernel computation alone.
+  `LayoutFallthrough.lean`, `LayoutJump.lean`, and `LoopCorridor.lean` verify
+  the generated playfield end to end: the fall-through drops and the forward
+  and backward jump corridors of the transfer and looping programs, all on
+  the playfield emitted by `playfieldOf`. The corridor rows are a header of
+  one row per block, so every jump edge has a dedicated route and a jump
+  involving block 0 does not collide.
+  The generic cell lookup is proven by
+  `LayoutCells.lean`/`LayoutCellRange.lean`/`LayoutCellMain.lean`: the
+  playfield readback equals a last-cell lookup over the flattened placed
+  cells, each block's body cells sit in its own row range and its corridor on
+  its header row, and therefore any cell within a block's row range reads
+  back exactly the block's body cell (`playfield_block_get`), for arbitrary
+  programs. `LayoutBlock.lean` proves the generic block executions: an `inc`
+  block multiplies the stack top by its counter digit and exits down its
+  fall-through column, a `jump` block sends the pointer up its corridor
+  column, and `halt` stops the machine. Remaining: the generic `decz` block
+  execution and the generic corridor routing for arbitrary jump targets,
+  then the simulation induction equating the interpreter run with the
+  two-counter machine's run for every program.
 
 ## Verified Example Programs
 

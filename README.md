@@ -73,22 +73,40 @@ The implementation is organized into `Core` (definitions), `Theory`
   generator lays each instruction's block at a chained entry column and block
   row (the `decz` branch one column left of the next entry, so drop columns
   stay clean of `|` cells), with the entry columns and block rows proven
-  strictly increasing. The generated playfield's fall-through is verified:
-  from a block's exit the pointer drops down the entry column through the
-  gap to the next block's `>`, both for an `inc` exit and for the `decz`
-  branch jog, proved symbolically with the routing lemmas. Adding the jump
-  corridor — a `>` at the branch column and a `v` at the target's entry column
-  on the gap row above the block — makes the generated playfield of the
-  transfer program fully simulate both branches: counter 1 zero jumps to the
-  halt through the corridor, counter 1 positive falls through the decrement.
+  strictly increasing, and one header corridor row per block so every jump
+  edge has a dedicated route. The generated playfield's fall-through is
+  verified: from a block's exit the pointer drops down the entry column
+  through the gap to the next block's `>`, both for an `inc` exit and for the
+  `decz` branch jog, proved symbolically with the routing lemmas. The
+  generated playfields of the transfer program and of a looping program (a
+  genuine backward jump) fully simulate their two-counter machines by kernel
+  computation, with the forward and backward corridors verified. The generic
+  cell lookup is proven: any cell within a block's row range reads back
+  exactly the block's body cell (`playfield_block_get`), and generic block
+  execution is proven for `inc`, `jump`, and `halt` — an arbitrary `inc`
+  block multiplies the stack top by its counter digit and exits down its
+  fall-through column, a `jump` block sends the pointer up its corridor
+  column, and `halt` stops the machine.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
 
 ## Roadmap
 
-All items below have been attempted and are confirmed roadblocks, not untried
-work.
+The generic simulation of arbitrary two-counter machines on the generated
+playfield is in progress. The cell-correctness foundation and the `inc`,
+`jump`, and `halt` block executions are proven generically; the remaining
+steps are:
+
+| Task | Priority | Status |
+| :--- | :--- | :--- |
+| **Generic `decz` block execution** | High | The `: digit % |` test and both branches (decrement down, jump up) on the playfield, reusing the snippet theorems. |
+| **Generic routing** | High | The fall-through drop and the corridor up-turn-drop for arbitrary jump targets, including running through `v` cells. |
+| **Simulation induction** | High | Assembling the block and routing lemmas into a step-for-step simulation of `CMInstr.run` for arbitrary programs. |
+| **Universality statement** | High | Every two-counter machine has a simulating playfield; hence Befunge-93 is computationally universal. |
+
+The following items have all been attempted and are confirmed roadblocks, not
+untried work.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
@@ -141,12 +159,14 @@ unspecified; LeanFunge makes the following choices, all documented in
 - Every verified example is deterministic; the nondeterminism of `?` is
   captured by the transition relation rather than the executable interpreter.
 - The completeness development (`Theory.Completeness`) has verified the
-  two-counter machine semantics, the pair encoding, and one concrete simulated
-  program end-to-end. The fully generic theorem — that *every* two-counter
-  machine has a playfield that simulates it — is not yet proven; it needs the
-  geometric routing lemma listed in the Roadmap. It does not require changing
-  the fixed-grid semantics: unbounded memory comes from the unbounded stack,
-  and the finite playfield supplies only finite control.
+  two-counter machine semantics, the pair encoding, the generic cell lookup
+  and generic `inc`/`jump`/`halt` block execution on the generated playfield,
+  and concrete simulated programs end-to-end. The fully generic theorem —
+  that *every* two-counter machine has a playfield that simulates it — is in
+  progress (see the Roadmap); it needs the generic `decz` block execution and
+  the geometric routing lemmas. It does not require changing the fixed-grid
+  semantics: unbounded memory comes from the unbounded stack, and the finite
+  playfield supplies only finite control.
 
 ## Installation & Building
 

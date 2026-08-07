@@ -11,6 +11,7 @@ import Tests.Completeness.LayoutCellRange
 import Tests.Completeness.LayoutCells
 import Tests.Completeness.LayoutFallthrough
 import Tests.Completeness.LayoutJump
+import Tests.Completeness.LayoutJumpBlock
 import Tests.Completeness.Linear
 import Tests.Completeness.Loop
 import Tests.Completeness.LoopC2

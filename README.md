@@ -90,7 +90,9 @@ The implementation is organized into `Core` (definitions), `Theory`
   the pointer up its corridor column (counter zero), a `jump` block sends the
   pointer up its corridor column, and `halt` stops the machine. The generic
   fall-through drop is proven: one step down from a block's bottom row lands
-  the pointer on the next block's entry.
+  the pointer on the next block's entry, and a run down through spaces and
+  the exit `v`s of preceding blocks keeps the pointer down, the basis of the
+  jump corridor's drop.
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.

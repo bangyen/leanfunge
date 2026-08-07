@@ -10,6 +10,7 @@ import LeanFunge.Theory.Completeness.LayoutBlock
 import LeanFunge.Theory.Completeness.LayoutCellMain
 import LeanFunge.Theory.Completeness.LayoutCellRange
 import LeanFunge.Theory.Completeness.LayoutCells
+import LeanFunge.Theory.Completeness.LayoutCorridor
 import LeanFunge.Theory.Completeness.LayoutDecz
 import LeanFunge.Theory.Completeness.LayoutDeczBranch
 import LeanFunge.Theory.Completeness.LayoutFallthrough

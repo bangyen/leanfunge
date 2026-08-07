@@ -40,6 +40,7 @@ increasing.
 * `blockCellList`: The cells of a block, positioned by the layout.
 * `corridorCells`: The jump corridor cells for a jump edge.
 * `playfieldOf`: Generate the playfield of a program.
+* `wellFormed`: Every `decz` and `jump` target is a valid block.
 * `layoutProgram`: A concrete program for the placement check.
 
 ## Theorems
@@ -50,6 +51,7 @@ increasing.
 * `blockRow_succ`: The block rows chain by the block heights.
 * `entryColumn_strict_mono`: The entry columns are strictly increasing.
 * `blockRow_strict_mono`: The block rows are strictly increasing.
+* `blockRow_mono`: The block rows are non-decreasing.
 * `layout_entry`: The generated playfield places the first entry.
 * `layout_decz_branch`: The generated playfield places the branch cell.
 * `layout_jog`: The generated playfield places the decrement jog.
@@ -93,6 +95,12 @@ def entryColumn (prog : CMProgram) : ℕ → ℕ
 def blockRow (prog : CMProgram) : ℕ → ℕ
   | 0 => prog.length
   | i + 1 => blockRow prog i + blockHeight (prog.getD i .halt)
+
+/-- A program is well-formed when every `decz` and `jump` target is a valid
+    block index. -/
+def wellFormed (prog : CMProgram) : Prop :=
+  ∀ i : ℕ, i < prog.length → ∀ c : Fin 2, ∀ k : ℕ,
+    (prog.getD i .halt = .decz c k ∨ prog.getD i .halt = .jump k) → k < prog.length
 
 /-- A block is at least one column wide. -/
 theorem blockWidth_pos (instr : CMInstr) : 1 ≤ blockWidth instr := by
@@ -149,6 +157,15 @@ theorem blockRow_strict_mono (prog : CMProgram) {i j : ℕ} (h : i < j) :
         rw [blockRow_succ]
         have hh : 1 ≤ blockHeight (prog.getD j .halt) := blockHeight_pos _
         omega
+
+/-- The block rows are non-decreasing. -/
+theorem blockRow_mono (prog : CMProgram) {i j : ℕ} (h : i ≤ j) :
+    blockRow prog i ≤ blockRow prog j := by
+  by_cases hlt : i < j
+  · exact le_of_lt (blockRow_strict_mono prog hlt)
+  · have : i = j := by omega
+    subst i
+    rfl
 
 /-- The width of the generated playfield: the last entry column. -/
 def playfieldWidth (prog : CMProgram) : ℕ :=

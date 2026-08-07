@@ -107,7 +107,7 @@ steps are:
 | Task | Priority | Status |
 | :--- | :--- | :--- |
 | **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
-| **Generic routing** | High | The fall-through drop, the run-down-through-`v` lemma, the block lookup at any column, and the header-row lookup are proven; remaining: the corridor up-turn-drop for arbitrary jump targets. |
+| **Generic routing** | High | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
 | **Simulation induction** | High | Assembling the block and routing lemmas into a step-for-step simulation of `CMInstr.run` for arbitrary programs. |
 | **Universality statement** | High | Every two-counter machine has a simulating playfield; hence Befunge-93 is computationally universal. |
 

@@ -10,6 +10,7 @@ import Tests.Completeness.LayoutCellMain
 import Tests.Completeness.LayoutCellRange
 import Tests.Completeness.LayoutCells
 import Tests.Completeness.LayoutCorridor
+import Tests.Completeness.LayoutCorridorRoute
 import Tests.Completeness.LayoutDecz
 import Tests.Completeness.LayoutDeczBranch
 import Tests.Completeness.LayoutFallthrough

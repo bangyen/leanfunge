@@ -11,10 +11,17 @@ import LeanFunge.Theory.Completeness.LayoutCellMain
 import LeanFunge.Theory.Completeness.LayoutCellRange
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCorridor
+import LeanFunge.Theory.Completeness.LayoutCorridorCell
+import LeanFunge.Theory.Completeness.LayoutCorridorLeft
+import LeanFunge.Theory.Completeness.LayoutCorridorRight
+import LeanFunge.Theory.Completeness.LayoutCorridorRoute
+import LeanFunge.Theory.Completeness.LayoutCorridorRow
+import LeanFunge.Theory.Completeness.LayoutCorridorRun
 import LeanFunge.Theory.Completeness.LayoutDecz
 import LeanFunge.Theory.Completeness.LayoutDeczBranch
 import LeanFunge.Theory.Completeness.LayoutFallthrough
 import LeanFunge.Theory.Completeness.LayoutHeader
+import LeanFunge.Theory.Completeness.LayoutHeaderRow
 import LeanFunge.Theory.Completeness.LayoutJump
 import LeanFunge.Theory.Completeness.LayoutJumpBlock
 import LeanFunge.Theory.Completeness.LayoutRouting

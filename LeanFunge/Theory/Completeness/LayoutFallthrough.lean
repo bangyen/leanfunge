@@ -76,7 +76,7 @@ theorem layout_fallthrough_0 (s : State (playfieldWidth layoutProgram) (playfiel
 /-- The fall-through from the branch jog: the `v` at `(8, 5)` drops through
     the space at `(8, 6)` to the `>` at `(8, 7)`. -/
 theorem layout_fallthrough_decz (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram))
-    (hpc : s.pc = (8, 5)) (hdir : s.dir = .down) (hsm : s.stringMode = false)
+    (hpc : s.pc = (8, 5)) (hsm : s.stringMode = false)
     (hgrid : s.grid = playfieldOf layoutProgram) :
     run 3 s = some { s with dir := .right, pc := (9, 7) } := by
   have hv : s.grid.get 8 5 = 'v' := by rw [hgrid]; decide

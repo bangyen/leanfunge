@@ -26,9 +26,9 @@ example (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram
   layout_fallthrough_0 s hpc hdir hsm hgrid
 
 example (s : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram))
-    (hpc : s.pc = (8, 5)) (hdir : s.dir = .down) (hsm : s.stringMode = false)
+    (hpc : s.pc = (8, 5)) (hsm : s.stringMode = false)
     (hgrid : s.grid = playfieldOf layoutProgram) :
     run 3 s = some { s with dir := .right, pc := (9, 7) } :=
-  layout_fallthrough_decz s hpc hdir hsm hgrid
+  layout_fallthrough_decz s hpc hsm hgrid
 
 end LeanFunge.Tests

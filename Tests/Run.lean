@@ -94,4 +94,26 @@ example (s : State w h) (n : ℕ) (s' : State w h) (h : run n s = some s') :
     ∃ suf : String, s'.output = s.output ++ suf :=
   run_output_prefix s n s' h
 
+example (s : State w h) (hsm : s.stringMode = true)
+    (hcell : s.grid.get s.pc.1 s.pc.2 ≠ '"') :
+    step s = some { s with
+      stack := Stack.push s.stack (Int.ofNat (s.grid.get s.pc.1 s.pc.2).toNat),
+      pc := stepPos w h s.dir s.pc } :=
+  step_string_general s hsm hcell
+
+example (x y n : ℕ) (s : State w h) (hpc : s.pc = (x % w, y % h))
+    (hsm : s.stringMode = true) (hstr : StringRun s.grid s.dir x y n) :
+    run n s = some { s with
+      stack := List.reverse (stringCodes s.grid s.dir x y n) ++ s.stack,
+      pc := runPos w h n s.dir (x % w, y % h) } :=
+  run_string x y n s hpc hsm hstr
+
+example (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = ',') :
+    step s = some { s with
+      output := s.output.push (Char.ofNat (Int.toNat (Stack.top s.stack))),
+      stack := Stack.drop s.stack,
+      pc := stepPos w h s.dir s.pc } :=
+  step_printChar_general s hm hcell
+
 end LeanFunge.Tests

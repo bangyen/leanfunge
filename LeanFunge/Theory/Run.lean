@@ -9,6 +9,7 @@ import LeanFunge.Theory.Run.Halt
 import LeanFunge.Theory.Run.IO
 import LeanFunge.Theory.Run.Relational
 import LeanFunge.Theory.Run.Stack
+import LeanFunge.Theory.Run.String
 
 /-!
 # Run-Level Invariance Aggregator

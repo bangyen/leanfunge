@@ -19,11 +19,11 @@ example : wellPlaced layoutProgram := by
   constructor
   · unfold wellFormed
     intro i hi c k hk
-    simp [layoutProgram] at hi
+    simp [layoutProgram] at hi -- no_squeeze: concrete
     fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
   · intro i hi
-    simp [layoutProgram] at hi
-    interval_cases i <;> simp [CMInstr.instrAt, layoutProgram]
+    simp [layoutProgram] at hi -- no_squeeze: concrete
+    interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
 
 /-- The two-counter machine run is simulated by the playfield run. -/
 example :
@@ -34,11 +34,11 @@ example :
     constructor
     · unfold wellFormed
       intro i hi c k hk
-      simp [layoutProgram] at hi
+      simp [layoutProgram] at hi -- no_squeeze: concrete
       fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
     · intro i hi
-      simp [layoutProgram] at hi
-      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram]
+      simp [layoutProgram] at hi -- no_squeeze: concrete
+      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
   rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, hb⟩
   refine ⟨m, ?_⟩
   rw [hrun]
@@ -56,5 +56,34 @@ example :
     ((run 20 (playfieldStart layoutProgram (CMInstr.startCM 1 0))).map (fun s => (s.pc, s.stack)))
       = some (blockEntry layoutProgram 3, [encodeState { pc := 3, c1 := 1, c2 := 1 }]) := by
   decide
+
+/-- The machine halts, and the playfield halts along with it. -/
+example : CMInstr.halts layoutProgram (CMInstr.startCM 1 0) → halts (playfieldStart layoutProgram (CMInstr.startCM 1 0)) := by
+  have hwellPlaced : wellPlaced layoutProgram := by
+    constructor
+    · unfold wellFormed
+      intro i hi c k hk
+      simp [layoutProgram] at hi -- no_squeeze: concrete
+      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+    · intro i hi
+      simp [layoutProgram] at hi -- no_squeeze: concrete
+      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+  exact simulation_halts layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide)
+
+/-- The playfield run reflects the machine run's positions and encodings. -/
+example :
+    ∃ m, (run m (playfieldStart layoutProgram (CMInstr.startCM 1 0))).map (fun s => (s.pc, s.stack))
+      = (CMInstr.run layoutProgram 3 (CMInstr.startCM 1 0)).map
+          (fun s => (blockEntry layoutProgram s.pc, [encodeState s])) := by
+  have hwellPlaced : wellPlaced layoutProgram := by
+    constructor
+    · unfold wellFormed
+      intro i hi c k hk
+      simp [layoutProgram] at hi -- no_squeeze: concrete
+      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+    · intro i hi
+      simp [layoutProgram] at hi -- no_squeeze: concrete
+      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+  exact simulation_map layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3
 
 end LeanFunge.Tests

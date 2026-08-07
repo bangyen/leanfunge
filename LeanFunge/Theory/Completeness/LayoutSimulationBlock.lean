@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutCellMain
-import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCellRange
+import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutHeaderRow
 import LeanFunge.Theory.Completeness.LayoutSimulation
 import LeanFunge.Theory.Run.Relational
@@ -21,6 +21,7 @@ strict ones that hold for interior blocks.
 
 ## Theorems
 
+* `lastCellAt_halt_body`: The body readback of a `halt` block at an in-range offset.
 * `playfield_halt_get`: The cells of a `halt` block read back its body.
 * `haltBlockRun`: A `halt` block stops the machine.
 -/
@@ -50,7 +51,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
   let pw := playfieldWidth prog
   let ph := playfieldHeight prog
   have hW : entryColumn prog i + 2 ≤ pw := by
-    dsimp [pw]
+    dsimp [pw] -- no_squeeze: simulation
     rw [playfieldWidth]
     have hmono : entryColumn prog (i + 1) ≤ entryColumn prog prog.length :=
       entryColumn_mono prog (i + 1) prog.length (by omega)
@@ -59,7 +60,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
     norm_num [blockWidth] at hmono
     omega
   have hH0 : blockRow prog i + 2 ≤ ph := by
-    dsimp [ph]
+    dsimp [ph] -- no_squeeze: simulation
     rw [playfieldHeight]
     have hmono : blockRow prog (i + 1) ≤ blockRow prog prog.length :=
       blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
@@ -99,7 +100,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
             have hD1 : entryColumn prog k + 1 < pw := by omega
             have hy : blockRow prog k < ph := by omega
             have hy1 : blockRow prog k + 1 < ph := by omega
-            simpa [blockBodyCells] using (lastCellAt_halt_body pw ph (entryColumn prog k)
+            simpa [blockBodyCells] using (lastCellAt_halt_body pw ph (entryColumn prog k) -- no_squeeze: simulation
               (blockRow prog k) dx dy hdx hdy hD hD1 hy hy1)
           exact hbody
   have hres := hmain prog.length (by omega) (by rfl)

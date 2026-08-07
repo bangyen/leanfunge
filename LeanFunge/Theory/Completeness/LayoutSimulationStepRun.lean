@@ -68,7 +68,7 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
           intro h
           cases h
         exact this hh
-      · simpa [CMInstr.incCounter, CMInstr.write, CMInstr.read]
+      · simpa [CMInstr.incCounter, CMInstr.write, CMInstr.read] -- no_squeeze: simulation
   | decz c k =>
       intro s' hstep
       by_cases hz : CMInstr.read c s₀ = 0
@@ -76,8 +76,8 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
         rw [hstep] at hs
         injection hs with hs'
         rw [hs']
-        have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ c k (Or.inl (by simpa [CMInstr.instrAt] using hget))
-        simpa
+        have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ c k (Or.inl (by simpa [CMInstr.instrAt] using hget)) -- no_squeeze: simulation
+        simpa -- no_squeeze: simulation
       · have hs := CMInstr.step_decz_nonzero prog s₀ c k hget hz
         rw [hstep] at hs
         injection hs with hs'
@@ -90,15 +90,15 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
             intro h
             cases h
           exact this hh
-        · simpa [CMInstr.decCounter, CMInstr.write, CMInstr.read]
+        · simpa [CMInstr.decCounter, CMInstr.write, CMInstr.read] -- no_squeeze: simulation
   | jump k =>
       intro s' hstep
       have hs := CMInstr.step_jump prog s₀ k hget
       rw [hstep] at hs
       injection hs with hs'
       rw [hs']
-      have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ 0 k (Or.inr (by simpa [CMInstr.instrAt] using hget))
-      simpa
+      have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ 0 k (Or.inr (by simpa [CMInstr.instrAt] using hget)) -- no_squeeze: simulation
+      simpa -- no_squeeze: simulation
   | halt =>
       intro s' hstep
       rw [CMInstr.step_halt prog s₀ hget] at hstep
@@ -115,7 +115,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
     | none => run 2 s = none := by
   cases hget : CMInstr.instrAt prog s₀.pc with
   | inc c =>
-      have hinc : prog.getD s₀.pc .halt = .inc c := by simpa [CMInstr.instrAt] using hget
+      have hinc : prog.getD s₀.pc .halt = .inc c := by simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
       have hs := CMInstr.step_inc prog s₀ c hget
       rw [hs]
       have hi1 : s₀.pc + 1 < prog.length := by
@@ -129,9 +129,9 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
           exact this hh
       have hrun := sim_inc prog s₀.pc c hi1 hinc s hsm hpc hgrid hstack
       refine ⟨5, ?_⟩
-      simpa [afterState, blockEntry] using hrun
+      simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
   | decz c k =>
-      have hdecz : prog.getD s₀.pc .halt = .decz c k := by simpa [CMInstr.instrAt] using hget
+      have hdecz : prog.getD s₀.pc .halt = .decz c k := by simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
       by_cases hz : CMInstr.read c s₀ = 0
       · have hs := CMInstr.step_decz_zero prog s₀ c k hget hz
         rw [hs]
@@ -146,7 +146,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             exact this hh
         have hrun := sim_decz_zero prog s₀.pc k c hi1 hwell hdecz s hsm hpc hgrid hstack hz
         refine ⟨5 + corridorSteps prog s₀.pc k, ?_⟩
-        simpa [afterState, blockEntry] using hrun
+        simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
       · have hs := CMInstr.step_decz_nonzero prog s₀ c k hget hz
         rw [hs]
         have hi1 : s₀.pc + 1 < prog.length := by
@@ -160,9 +160,9 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             exact this hh
         have hrun := sim_decz_nonzero prog s₀.pc c hi1 hdecz s hsm hpc hgrid hstack hz
         refine ⟨10, ?_⟩
-        simpa [afterState, blockEntry] using hrun
+        simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
   | jump k =>
-      have hjump : prog.getD s₀.pc .halt = .jump k := by simpa [CMInstr.instrAt] using hget
+      have hjump : prog.getD s₀.pc .halt = .jump k := by simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
       have hs := CMInstr.step_jump prog s₀ k hget
       rw [hs]
       have hi1 : s₀.pc + 1 < prog.length := by
@@ -176,9 +176,9 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
           exact this hh
       have hrun := sim_jump prog s₀.pc k hi1 hwell hjump s hsm hpc hgrid hstack
       refine ⟨2 + corridorSteps prog s₀.pc k, ?_⟩
-      simpa [afterState, blockEntry] using hrun
+      simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
   | halt =>
-      have hhalt : prog.getD s₀.pc .halt = .halt := by simpa [CMInstr.instrAt] using hget
+      have hhalt : prog.getD s₀.pc .halt = .halt := by simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
       have hs := CMInstr.step_halt prog s₀ hget
       rw [hs]
       have hrun := sim_halt prog s₀.pc hs₀ hhalt s hsm hpc hgrid

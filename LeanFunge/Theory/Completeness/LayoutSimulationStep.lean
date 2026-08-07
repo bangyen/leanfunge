@@ -61,10 +61,10 @@ theorem sim_inc (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 < prog.len
   have h1' : run 4 s = some s1 := by
     rw [h1]
     congr 1
-    dsimp [s1]
+    dsimp [s1] -- no_squeeze: simulation
     rw [encode_incCounter c cm]
   have hpc1 : s1.pc = (entryColumn prog (i + 1), blockRow prog i + (blockHeight (prog.getD i .halt) - 1)) := by
-    dsimp [s1]
+    dsimp [s1] -- no_squeeze: simulation
     rw [hinc]
     norm_num [blockHeight]
   have h2 := fallthrough_drop prog i hi1 s1 hsm hpc1 rfl hgrid
@@ -96,9 +96,9 @@ theorem sim_jump (prog : CMProgram) (i k : ℕ) (hi1 : i + 1 < prog.length)
     { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up }
   have h1 := jumpBlock_run prog i (by omega) hjump s hsm hpc hgrid
   have h1' : run 2 s = some s1 := by
-    simpa [s1] using h1
+    simpa [s1] using h1 -- no_squeeze: simulation
   have hpc1 : s1.pc = (branchColumn prog i, blockRow prog i - 1) := by
-    dsimp [s1]
+    dsimp [s1] -- no_squeeze: simulation
     rw [branchColumn, hjump]
     norm_num [blockWidth]
   have h2 := corridor_run prog i k 0 (by omega) hk hwell (Or.inr hjump) s1 hsm hpc1 rfl hgrid
@@ -106,8 +106,8 @@ theorem sim_jump (prog : CMProgram) (i k : ℕ) (hi1 : i + 1 < prog.length)
       stack := [encodeState { pc := k, c1 := c1, c2 := c2 }],
       pc := (entryColumn prog k, blockRow prog k),
       dir := .down } := by
-    dsimp [cm]
-    simpa [hstack] using (run_append s s1
+    dsimp [cm] -- no_squeeze: simulation
+    simpa [hstack] using (run_append s s1 -- no_squeeze: simulation
       (some { s with pc := (entryColumn prog k, blockRow prog k), dir := .down })
       2 (corridorSteps prog i k) h1' h2)
   exact h12

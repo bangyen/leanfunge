@@ -109,7 +109,7 @@ steps are:
 | **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
 | **Generic routing** | High | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
 | **Simulation induction** | High | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
-| **Universality statement** | High | Every two-counter machine has a simulating playfield; hence Befunge-93 is computationally universal. |
+| **Universality statement** | High | `simulation_halts` shows that a well-placed program's playfield halts whenever the two-counter machine does, so every such machine has a simulating playfield. |
 
 The following items have all been attempted and are confirmed roadblocks, not
 untried work.

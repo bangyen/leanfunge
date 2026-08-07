@@ -65,9 +65,9 @@ theorem sim_decz_zero (prog : CMProgram) (i k : ℕ) (c : Fin 2) (hi1 : i + 1 < 
     { s with pc := (entryColumn prog i + 4, blockRow prog i - 1), dir := .up }
   have h2' : run 1 s1 = some s2 := by
     rw [h2]
-    simpa [s1, s2, hstack, cm]
+    simpa [s1, s2, hstack, cm] -- no_squeeze: simulation
   have hpc2 : s2.pc = (branchColumn prog i, blockRow prog i - 1) := by
-    dsimp [s2]
+    dsimp [s2] -- no_squeeze: simulation
     rw [branchColumn, hdecz]
     norm_num [blockWidth]
   have hk : k < prog.length := hwell i (by omega) c k (Or.inl hdecz)
@@ -80,7 +80,7 @@ theorem sim_decz_zero (prog : CMProgram) (i k : ℕ) (c : Fin 2) (hi1 : i + 1 < 
       (4 + 1) (corridorSteps prog i k) h12 h3
   have htotal : 4 + 1 + corridorSteps prog i k = 5 + corridorSteps prog i k := by omega
   rw [← htotal]
-  simpa [hstack] using h123
+  simpa [hstack] using h123 -- no_squeeze: simulation
 
 /-- A `decz` block on a positive counter decrements and falls through to the
     next block. -/
@@ -116,7 +116,7 @@ theorem sim_decz_nonzero (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 <
   have h2' : run 5 s1 = some s2 := by
     rw [h2]
   have hpc2 : s2.pc = (entryColumn prog (i + 1), blockRow prog i + (blockHeight (prog.getD i .halt) - 1)) := by
-    dsimp [s2]
+    dsimp [s2] -- no_squeeze: simulation
     rw [hdecz]
     norm_num [blockHeight]
     rw [entryColumn_succ]
@@ -133,14 +133,14 @@ theorem sim_decz_nonzero (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 <
         stack := [encodeState (decCounter c cm)],
         pc := (entryColumn prog (i + 1), blockRow prog (i + 1)),
         dir := .down } := by
-      simpa [encode_deczCounter c cm hnz] using h3
+      simpa [encode_deczCounter c cm hnz] using h3 -- no_squeeze: simulation
     exact run_append s s2 (some { s with
       stack := [encodeState (decCounter c cm)],
       pc := (entryColumn prog (i + 1), blockRow prog (i + 1)),
       dir := .down }) (4 + 5) 1 h12 h3'
   have htotal : 4 + 5 + 1 = 10 := by omega
   rw [← htotal]
-  simpa using h123
+  simpa using h123 -- no_squeeze: simulation
 
 end Completeness
 

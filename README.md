@@ -115,6 +115,22 @@ the nop-run pointer movement (`run_spaces`), the prefix-only input consumption
 (`halts_iff_at`), and the I/O separation (`step_input_prefix`/`step_output_prefix`,
 `run_input_prefix`/`run_output_prefix`) are all proven.
 
+### Future language properties
+
+Further properties of the language, ranked by value and feasibility.
+
+| Task | Priority | Status |
+| :--- | :--- | :--- |
+| **Run-level `p`/`g` memory model** | High | The playfield at any step is the initial playfield plus the accumulated `p` writes; a cell never written keeps its value. Extends `run_grid_invariant` and lifts the Quine/SelfMod examples from kernel computation to theorems. |
+| **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. |
+| **Output determinism** | Medium | For a fixed program and input, the output is unique: the program is a function `input → output`. An immediate corollary of determinism worth stating. |
+| **`#` trampoline wrapping in all four directions** | Medium | Only right-from-last-column is proven (`step_trampoline_right_from_last`); left, up, and down are the same lemma at the other edges. |
+| **Straight-line divergence without `@`** | Medium | Any straight run of cells with no `@` and no turn never halts; generalizes `run_space_some` from all-space playfields to arbitrary non-halting straight lines. |
+| **Stack underflow semantics** | Low | The interpreter's choices (`Stack.top [] = 0`, `Stack.dup [] = [0]`, `applyBinary` fills missing operands with `0`) are defined but unproven; document every instruction on empty and short stacks. |
+| **Division and modulo by zero** | Low | `/` and `%` on a zero divisor push `0` (Lean's `Int` division); pin down the formalization's choice explicitly, since Befunge-93 leaves it undefined. |
+| **String-mode precedence** | Medium | In string mode the instruction set is ignored: string-mode steps never halt, write to the grid, or consume input or produce output. The "string mode is data, not code" property. |
+| **Quote balance** | Medium | Along any path, string mode is off exactly when an even number of `"` cells were crossed; a compositional statement over string runs. |
+
 ## Scope & Limitations
 
 **Scope.** LeanFunge formalizes Befunge-93 and proves properties about the

@@ -16,9 +16,10 @@ import Mathlib.Tactic.Ring
 The layout of a two-counter machine as a playfield: each instruction is a
 horizontal block at the intersection of an entry column and a block row.
 
-* Blocks are stacked vertically; block `i` occupies the column range
-  `[entryColumn prog i, entryColumn prog (i + 1))` and the rows
-  `[blockRow prog i, blockRow prog (i + 1))`.
+* A header of one corridor row per block sits above the blocks; block `i`
+  occupies the column range `[entryColumn prog i, entryColumn prog (i + 1))`
+  and the rows `[blockRow prog i, blockRow prog (i + 1))`, and its jump
+  corridor lives on header row `i`.
 * The entry `>` of block `i` sits at `(entryColumn prog i, blockRow prog i)`,
   and the fall-through from block `i` drops down column
   `entryColumn prog (i + 1)` to the next block's entry.
@@ -83,10 +84,10 @@ def entryColumn (prog : CMProgram) : ℕ → ℕ
   | 0 => 0
   | i + 1 => entryColumn prog i + blockWidth (prog.getD i .halt)
 
-/-- The top row of block `i`: the sum of the heights of the preceding
-    blocks. -/
+/-- The top row of block `i`: the header (one corridor row per block) plus
+    the sum of the heights of the preceding blocks. -/
 def blockRow (prog : CMProgram) : ℕ → ℕ
-  | 0 => 0
+  | 0 => prog.length
   | i + 1 => blockRow prog i + blockHeight (prog.getD i .halt)
 
 /-- A block is at least one column wide. -/
@@ -154,15 +155,14 @@ def playfieldHeight (prog : CMProgram) : ℕ :=
   blockRow prog prog.length
 
 /-- The jump corridor of a jump edge: a turn at the source's up column and a
-    drop at the target's entry column, on the gap row above the higher of the
-    two blocks. -/
+    drop at the target's entry column, on the source's dedicated corridor row
+    in the header. -/
 def corridorCells (prog : CMProgram) (i k : ℕ) : List ((ℕ × ℕ) × Char) :=
   let D := entryColumn prog i
   let Dk := entryColumn prog k
   let C := D + blockWidth (prog.getD i .halt) - 1
-  let cy := min (blockRow prog i) (blockRow prog k) - 1
   let turn := if Dk ≥ C then '>' else '<'
-  [((C, cy), turn), ((Dk, cy), 'v')]
+  [((C, i), turn), ((Dk, i), 'v')]
 
 /-- The cells of block `i`, positioned by the entry column and block row. -/
 def blockCellList (prog : CMProgram) (i : ℕ) : List ((ℕ × ℕ) × Char) :=
@@ -193,19 +193,19 @@ def layoutProgram : CMProgram :=
   [.inc 1, .decz 0 3, .inc 0, .halt]
 
 /-- The generated playfield places the first entry. -/
-theorem layout_entry : (playfieldOf layoutProgram).get 0 0 = '>' := by
+theorem layout_entry : (playfieldOf layoutProgram).get 0 4 = '>' := by
   decide
 
 /-- The generated playfield places the branch cell. -/
-theorem layout_decz_branch : (playfieldOf layoutProgram).get 7 2 = '|' := by
+theorem layout_decz_branch : (playfieldOf layoutProgram).get 7 6 = '|' := by
   decide
 
 /-- The generated playfield places the decrement jog. -/
-theorem layout_jog : (playfieldOf layoutProgram).get 8 5 = 'v' := by
+theorem layout_jog : (playfieldOf layoutProgram).get 8 9 = 'v' := by
   decide
 
 /-- The generated playfield places the halt. -/
-theorem layout_halt : (playfieldOf layoutProgram).get 12 9 = '@' := by
+theorem layout_halt : (playfieldOf layoutProgram).get 12 13 = '@' := by
   decide
 
 end Completeness

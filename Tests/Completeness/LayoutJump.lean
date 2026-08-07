@@ -13,10 +13,10 @@ namespace LeanFunge.Tests
 
 open LeanFunge.Completeness
 
-example : run 24 (jumpStart 0 0) = none :=
+example : run 32 (jumpStart 0 0) = none :=
   transfer_jump_halts
 
-example : (run 23 (jumpStart 0 0)).map (fun s => s.stack) = some [Int.ofNat (encode 0 1)] :=
+example : (run 31 (jumpStart 0 0)).map (fun s => s.stack) = some [Int.ofNat (encode 0 1)] :=
   transfer_jump_stack
 
 example : run 22 (jumpStart 1 0) = none :=
@@ -26,7 +26,7 @@ example : (run 21 (jumpStart 1 0)).map (fun s => s.stack) = some [Int.ofNat (enc
   transfer_fall_stack
 
 example :
-    (run 23 (jumpStart 0 0)).map (fun s => s.stack)
+    (run 31 (jumpStart 0 0)).map (fun s => s.stack)
       = (CMInstr.run layoutProgram 2 (CMInstr.startCM 0 0)).map
           (fun s => [Int.ofNat (encode s.c1 s.c2)]) :=
   transfer_simulation_jump

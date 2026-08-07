@@ -10,6 +10,7 @@ import Tests.Completeness.LayoutJump
 import Tests.Completeness.Linear
 import Tests.Completeness.Loop
 import Tests.Completeness.LoopC2
+import Tests.Completeness.LoopCorridor
 import Tests.Completeness.PairEncoding
 import Tests.Completeness.Routing
 import Tests.Completeness.Simulation

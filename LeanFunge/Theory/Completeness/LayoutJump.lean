@@ -11,16 +11,13 @@ import LeanFunge.Theory.Completeness.TwoCounter
 /-!
 # The Jump Corridor on the Generated Playfield
 
-The generated playfield plus a jump corridor: for the `decz` block's jump
-target, a corridor row above the block carries the branch-up flow to the
-target's entry column and drops it down. With the corridor added, the
-generated playfield of the transfer program fully simulates the two-counter
-machine on both branches: counter 1 zero jumps to the halt, counter 1
-positive falls through the decrement.
-
-The generator itself emits the corridor: `corridorCells` places a `>` at the
-branch column and a `v` at the target's entry column on the gap row above the
-higher of the two blocks.
+The generated playfield plus a jump corridor: for each jump edge, the
+generator's `corridorCells` places a `>` at the branch column and a `v` at the
+target's entry column on the source block's dedicated corridor row in the
+header. With the corridor, the generated playfield of the transfer program
+fully simulates the two-counter machine on both branches: counter 1 zero jumps
+to the halt through the corridor, counter 1 positive falls through the
+decrement.
 
 ## Main definitions
 
@@ -47,16 +44,16 @@ namespace Completeness
 def jumpStart (c1 c2 : ℕ) : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
   { State.init (playfieldOf layoutProgram) with
     stack := [Int.ofNat (encode c1 c2)],
-    pc := (0, 0) }
+    pc := (0, 4) }
 
 /-- The generated playfield halts on the zero branch: the `decz` jumps to the
     halt through the corridor. -/
-theorem transfer_jump_halts : run 24 (jumpStart 0 0) = none := by
+theorem transfer_jump_halts : run 32 (jumpStart 0 0) = none := by
   decide
 
 /-- The zero branch leaves the encoding of `(0, 1)` on the stack. -/
 theorem transfer_jump_stack :
-    (run 23 (jumpStart 0 0)).map (fun s => s.stack) = some [Int.ofNat (encode 0 1)] := by
+    (run 31 (jumpStart 0 0)).map (fun s => s.stack) = some [Int.ofNat (encode 0 1)] := by
   decide
 
 /-- The generated playfield halts on the fall-through branch. -/
@@ -71,7 +68,7 @@ theorem transfer_fall_stack :
 /-- The zero-branch interpreter stack is the encoding of the final
     two-counter machine counters. -/
 theorem transfer_simulation_jump :
-    (run 23 (jumpStart 0 0)).map (fun s => s.stack)
+    (run 31 (jumpStart 0 0)).map (fun s => s.stack)
       = (CMInstr.run layoutProgram 2 (CMInstr.startCM 0 0)).map
           (fun s => [Int.ofNat (encode s.c1 s.c2)]) := by
   decide

@@ -38,7 +38,7 @@ popped most recent first).
 * `step_string_general`: In string mode, a non-quote cell pushes its code and
   advances the pointer.
 * `run_string`: A string-mode run over non-quote cells pushes each character's
-  code and moves the pointer by `runPos`.
+  code and moves the pointer by the position iterate.
 * `run_string_block`: An opening `"`, a string run, and a closing `"` push the
   block's codes, leave string mode, and land the pointer past the closing
   quote.

@@ -29,9 +29,16 @@ example :
   have hwell : wellFormed layoutProgram := by
     unfold wellFormed
     intro i hi c k hk
-    simp [layoutProgram] at hi -- no_squeeze: corridor route
+    simp only [
+      layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add, Nat.reduceAdd] at hi
     fin_cases c <;> interval_cases i <;>
-      (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: corridor route
+      (simp only [
+        layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD,
+        List.length_cons, List.length_nil, zero_add, Nat.reduceAdd,
+        Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero, Option.getD_some,
+        Fin.zero_eta, reduceCtorEq, or_self, Nat.one_lt_ofNat,
+        List.getElem_cons_succ, CMInstr.decz.injEq, true_and, or_false,
+        Nat.reduceLT, Nat.lt_add_one, Fin.mk_one, zero_ne_one, false_and] at hk ⊢; try omega)
   have h := corridor_run layoutProgram 1 3 0 (by decide) (by decide) hwell
     (by decide) S rfl (by decide) rfl rfl
   simp only [h, Option.map]
@@ -53,9 +60,14 @@ example :
   have hwell : wellFormed prog := by
     unfold wellFormed
     intro i hi c k hk
-    simp [prog] at hi -- no_squeeze: corridor route
+    simp only [prog, List.length_cons, List.length_nil, zero_add, Nat.reduceAdd] at hi
     fin_cases c <;> interval_cases i <;>
-      (simp [prog] at hk ⊢; try omega) -- no_squeeze: corridor route
+      (simp only [
+        prog, List.getD_eq_getElem?_getD, List.length_cons, List.length_nil,
+        zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
+        List.getElem_cons_zero, Option.getD_some, Fin.zero_eta, Fin.isValue,
+        reduceCtorEq, CMInstr.jump.injEq, false_or, Nat.one_lt_ofNat,
+        List.getElem_cons_succ, or_self, Fin.mk_one] at hk ⊢; try omega)
   have h := corridor_run prog 0 0 0 (by decide) (by decide) hwell
     (by decide) S rfl (by decide) rfl rfl
   simp only [h, Option.map]

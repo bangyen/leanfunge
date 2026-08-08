@@ -342,32 +342,62 @@ theorem lastCellAt_body {w h : ℕ} (instr : CMInstr) (D y dx dy : ℕ)
       fin_cases c0
       · simp only [blockWidth, blockHeight] at hdx hdy
         interval_cases dx <;> interval_cases dy <;>
-          simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-            blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+          simp only [
+            blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+            add_zero, ↓Char.isValue, Fin.zero_eta, Fin.isValue, List.foldl_cons, and_self,
+            ↓reduceIte, Nat.one_le_ofNat, Nat.add_eq_left, one_ne_zero, and_true, Nat.reduceLeDiff,
+            OfNat.ofNat_ne_zero, le_refl, List.foldl_nil, Nat.one_lt_ofNat, Nat.left_eq_add,
+            and_false, zero_ne_one, OfNat.zero_ne_ofNat, Nat.add_left_cancel_iff,
+            OfNat.ofNat_ne_one, OfNat.one_ne_ofNat, Nat.succ_ne_self, Nat.reduceEqDiff]
       · simp only [blockWidth, blockHeight] at hdx hdy
         interval_cases dx <;> interval_cases dy <;>
-          simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-            blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+          simp only [
+            blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+            add_zero, ↓Char.isValue, Fin.mk_one, Fin.isValue, List.foldl_cons, and_self, ↓reduceIte,
+            Nat.one_le_ofNat, Nat.add_eq_left, one_ne_zero, and_true, Nat.reduceLeDiff,
+            OfNat.ofNat_ne_zero, le_refl, List.foldl_nil, Nat.one_lt_ofNat, Nat.left_eq_add,
+            and_false, zero_ne_one, OfNat.zero_ne_ofNat, Nat.add_left_cancel_iff,
+            OfNat.ofNat_ne_one, OfNat.one_ne_ofNat, Nat.succ_ne_self, Nat.reduceEqDiff]
   | decz c0 _ =>
       fin_cases c0
       · simp only [blockWidth, blockHeight] at hdx hdy
         interval_cases dx <;> interval_cases dy <;>
-          simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-            blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+          simp only [
+            blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+            add_zero, ↓Char.isValue, Fin.zero_eta, Fin.isValue, List.foldl_cons, and_self,
+            ↓reduceIte, Nat.one_le_ofNat, Nat.add_eq_left, one_ne_zero, and_true, Nat.reduceLeDiff,
+            OfNat.ofNat_ne_zero, Nat.one_lt_ofNat, Nat.reduceLT, le_refl, List.foldl_nil,
+            Nat.left_eq_add, and_false, Nat.add_left_cancel_iff, OfNat.ofNat_ne_one, zero_ne_one,
+            OfNat.zero_ne_ofNat, OfNat.one_ne_ofNat, Nat.succ_ne_self, Nat.reduceEqDiff,
+            Nat.lt_add_one]
       · simp only [blockWidth, blockHeight] at hdx hdy
         interval_cases dx <;> interval_cases dy <;>
-          simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-            blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+          simp only [
+            blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+            add_zero, ↓Char.isValue, Fin.mk_one, Fin.isValue, List.foldl_cons, and_self, ↓reduceIte,
+            Nat.one_le_ofNat, Nat.add_eq_left, one_ne_zero, and_true, Nat.reduceLeDiff,
+            OfNat.ofNat_ne_zero, Nat.one_lt_ofNat, Nat.reduceLT, le_refl, List.foldl_nil,
+            Nat.left_eq_add, and_false, Nat.add_left_cancel_iff, OfNat.ofNat_ne_one, zero_ne_one,
+            OfNat.zero_ne_ofNat, OfNat.one_ne_ofNat, Nat.succ_ne_self, Nat.reduceEqDiff,
+            Nat.lt_add_one]
   | jump _ =>
       simp only [blockWidth, blockHeight] at hdx hdy
       interval_cases dx <;> interval_cases dy <;>
-        simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-          blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+        simp only [
+          blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+          add_zero, ↓Char.isValue, List.foldl_cons, and_self, ↓reduceIte, Nat.one_le_ofNat,
+          Nat.add_eq_left, one_ne_zero, and_true, List.foldl_nil, Nat.one_lt_ofNat, Nat.left_eq_add,
+          and_false, zero_ne_one, Nat.add_left_cancel_iff, le_refl, OfNat.ofNat_ne_zero,
+          OfNat.one_ne_ofNat, OfNat.ofNat_ne_one]
   | halt =>
       simp only [blockWidth, blockHeight] at hdx hdy
       interval_cases dx <;> interval_cases dy <;>
-        simp [blockBodyCells, blockBodyAt, lastCellAt, -- no_squeeze
-          blockWidth, blockHeight, hmodx, hmody, h0y, hD]
+        simp only [
+          blockBodyCells, blockBodyAt, lastCellAt, blockWidth, blockHeight, hmodx, hmody, h0y, hD,
+          add_zero, ↓Char.isValue, List.foldl_cons, and_self, ↓reduceIte, Nat.one_le_ofNat,
+          Nat.add_eq_left, one_ne_zero, and_true, List.foldl_nil, Nat.one_lt_ofNat, Nat.left_eq_add,
+          and_false, zero_ne_one, Nat.add_left_cancel_iff, le_refl, OfNat.ofNat_ne_zero,
+          OfNat.one_ne_ofNat, OfNat.ofNat_ne_one]
 
 /-- A block after `i` does not touch a cell in block `i`'s row range. -/
 theorem lastCellAt_block_after (prog : CMProgram) (i j dx dy : ℕ) (hij : i < j)

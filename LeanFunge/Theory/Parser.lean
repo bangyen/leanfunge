@@ -242,7 +242,7 @@ theorem skipSpaces_suffix (input : List Char) :
           true_and]
         rw [← hpre]
       · refine ⟨[], ?_⟩
-        simp [skipSpaces, hc] -- no_squeeze: space prefix
+        simp only [skipSpaces, hc, ↓Char.isValue, ↓reduceIte, List.nil_append]
 
 /-- `takeDigits` returns the leading digits and the rest, which is a suffix of
     the input. -/
@@ -255,8 +255,8 @@ theorem takeDigits_suffix (input : List Char) :
       · unfold takeDigits
         rw [if_pos hc]
         rcases htake : takeDigits rest with ⟨ds, rest'⟩
-        have hih : rest = ds ++ rest' := by simpa [htake] using ih -- no_squeeze: digit prefix
-        simp [hih] -- no_squeeze: digit prefix
+        have hih : rest = ds ++ rest' := by simpa only [htake] using ih
+        simp only [hih, List.cons_append]
       · unfold takeDigits
         rw [if_neg hc]
         rfl
@@ -276,7 +276,8 @@ theorem parseInt_skip_digits (input : List Char) (c : Char) (rest : List Char)
       ((takeDigits (c :: rest)).2, Int.ofNat (digitsValue (takeDigits (c :: rest)).1)) := by
   unfold parseInt
   rw [hsp]
-  simp [hc] -- no_squeeze: non-negative parse
+  simp only [
+    hc, ↓Char.isValue, List.cons.injEq, false_and, imp_self, implies_true, Int.ofNat_eq_natCast]
 
 /-- Parsing a minus sign with no following digits consumes nothing after the
     sign. -/
@@ -286,7 +287,7 @@ theorem parseInt_skip_minus_zero (input : List Char) (rest ds rest' : List Char)
     parseInt input = ('-' :: rest, 0) := by
   unfold parseInt
   rw [hsp]
-  simp [htake, hds] -- no_squeeze: no digits
+  simp only [htake, hds, ↓Char.isValue, ↓reduceIte]
 
 /-- Parsing a minus sign with digits leaves the remainder after the digits:
     the parse consumes the sign and the leading digits. -/
@@ -296,7 +297,7 @@ theorem parseInt_skip_minus (input : List Char) (rest ds rest' : List Char)
     parseInt input = (rest', -Int.ofNat (digitsValue ds)) := by
   unfold parseInt
   rw [hsp]
-  simp [htake, hds] -- no_squeeze: minus digits
+  simp only [htake, hds, ↓Char.isValue, ↓reduceIte, Int.ofNat_eq_natCast]
 
 /-- Parsing consumes only a prefix of the input: the remaining stream is a
     suffix of the original. -/
@@ -304,7 +305,7 @@ theorem parseInt_suffix (input : List Char) :
     ∃ pre : List Char, input = pre ++ (parseInt input).1 := by
   cases hsp : skipSpaces input with
   | nil =>
-      exact ⟨input, by simp [parseInt_skip_nil input hsp] -- no_squeeze: empty input
+      exact ⟨input, by simp only [parseInt_skip_nil input hsp, List.append_nil]
         ⟩
   | cons c rest =>
       by_cases hneg : c = '-'
@@ -315,15 +316,15 @@ theorem parseInt_suffix (input : List Char) :
           refine ⟨pre, ?_⟩
           conv => lhs; rw [hpre]
           rw [parseInt_skip_minus_zero input rest ds rest' hsp htake hds]
-          simp [hsp] -- no_squeeze: minus no digits
+          simp only [hsp, ↓Char.isValue]
         · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
           have hre : rest = ds ++ rest' := by
-            simpa [htake] using takeDigits_suffix rest -- no_squeeze: digit remainder
+            simpa only [htake] using takeDigits_suffix rest
           refine ⟨pre ++ ('-' :: ds), ?_⟩
           conv => lhs; rw [hpre]
           rw [parseInt_skip_minus input rest ds rest' hsp htake hds]
           rw [hsp, hre]
-          simp [List.append_assoc] -- no_squeeze: minus digits
+          simp only [List.append_assoc, ↓Char.isValue, List.cons_append]
       · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
         refine ⟨pre ++ (takeDigits (c :: rest)).1, ?_⟩
         conv => lhs; rw [hpre]

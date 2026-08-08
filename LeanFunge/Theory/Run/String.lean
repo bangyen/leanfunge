@@ -86,7 +86,7 @@ theorem step_string_general (s : State w h) (hsm : s.stringMode = true)
       apply hcell
       unfold Char.toNat at h
       exact Char.ext (UInt32.toNat_inj.mp h)
-    · simpa [h] -- no_squeeze: string
+    · simpa only [h, ↓Char.isValue, Char.reduceToNat, beq_eq_false_iff_ne, ne_eq]
   simp only [stepString, Stack.push, hq, hsm]
 
 /-- A string-mode run of `n` steps over non-quote cells pushes the `n` codes
@@ -125,11 +125,12 @@ theorem run_string (x y n : ℕ) (s : State w h)
       have hstep : step mid = some { mid with
           stack := Stack.push mid.stack (Int.ofNat (mid.grid.get mid.pc.1 mid.pc.2).toNat),
           pc := stepPos w h mid.dir mid.pc } := by
-        exact step_string_general mid (by simpa [mid] using hsm) hcell -- no_squeeze: string
+        exact step_string_general mid (by simpa only [mid] using hsm) hcell
       rw [hstep]
       congr 1
-      simp [mid, stringCodes, Stack.push, List.range_succ, -- no_squeeze: string
-        List.reverse_append, runPos]
+      simp only [mid, stringCodes, Stack.push, List.range_succ, List.reverse_append, runPos,
+        Int.ofNat_eq_natCast, List.map_append, List.map_cons, List.map_nil, List.reverse_cons,
+        List.reverse_nil, List.nil_append, List.cons_append]
 
 /-- An opening `"`, a string run over `n` non-quote cells, and a closing `"`
     push the block's codes, return to non-string mode, and land the pointer
@@ -151,17 +152,17 @@ theorem run_string_block (x y n : ℕ) (s : State w h)
     rw [run, run]
     change step s = some { s with
       stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
-    rw [step_string_enter s hm (by simpa [hpc] using henter)] -- no_squeeze: string
-    simp [hpc, hdir] -- no_squeeze: string
+    rw [step_string_enter s hm (by simpa only [hpc, ↓Char.isValue] using henter)]
+    simp only [hpc, hdir]
   let s₁ : State w h := { s with
     stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
   have hpc₁ : s₁.pc = ((x + 1) % w, y % h) := by
-    simp [s₁] -- no_squeeze: string
+    simp only [s₁]
     have hrun := runPos_right w h 1 x y
-    simpa [runPos] using hrun -- no_squeeze: string
+    simpa only [runPos] using hrun
   have hstr₁ : StringRun s₁.grid s₁.dir (x + 1) y n := by
-    simpa [s₁, hdir] using hstr -- no_squeeze: string
-  have hsm₁ : s₁.stringMode = true := by simp [s₁] -- no_squeeze: string
+    simpa only [s₁, hdir] using hstr
+  have hsm₁ : s₁.stringMode = true := by simp only [s₁]
   have hn : run n s₁ = some { s₁ with
       stack := List.reverse (stringCodes s₁.grid s₁.dir (x + 1) y n) ++ s₁.stack,
       pc := runPos w h n s₁.dir ((x + 1) % w, y % h) } :=
@@ -172,36 +173,36 @@ theorem run_string_block (x y n : ℕ) (s : State w h)
   have hs₂ : { s₁ with
       stack := List.reverse (stringCodes s₁.grid s₁.dir (x + 1) y n) ++ s₁.stack,
       pc := runPos w h n s₁.dir ((x + 1) % w, y % h) } = s₂ := by
-    simp [s₁, s₂, hdir] -- no_squeeze: string
+    simp only [s₁, s₂, hdir]
   have h2 : run n s₁ = some s₂ := by
     rw [hn, hs₂]
   have hexit₁ : s₂.grid.get s₂.pc.1 s₂.pc.2 = '"' := by
     simp only [↓Char.isValue, s₂]
     exact hexit
-  have hsm₂ : s₂.stringMode = true := by simp [s₂] -- no_squeeze: string
+  have hsm₂ : s₂.stringMode = true := by simp only [s₂]
   have h3 : run 1 s₂ = some { s₂ with
       stringMode := false, pc := stepPos w h Direction.right s₂.pc } := by
     rw [run, run]
     change step s₂ = some { s₂ with
       stringMode := false, pc := stepPos w h Direction.right s₂.pc }
     rw [step_string_exit s₂ hsm₂ hexit₁]
-    simp [s₂, hdir] -- no_squeeze: string
+    simp only [s₂, hdir]
   have h12 := run_append s { s with
       stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
     (some s₂) 1 n h1 (by
-      simpa [s₁] using h2) -- no_squeeze: string
+      simpa only [s₁] using h2)
   let s₃ : State w h := { s with
     stack := List.reverse (stringCodes s.grid Direction.right (x + 1) y n) ++ s.stack,
     pc := stepPos w h Direction.right (runPos w h n Direction.right ((x + 1) % w, y % h)) }
   have h3' : run 1 s₂ = some s₃ := by
     rw [h3]
     congr 1
-    simp [s₂, s₃, hm] -- no_squeeze: string
+    simp only [s₂, s₃, hm]
   have h23 := run_append s s₂ (some s₃) (1 + n) 1 h12 h3'
   have hlen : 1 + n + 1 = n + 2 := by omega
   have hfinal : run (n + 2) s = some s₃ := by
-    simpa [hlen] using h23 -- no_squeeze: string
-  simpa [s₃, hm] using hfinal -- no_squeeze: string
+    simpa only [hlen] using h23
+  simpa only [s₃, hm] using hfinal
 
 /-- `String.ofList` distributes over a cons: `String.ofList (c :: l)` is the
     single character `c` followed by `l`. -/
@@ -255,7 +256,7 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
       Option.some.injEq]
       have hrest : rest = s.stack := by
         rw [hstack]
-        simp -- no_squeeze: string
+        simp only [List.nil_append]
       subst rest
       rw [hpc.symm]
   | cons c cs' ih =>
@@ -268,15 +269,15 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
       have hcell : s.grid.get (x % w) (y % h) = ',' := by
         have h0 : 0 < n := by
           rw [← hlen]
-          simp -- no_squeeze: string
+          simp only [List.length_cons, Nat.zero_lt_succ]
         exact hprint 0 h0
       have hstep : step s = some { s with
           output := s.output.push (Char.ofNat (Int.toNat c)),
           stack := cs' ++ rest,
           pc := stepPos w h Direction.right s.pc } := by
         rw [hdir]
-        rw [step_printChar_general s hm (by simpa [hpc] using hcell)] -- no_squeeze: string
-        simp [htop, hdrop, hdir] -- no_squeeze: string
+        rw [step_printChar_general s hm (by simpa only [hpc, ↓Char.isValue] using hcell)]
+        simp only [htop, hdrop, hdir]
       let s₁ : State w h := { s with
         output := s.output ++ String.singleton (Char.ofNat (Int.toNat c)),
         stack := cs' ++ rest,
@@ -285,41 +286,41 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
         rw [run, run]
         change step s = some s₁
         rw [hstep]
-        simp [s₁, hpc, runPos] -- no_squeeze: string
+        simp only [s₁, hpc, runPos, String.append_singleton]
       have hpc₁ : s₁.pc = ((x + 1) % w, y % h) := by
-        simp [s₁] -- no_squeeze: string
+        simp only [s₁]
         have hrun := runPos_right w h 1 x y
-        simpa [runPos] using hrun -- no_squeeze: string
-      have hsm₁ : s₁.stringMode = false := by simp [s₁, hm] -- no_squeeze: string
+        simpa only [runPos] using hrun
+      have hsm₁ : s₁.stringMode = false := by simp only [s₁, hm]
       have hprint₁ : PrintRun s₁.grid (x + 1) y cs'.length := by
         intro k hk
         have hk' : k + 1 < n := by
           rw [← hlen]
-          simp -- no_squeeze: string
+          simp only [List.length_cons, Nat.add_lt_add_iff_right]
           omega
         have hpath := hprint (k + 1) hk'
         have hpos : runPos w h (k + 1) Direction.right (x % w, y % h) =
             runPos w h k Direction.right ((x + 1) % w, y % h) := by
           rw [runPos_right w h (k + 1) x y]
           rw [runPos_right w h k (x + 1) y]
-          simp [Nat.add_comm, Nat.add_left_comm] -- no_squeeze: string
-        simpa [s₁, hpos] using hpath -- no_squeeze: string
+          simp only [Nat.add_comm, Nat.add_left_comm]
+        simpa only [s₁, hpos, ↓Char.isValue] using hpath
       let s₂ : State w h := { s₁ with
         output := s₁.output ++ String.ofList (cs'.map (fun v : Int => Char.ofNat (Int.toNat v))),
         stack := rest,
         pc := runPos w h cs'.length Direction.right ((x + 1) % w, y % h) }
       have hrun' : run cs'.length s₁ = some s₂ := by
         exact ih rest (x + 1) y cs'.length s₁ hpc₁ hsm₁
-          (by simp [s₁, hdir]) rfl hprint₁ rfl -- no_squeeze: string
+          (by simp only [s₁, hdir] ) rfl hprint₁ rfl
       have hn : n = 1 + cs'.length := by
         rw [← hlen]
-        simp [Nat.add_comm] -- no_squeeze: string
+        simp only [Nat.add_comm, List.length_cons,]
       have htotal := run_append s s₁ (some s₂) 1 cs'.length h1 hrun'
       rw [hn]
       rw [htotal]
       congr 1
-      simp [s₂, s₁, runPos_right, List.map_cons, push_ofList_cons, -- no_squeeze: print composition
-        Nat.add_comm, Nat.add_left_comm]
+      simp only [s₂, s₁, runPos_right, List.map_cons, push_ofList_cons, Nat.add_comm,
+        Nat.add_left_comm, String.append_singleton]
 
 /-- A string block followed by `n` print cells outputs the block's characters
     in reverse (the codes are popped most recent first), restoring the stack
@@ -344,7 +345,7 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
     pc := stepPos w h Direction.right (runPos w h n Direction.right ((x + 1) % w, y % h)) }
   have hblock : run (n + 2) s = some s₀ := by
     have h := run_string_block x y n s hpc hm hdir henter hstr hexit
-    simpa [s₀, codes] using h -- no_squeeze: string
+    simpa only [s₀, codes] using h
   have hpc₀ : s₀.pc = ((x + n + 2) % w, y % h) := by
     simp only [s₀]
     rw [runPos_right w h n (x + 1) y]
@@ -355,11 +356,11 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
     rw [runPos_right w h 1 (x + 1 + n) y]
     have hx : x + 1 + n + 1 = x + n + 2 := by omega
     rw [hx]
-  have hsm₀ : s₀.stringMode = false := by simp [s₀, hm] -- no_squeeze: string
-  have hdir₀ : s₀.dir = Direction.right := by simp [s₀, hdir] -- no_squeeze: string
+  have hsm₀ : s₀.stringMode = false := by simp only [s₀, hm]
+  have hdir₀ : s₀.dir = Direction.right := by simp only [s₀, hdir]
   have hlen : (List.reverse codes).length = n := by
-    simp [codes, stringCodes, List.length_map, List.length_reverse, -- no_squeeze: string
-      List.length_range]
+    simp only [codes, stringCodes, List.length_map, List.length_reverse, List.length_range,
+      Int.ofNat_eq_natCast]
   have hp := run_print (List.reverse codes) s.stack (x + n + 2) y n s₀ hpc₀ hsm₀ hdir₀ hlen
     hprint rfl
   let s₂ : State w h := { s with
@@ -379,10 +380,10 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
           String.ofList ((List.reverse codes).map (fun v : Int => Char.ofNat (Int.toNat v))),
         stack := s.stack,
         pc := runPos w h n Direction.right ((x + n + 2) % w, y % h) } = s₂ := by
-      simp [s₂, s₀, List.map_reverse, hpc_eq] -- no_squeeze: string
+      simp only [s₂, s₀, List.map_reverse, hpc_eq]
     rw [hp, h]
   have hsum : (n + 2) + n = 2 * n + 2 := by omega
   have htotal := run_append s s₀ (some s₂) (n + 2) n hblock hprintrun
-  simpa [hsum, s₂] using htotal -- no_squeeze: string
+  simpa only [hsum, s₂] using htotal
 
 end LeanFunge

@@ -144,9 +144,10 @@ def wellPlaced (prog : CMProgram) : Prop :=
 theorem encode_incCounter (c : Fin 2) (s : CMState) :
     encodeState (incCounter c s) = encodeState s * counterVal c := by
   fin_cases c
-  · simpa [encodeState, incCounter, write, CMInstr.read, counterVal] -- no_squeeze: simulation
-      using (encode_inc_c1_int s.c1 s.c2).symm
-  · simpa [encodeState, incCounter, write, CMInstr.read, counterVal] -- no_squeeze: simulation
+  · simpa only [encodeState, incCounter, write, ↓reduceIte, CMInstr.read, Int.ofNat_eq_natCast,
+      counterVal, Fin.zero_eta, Fin.isValue] using (encode_inc_c1_int s.c1 s.c2).symm
+  · simpa only [encodeState, incCounter, write, one_ne_zero, ↓reduceIte, CMInstr.read,
+      Int.ofNat_eq_natCast, counterVal, Fin.mk_one, Fin.isValue]
       using (encode_inc_c2_int s.c1 s.c2).symm
 
 /-- Decrementing a positive counter divides the encoding by its digit. -/
@@ -154,14 +155,15 @@ theorem encode_deczCounter (c : Fin 2) (s : CMState) (h : CMInstr.read c s ≠ 0
     encodeState (decCounter c s) = encodeState s / counterVal c := by
   fin_cases c
   · have h1 : 0 < s.c1 := by
-      have : s.c1 ≠ 0 := by simpa [CMInstr.read] using h -- no_squeeze: simulation
+      have : s.c1 ≠ 0 := by simpa only [CMInstr.read, ne_eq, ↓reduceIte] using h
       omega
-    simpa [encodeState, decCounter, write, CMInstr.read, counterVal, h1] -- no_squeeze: simulation
-      using (encode_decz_c1_int s.c1 s.c2 h1).symm
+    simpa only [encodeState, decCounter, write, ↓reduceIte, CMInstr.read, Int.ofNat_eq_natCast,
+      counterVal, Fin.zero_eta, Fin.isValue] using (encode_decz_c1_int s.c1 s.c2 h1).symm
   · have h2 : 0 < s.c2 := by
-      have : s.c2 ≠ 0 := by simpa [CMInstr.read] using h -- no_squeeze: simulation
+      have : s.c2 ≠ 0 := by simpa only [CMInstr.read, ne_eq, one_ne_zero, ↓reduceIte] using h
       omega
-    simpa [encodeState, decCounter, write, CMInstr.read, counterVal, h2] -- no_squeeze: simulation
+    simpa only [encodeState, decCounter, write, one_ne_zero, ↓reduceIte, CMInstr.read,
+      Int.ofNat_eq_natCast, counterVal, Fin.mk_one, Fin.isValue]
       using (encode_decz_c2_int s.c1 s.c2 h2).symm
 
 /-- The encoding's remainder tests whether the counter is positive. -/
@@ -172,8 +174,7 @@ theorem encode_mod_zero (c : Fin 2) (s : CMState) :
       Fin.zero_eta, Fin.isValue,
       if_pos, EuclideanDomain.mod_eq_zero, ne_eq]
     have hdvd : (2 : Int) ∣ (encode s.c1 s.c2 : Int) ↔ (2 : ℕ) ∣ encode s.c1 s.c2 := by
-      simpa using (Int.natCast_dvd_natCast (m := 2) -- no_squeeze: simulation
-        (n := encode s.c1 s.c2))
+      simpa only [Nat.cast_ofNat] using (Int.natCast_dvd_natCast (m := 2) (n := encode s.c1 s.c2))
     rw [hdvd]
     have h := encode_c1_pos s.c1 s.c2
     rw [Nat.dvd_iff_mod_eq_zero, h.symm]
@@ -181,8 +182,7 @@ theorem encode_mod_zero (c : Fin 2) (s : CMState) :
   · simp only [encodeState, Int.ofNat_eq_natCast, counterVal, Fin.mk_one, Fin.isValue, one_ne_zero,
       ↓reduceIte, EuclideanDomain.mod_eq_zero, CMInstr.read, ne_eq]
     have hdvd : (3 : Int) ∣ (encode s.c1 s.c2 : Int) ↔ (3 : ℕ) ∣ encode s.c1 s.c2 := by
-      simpa using (Int.natCast_dvd_natCast (m := 3) -- no_squeeze: simulation
-        (n := encode s.c1 s.c2))
+      simpa only [Nat.cast_ofNat] using (Int.natCast_dvd_natCast (m := 3) (n := encode s.c1 s.c2))
     rw [hdvd]
     have h := encode_c2_pos s.c1 s.c2
     rw [Nat.dvd_iff_mod_eq_zero, h.symm]
@@ -191,7 +191,7 @@ theorem encode_mod_zero (c : Fin 2) (s : CMState) :
 /-- A corridor jump takes at least one step. -/
 theorem corridorSteps_pos (prog : CMProgram) (i : ℕ) (hi : i < prog.length) (k : ℕ) :
     1 ≤ corridorSteps prog i k := by
-  dsimp [corridorSteps] -- no_squeeze: simulation
+  dsimp only [corridorSteps, ge_iff_le, tsub_le_iff_right, List.getD_eq_getElem?_getD]
   have hge : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
   omega
 
@@ -206,7 +206,10 @@ lemma lastCellAt_halt_body (w h D y dx dy : ℕ) (hdx : dx < 2) (hdy : dy < 2)
   have hmodY : y % h = y := Nat.mod_eq_of_lt hy
   have hmodYdy : (y + dy) % h = y + dy := Nat.mod_eq_of_lt (by omega)
   interval_cases dx <;> interval_cases dy
-  <;> simp [blockBodyAt, lastCellAt, hmodD, hmodD1, hmodY, hmodYdy] -- no_squeeze: halt body
+  <;> simp only [
+    blockBodyAt, lastCellAt, hmodD, hmodD1, hmodY, hmodYdy, add_zero, ↓Char.isValue,
+    List.foldl_cons, and_self, ↓reduceIte, Nat.add_eq_left, one_ne_zero, and_true, List.foldl_nil,
+    Nat.left_eq_add, and_false, zero_ne_one,]
 
 /-- The cells of a `halt` block read back its body, at any block position. -/
 theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
@@ -216,7 +219,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
   let pw := playfieldWidth prog
   let ph := playfieldHeight prog
   have hW : entryColumn prog i + 2 ≤ pw := by
-    dsimp [pw] -- no_squeeze: simulation
+    dsimp only [pw]
     rw [playfieldWidth]
     have hmono : entryColumn prog (i + 1) ≤ entryColumn prog prog.length :=
       entryColumn_mono prog (i + 1) prog.length (by omega)
@@ -225,7 +228,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
     norm_num [blockWidth] at hmono
     omega
   have hH0 : blockRow prog i + 2 ≤ ph := by
-    dsimp [ph] -- no_squeeze: simulation
+    dsimp only [ph]
     rw [playfieldHeight]
     have hmono : blockRow prog (i + 1) ≤ blockRow prog prog.length :=
       blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
@@ -265,7 +268,7 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
             have hD1 : entryColumn prog k + 1 < pw := by omega
             have hy : blockRow prog k < ph := by omega
             have hy1 : blockRow prog k + 1 < ph := by omega
-            simpa [blockBodyCells] using (lastCellAt_halt_body pw ph -- no_squeeze: simulation
+            simpa only [blockBodyCells] using (lastCellAt_halt_body pw ph
               (entryColumn prog k) (blockRow prog k) dx dy hdx hdy hD hD1 hy hy1)
           exact hbody
   have hres := hmain prog.length (by omega) (by rfl)
@@ -355,11 +358,11 @@ theorem sim_inc (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 < prog.len
   have h1' : run 4 s = some s1 := by
     rw [h1]
     congr 1
-    dsimp [s1] -- no_squeeze: simulation
+    dsimp only [s1]
     rw [encode_incCounter c cm]
   have hpc1 : s1.pc =
     (entryColumn prog (i + 1), blockRow prog i + (blockHeight (prog.getD i .halt) - 1)) := by
-    dsimp [s1] -- no_squeeze: simulation
+    dsimp only [s1]
     rw [hinc]
     norm_num [blockHeight]
   have h2 := fallthrough_drop prog i hi1 s1 hsm hpc1 rfl hgrid
@@ -391,9 +394,9 @@ theorem sim_jump (prog : CMProgram) (i k : ℕ) (hi1 : i + 1 < prog.length)
     { s with pc := (entryColumn prog i + 1, blockRow prog i - 1), dir := .up }
   have h1 := jumpBlock_run prog i (by omega) hjump s hsm hpc hgrid
   have h1' : run 2 s = some s1 := by
-    simpa [s1] using h1 -- no_squeeze: simulation
+    simpa only [s1] using h1
   have hpc1 : s1.pc = (branchColumn prog i, blockRow prog i - 1) := by
-    dsimp [s1] -- no_squeeze: simulation
+    dsimp only [s1]
     rw [branchColumn, hjump]
     norm_num [blockWidth]
   have h2 := corridor_run prog i k 0 (by omega) hk hwell (Or.inr hjump) s1 hsm hpc1 rfl hgrid
@@ -401,8 +404,8 @@ theorem sim_jump (prog : CMProgram) (i k : ℕ) (hi1 : i + 1 < prog.length)
       stack := [encodeState { pc := k, c1 := c1, c2 := c2 }],
       pc := (entryColumn prog k, blockRow prog k),
       dir := .down } := by
-    dsimp [cm] -- no_squeeze: simulation
-    simpa [hstack] using (run_append s s1 -- no_squeeze: simulation
+    dsimp only [cm]
+    simpa only [hstack] using (run_append s s1
       (some { s with pc := (entryColumn prog k, blockRow prog k), dir := .down })
       2 (corridorSteps prog i k) h1' h2)
   exact h12
@@ -451,9 +454,9 @@ theorem sim_decz_zero (prog : CMProgram) (i k : ℕ) (c : Fin 2) (hi1 : i + 1 < 
     { s with pc := (entryColumn prog i + 4, blockRow prog i - 1), dir := .up }
   have h2' : run 1 s1 = some s2 := by
     rw [h2]
-    simp [s1, s2, hstack, cm] -- no_squeeze: simulation
+    simp only [s1, s2, hstack, cm]
   have hpc2 : s2.pc = (branchColumn prog i, blockRow prog i - 1) := by
-    dsimp [s2] -- no_squeeze: simulation
+    dsimp only [s2]
     rw [branchColumn, hdecz]
     norm_num [blockWidth]
   have hk : k < prog.length := hwell i (by omega) c k (Or.inl hdecz)
@@ -467,7 +470,7 @@ theorem sim_decz_zero (prog : CMProgram) (i k : ℕ) (c : Fin 2) (hi1 : i + 1 < 
       (4 + 1) (corridorSteps prog i k) h12 h3
   have htotal : 4 + 1 + corridorSteps prog i k = 5 + corridorSteps prog i k := by omega
   rw [← htotal]
-  simpa [hstack] using h123 -- no_squeeze: simulation
+  simpa only [hstack, Nat.reduceAdd] using h123
 
 /-- A `decz` block on a positive counter decrements and falls through to the
     next block. -/
@@ -504,7 +507,7 @@ theorem sim_decz_nonzero (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 <
     rw [h2]
   have hpc2 : s2.pc =
     (entryColumn prog (i + 1), blockRow prog i + (blockHeight (prog.getD i .halt) - 1)) := by
-    dsimp [s2] -- no_squeeze: simulation
+    dsimp only [s2]
     rw [hdecz]
     norm_num [blockHeight]
     rw [entryColumn_succ]
@@ -521,14 +524,14 @@ theorem sim_decz_nonzero (prog : CMProgram) (i : ℕ) (c : Fin 2) (hi1 : i + 1 <
         stack := [encodeState (decCounter c cm)],
         pc := (entryColumn prog (i + 1), blockRow prog (i + 1)),
         dir := .down } := by
-      simpa [encode_deczCounter c cm hnz] using h3 -- no_squeeze: simulation
+      simpa only [encode_deczCounter c cm hnz] using h3
     exact run_append s s2 (some { s with
       stack := [encodeState (decCounter c cm)],
       pc := (entryColumn prog (i + 1), blockRow prog (i + 1)),
       dir := .down }) (4 + 5) 1 h12 h3'
   have htotal : 4 + 5 + 1 = 10 := by omega
   rw [← htotal]
-  simpa using h123 -- no_squeeze: simulation
+  simpa only [Nat.reduceAdd] using h123
 
 open CMInstr
 
@@ -566,7 +569,7 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
           intro h
           cases h
         exact this hh
-      · simpa [CMInstr.incCounter, CMInstr.write, CMInstr.read] -- no_squeeze: simulation
+      · simpa only [CMInstr.incCounter, CMInstr.write, CMInstr.read, gt_iff_lt]
   | decz c k =>
       intro s' hstep
       by_cases hz : CMInstr.read c s₀ = 0
@@ -575,8 +578,8 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
         injection hs with hs'
         rw [hs']
         have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ c k
-          (Or.inl (by simpa [CMInstr.instrAt] using hget)) -- no_squeeze: simulation
-        simpa -- no_squeeze: simulation
+          (Or.inl (by simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget))
+        simpa only [gt_iff_lt]
       · have hs := CMInstr.step_decz_nonzero prog s₀ c k hget hz
         rw [hstep] at hs
         injection hs with hs'
@@ -589,7 +592,7 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
             intro h
             cases h
           exact this hh
-        · simpa [CMInstr.decCounter, CMInstr.write, CMInstr.read] -- no_squeeze: simulation
+        · simpa only [CMInstr.decCounter, CMInstr.write, CMInstr.read, gt_iff_lt]
   | jump k =>
       intro s' hstep
       have hs := CMInstr.step_jump prog s₀ k hget
@@ -597,8 +600,8 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
       injection hs with hs'
       rw [hs']
       have hk : k < prog.length := (hwellPlaced.1) s₀.pc hs₀ 0 k
-        (Or.inr (by simpa [CMInstr.instrAt] using hget)) -- no_squeeze: simulation
-      simpa -- no_squeeze: simulation
+        (Or.inr (by simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget))
+      simpa only [gt_iff_lt]
   | halt =>
       intro s' hstep
       rw [CMInstr.step_halt prog s₀ hget] at hstep
@@ -617,7 +620,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
   cases hget : CMInstr.instrAt prog s₀.pc with
   | inc c =>
       have hinc : prog.getD s₀.pc .halt = .inc c := by
-        simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
+        simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget
       have hs := CMInstr.step_inc prog s₀ c hget
       rw [hs]
       have hi1 : s₀.pc + 1 < prog.length := by
@@ -631,10 +634,10 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
           exact this hh
       have hrun := sim_inc prog s₀.pc c hi1 hinc s hsm hpc hgrid hstack
       refine ⟨5, ?_⟩
-      simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
+      simpa only [afterState, blockEntry] using hrun
   | decz c k =>
       have hdecz : prog.getD s₀.pc .halt = .decz c k := by
-        simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
+        simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget
       by_cases hz : CMInstr.read c s₀ = 0
       · have hs := CMInstr.step_decz_zero prog s₀ c k hget hz
         rw [hs]
@@ -649,7 +652,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             exact this hh
         have hrun := sim_decz_zero prog s₀.pc k c hi1 hwell hdecz s hsm hpc hgrid hstack hz
         refine ⟨5 + corridorSteps prog s₀.pc k, ?_⟩
-        simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
+        simpa only [afterState, blockEntry] using hrun
       · have hs := CMInstr.step_decz_nonzero prog s₀ c k hget hz
         rw [hs]
         have hi1 : s₀.pc + 1 < prog.length := by
@@ -663,10 +666,10 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             exact this hh
         have hrun := sim_decz_nonzero prog s₀.pc c hi1 hdecz s hsm hpc hgrid hstack hz
         refine ⟨10, ?_⟩
-        simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
+        simpa only [afterState, blockEntry] using hrun
   | jump k =>
       have hjump : prog.getD s₀.pc .halt = .jump k := by
-        simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
+        simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget
       have hs := CMInstr.step_jump prog s₀ k hget
       rw [hs]
       have hi1 : s₀.pc + 1 < prog.length := by
@@ -680,10 +683,10 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
           exact this hh
       have hrun := sim_jump prog s₀.pc k hi1 hwell hjump s hsm hpc hgrid hstack
       refine ⟨2 + corridorSteps prog s₀.pc k, ?_⟩
-      simpa [afterState, blockEntry] using hrun -- no_squeeze: simulation
+      simpa only [afterState, blockEntry] using hrun
   | halt =>
       have hhalt : prog.getD s₀.pc .halt = .halt := by
-        simpa [CMInstr.instrAt] using hget -- no_squeeze: simulation
+        simpa only [CMInstr.instrAt, List.getD_eq_getElem?_getD, instrAt] using hget
       have hs := CMInstr.step_halt prog s₀ hget
       rw [hs]
       have hrun := sim_halt prog s₀.pc hs₀ hhalt s hsm hpc hgrid
@@ -703,10 +706,10 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
       refine ⟨0, ?_, ?_⟩
       · rw [show run 0 (playfieldStart prog s₀) = some (playfieldStart prog s₀) by rfl]
         rw [show CMInstr.run prog 0 s₀ = some s₀ by rfl]
-        simp [playfieldStart, afterState, blockEntry] -- no_squeeze: simulation
+        simp only [playfieldStart, afterState, blockEntry, Option.map_some]
       · intro s' h
         have h' : s' = s₀ := by
-          simpa [CMInstr.run] using h.symm -- no_squeeze: simulation
+          simpa only [CMInstr.run, Option.some.injEq] using h.symm
         subst s'
         exact hs₀
   | succ n ih =>
@@ -714,10 +717,10 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
       by_cases hnone : CMInstr.run prog n s₀ = none
       · refine ⟨mₙ, ?_, ?_⟩
         · rw [hrunₙ, CMInstr.run_succ, hnone]
-          simp -- no_squeeze: simulation
+          simp only [Option.map_none, Option.bind_none]
         · intro s' h
           rw [CMInstr.run_succ, hnone] at h
-          simp at h -- no_squeeze: simulation
+          simp only [Option.bind_none, reduceCtorEq] at h
       · have hsome : ∃ sₙ, CMInstr.run prog n s₀ = some sₙ := by
           by_contra h
           have hnone' : CMInstr.run prog n s₀ = none := by
@@ -736,21 +739,21 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
         | none =>
             have hnone' : CMInstr.step prog sₙ = none := hstep2
             have hrun2 : run 2 (afterState prog (playfieldStart prog s₀) sₙ) = none := by
-              simpa [hnone'] using hstep -- no_squeeze: simulation
+              simpa only [hnone'] using hstep
             have hreach : run mₙ (playfieldStart prog s₀) = some
               (afterState prog (playfieldStart prog s₀) sₙ) := by
               rw [hrunₙ, hrunₙ']
-              simp -- no_squeeze: simulation
+              simp only [Option.map_some]
             refine ⟨mₙ + 2, ?_, ?_⟩
             · have hcomp : run (mₙ + 2) (playfieldStart prog s₀) = none := by
                 exact run_append (playfieldStart prog s₀)
                   (afterState prog (playfieldStart prog s₀) sₙ) none mₙ 2 hreach hrun2
               rw [hcomp]
               rw [CMInstr.run_succ, hrunₙ']
-              simp [hnone'] -- no_squeeze: simulation
+              simp only [hnone', Option.bind_some, Option.map_none]
             · intro s' h
               rw [CMInstr.run_succ, hrunₙ'] at h
-              simp [hnone'] at h -- no_squeeze: simulation
+              simp only [hnone', Option.bind_some, reduceCtorEq] at h
         | some s' =>
             have hs' := hstep
             rw [hstep2] at hs'
@@ -760,7 +763,7 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
             have hreach : run mₙ (playfieldStart prog s₀) = some
               (afterState prog (playfieldStart prog s₀) sₙ) := by
               rw [hrunₙ, hrunₙ']
-              simp -- no_squeeze: simulation
+              simp only [Option.map_some]
             refine ⟨mₙ + n', ?_, ?_⟩
             · have hcomp : run (mₙ + n') (playfieldStart prog s₀) = some
                 (afterState prog (playfieldStart prog s₀) s') := by
@@ -770,15 +773,15 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
                     (afterState prog (playfieldStart prog s₀) sₙ)
                     (some (afterState prog (afterState prog (playfieldStart prog s₀) sₙ) s'))
                       mₙ n' hreach hrun'
-                simpa [afterState] using hcomp' -- no_squeeze: simulation
+                simpa only [afterState] using hcomp'
               rw [hcomp]
               rw [CMInstr.run_succ, hrunₙ']
-              simp [hstep2] -- no_squeeze: simulation
+              simp only [hstep2, Option.bind_some, Option.map_some]
             · intro s'' h
               rw [CMInstr.run_succ, hrunₙ'] at h
-              simp [hstep2] at h -- no_squeeze: simulation
+              simp only [hstep2, Option.bind_some, Option.some.injEq] at h
               have hfin : s'' = s' := by
-                simpa using h.symm -- no_squeeze: simulation
+                simpa only [] using h.symm
               rw [hfin]
               exact hlt'
 
@@ -802,7 +805,7 @@ theorem simulation_halts (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s�
   rcases (sim_run prog hwellPlaced s₀ hs₀ n) with ⟨m, hrun, hb⟩
   rw [hn] at hrun
   refine ⟨m, ?_⟩
-  simpa using hrun -- no_squeeze: simulation
+  simpa only [Option.map_none] using hrun
 
 end Completeness
 

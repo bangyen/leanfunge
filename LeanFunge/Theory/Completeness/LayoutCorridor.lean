@@ -197,13 +197,14 @@ theorem corridor_turn (prog : CMProgram) (i k : ℕ) (c : Fin 2)
       norm_num [blockWidth]
     unfold corridorRowAt
     rw [hget]
-    simp [hCeq] -- no_squeeze: corridor route
+    simp only [hCeq, ↓reduceIte, ge_iff_le, ↓Char.isValue]
   · have hCeq : branchColumn prog i = entryColumn prog i + 1 := by
       rw [branchColumn, hget]
       norm_num [blockWidth]
     unfold corridorRowAt
     rw [hget]
-    simp [hCeq] -- no_squeeze: corridor route
+    simp only [
+      hCeq, ↓reduceIte, ge_iff_le, Order.add_one_le_iff, ↓Char.isValue]
 
 /-- The drop cell of a jump edge on its header row is a `v`. -/
 theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
@@ -219,7 +220,7 @@ theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         rw [branchColumn, hget]
         norm_num [blockWidth]
         exact h.symm)
-    simp [hne] -- no_squeeze: corridor route
+    simp only [hne, ↓reduceIte, ↓Char.isValue]
   · unfold corridorRowAt
     rw [hget]
     have hne : entryColumn prog k ≠ entryColumn prog i + 1 := by
@@ -228,7 +229,7 @@ theorem corridor_drop (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         rw [branchColumn, hget]
         norm_num [blockWidth]
         exact h.symm)
-    simp [hne] -- no_squeeze: corridor route
+    simp only [hne, ↓reduceIte, ↓Char.isValue]
 
 /-- The header-row cells of block `i`, other than its corridor turn and drop,
     are spaces. -/
@@ -249,7 +250,7 @@ theorem corridorAlong_cell (prog : CMProgram) (i k : ℕ) (c : Fin 2) (x : ℕ)
       exact hxC (by rw [hC']; exact h)
     unfold corridorRowAt
     rw [hget]
-    simp [hxC', hxK] -- no_squeeze: corridor route
+    simp only [hxC', hxK, ↓reduceIte, ↓Char.isValue]
   · have hC' : branchColumn prog i = entryColumn prog i + 1 := by
       rw [branchColumn, hget]
       norm_num [blockWidth]
@@ -258,7 +259,7 @@ theorem corridorAlong_cell (prog : CMProgram) (i k : ℕ) (c : Fin 2) (x : ℕ)
       exact hxC (by rw [hC']; exact h)
     unfold corridorRowAt
     rw [hget]
-    simp [hxC', hxK] -- no_squeeze: corridor route
+    simp only [hxC', hxK, ↓reduceIte, ↓Char.isValue]
 
 /-- The cells on the drop column of a jump edge, down to the target, are a `v`
     or a space. -/
@@ -293,13 +294,15 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
         · right
           unfold corridorRowAt
           rw [hget]
-          simp [hneC] -- no_squeeze: corridor route
-          simp [h] -- no_squeeze: corridor route
+          simp only [
+            hneC, ↓reduceIte, ↓Char.isValue, ite_eq_left_iff, Char.reduceEq, imp_false,
+            Decidable.not_not]
+          simp only [h]
         · left
           unfold corridorRowAt
           rw [hget]
-          simp [hneC] -- no_squeeze: corridor route
-          simp [h] -- no_squeeze: corridor route
+          simp only [hneC, ↓reduceIte, ↓Char.isValue, ite_eq_right_iff, Char.reduceEq, imp_false]
+          simp only [h, not_false_eq_true]
     | jump k' =>
         have hneC : entryColumn prog k ≠ entryColumn prog r + 1 := by
           intro h
@@ -318,13 +321,15 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
         · right
           unfold corridorRowAt
           rw [hget]
-          simp [hneC] -- no_squeeze: corridor route
-          simp [h] -- no_squeeze: corridor route
+          simp only [
+            hneC, ↓reduceIte, ↓Char.isValue, ite_eq_left_iff, Char.reduceEq, imp_false,
+            Decidable.not_not]
+          simp only [h]
         · left
           unfold corridorRowAt
           rw [hget]
-          simp [hneC] -- no_squeeze: corridor route
-          simp [h] -- no_squeeze: corridor route
+          simp only [hneC, ↓reduceIte, ↓Char.isValue, ite_eq_right_iff, Char.reduceEq, imp_false]
+          simp only [h, not_false_eq_true]
     | inc c0 =>
         unfold corridorRowAt
         rw [hget]
@@ -351,22 +356,22 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
     let dx := entryColumn prog k - entryColumn prog j
     let dy := r - blockRow prog j
     have hdy : dy < blockHeight (prog.getD j .halt) := by
-      dsimp [dy] -- no_squeeze: corridor route
+      dsimp only [dy]
       omega
     have hx : entryColumn prog j + dx < playfieldWidth prog := by
-      dsimp [dx] -- no_squeeze: corridor route
+      dsimp only [dx]
       omega
     have hcell := playfield_row_at prog j (by omega) dx dy (by exact hdy) hx
     have hc1 : entryColumn prog j + dx = entryColumn prog k := by
-      dsimp [dx] -- no_squeeze: corridor route
+      dsimp only [dx]
       omega
     have hc2 : blockRow prog j + dy = r := by
-      dsimp [dy] -- no_squeeze: corridor route
+      dsimp only [dy]
       omega
     rw [hc1, hc2] at hcell
     by_cases hjk1 : j + 1 < k
     · have hdxout : blockWidth (prog.getD j .halt) < dx := by
-        dsimp [dx] -- no_squeeze: corridor route
+        dsimp only [dx]
         have hlt : entryColumn prog (j + 1) < entryColumn prog k :=
           entryColumn_strict_mono prog hjk1
         rw [entryColumn_succ] at hlt
@@ -376,7 +381,7 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
       exact hcell
     · have hjk1' : j + 1 = k := by omega
       have hdxw : dx = blockWidth (prog.getD j .halt) := by
-        dsimp [dx] -- no_squeeze: corridor route
+        dsimp only [dx]
         have : entryColumn prog k = entryColumn prog (j + 1) := by rw [hjk1']
         have hsucc : entryColumn prog (j + 1) =
           entryColumn prog j + blockWidth (prog.getD j .halt) := entryColumn_succ prog j
@@ -410,12 +415,12 @@ theorem corridorRunRight (prog : CMProgram)
       rw [playfieldWidth]
       exact entryColumn_mono prog (i + 1) prog.length (by omega)
     rw [entryColumn_succ] at hmono
-    dsimp [w] -- no_squeeze: corridor route
+    dsimp only [w]
     rw [hC]
     have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
     omega
   have hDK : Dk < w := by
-    dsimp [w, Dk] -- no_squeeze: corridor route
+    dsimp only [w, Dk]
     rw [playfieldWidth]
     exact entryColumn_strict_mono prog hk
   have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
@@ -434,13 +439,13 @@ theorem corridorRunRight (prog : CMProgram)
       omega
   have hblock : blockRow prog i - 1 < h := by
     have hbr : blockRow prog i ≤ h := by
-      dsimp [h] -- no_squeeze: corridor route
+      dsimp only [h]
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
     omega
   have hiH : i + 1 < h := by
     have h1 : blockRow prog (i + 1) ≤ h := by
-      dsimp [h] -- no_squeeze: corridor route
+      dsimp only [h]
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
     have h3 : blockRow prog i < blockRow prog (i + 1) := by
@@ -449,7 +454,7 @@ theorem corridorRunRight (prog : CMProgram)
       omega
     omega
   have hkHlt : blockRow prog k < h := by
-    dsimp [h] -- no_squeeze: corridor route
+    dsimp only [h]
     rw [playfieldHeight]
     exact blockRow_strict_mono prog hk
   have hBRk : prog.length ≤ blockRow prog k := blockRow_ge_length prog k
@@ -475,7 +480,7 @@ theorem corridorRunRight (prog : CMProgram)
     change corridorRowAt prog (branchColumn prog i) i = Direction.char Direction.right
     rw [corridor_turn prog i k c hget]
     have hge' : entryColumn prog k ≥ branchColumn prog i := hge
-    simp [Direction.char, hge'] -- no_squeeze: corridor route
+    simp only [Direction.char, hge', ↓reduceIte, ↓Char.isValue]
   have hdropCell : (playfieldOf prog).get Dk i = 'v' := by
     have hcell := playfield_header_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
       (by exact hDK)
@@ -499,7 +504,7 @@ theorem corridorRunRight (prog : CMProgram)
         (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp] -- no_squeeze: corridor route
+      · dsimp only [nUp]
         omega
     rw [hpos]
     rw [hgrid]
@@ -518,7 +523,7 @@ theorem corridorRunRight (prog : CMProgram)
         (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp] -- no_squeeze: corridor route
+      · dsimp only [nUp]
         omega
     rw [hpos]
     rw [stepPos_right w h C i (by omega) (by omega)]
@@ -537,7 +542,7 @@ theorem corridorRunRight (prog : CMProgram)
     have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
       rw [runPos_right_pos (x := C + 1) (y := i) (k := nAlong) (hx := by omega) (hy := by omega)]
       apply Prod.ext
-      · dsimp [nAlong] -- no_squeeze: corridor route
+      · dsimp only [nAlong]
         omega
       · rfl
     rw [hpos]
@@ -550,13 +555,13 @@ theorem corridorRunRight (prog : CMProgram)
       congr
       · exact (Nat.mod_eq_of_lt (by omega : C + 1 < w)).symm
       · exact (Nat.mod_eq_of_lt (by omega : i < h)).symm)
-    (by exact hsm) (by rfl) (by simpa using hspacesAl) hturnAl -- no_squeeze: corridor route
+    (by exact hsm) (by rfl) (by simpa only [] using hspacesAl) hturnAl
   have hAlPos : stepPos w h Direction.down
     (runPos w h nAlong Direction.right ((C + 1) % w, i % h)) = (Dk, i + 1) := by
     have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
       rw [runPos_right_pos (x := C + 1) (y := i) (k := nAlong) (hx := by omega) (hy := by omega)]
       apply Prod.ext
-      · dsimp [nAlong] -- no_squeeze: corridor route
+      · dsimp only [nAlong]
         omega
       · rfl
     rw [hpos]
@@ -585,18 +590,18 @@ theorem corridorRunRight (prog : CMProgram)
       congr
       · exact (Nat.mod_eq_of_lt hDK).symm
       · exact (Nat.mod_eq_of_lt (by omega : i + 1 < h)).symm) (by rfl)
-    (by simpa using hspacesDown) -- no_squeeze: corridor route
+    (by simpa only [↓Char.isValue] using hspacesDown)
   have hDownPos : runPos w h downSteps Direction.down (Dk % w, (i + 1) % h) =
     (Dk, blockRow prog k) := by
     rw [runPos_down_pos (x := Dk) (y := i + 1) (k := downSteps) (hx := hDK) (hb := by
         have : i + 1 + downSteps = blockRow prog k := by
-          dsimp [downSteps] -- no_squeeze: corridor route
+          dsimp only [downSteps]
           omega
         rw [this]
         exact hkHlt)]
     apply Prod.ext
     · rfl
-    · dsimp [downSteps] -- no_squeeze: corridor route
+    · dsimp only [downSteps]
       omega
   have hDown : run downSteps { s with pc := (Dk, i + 1), dir := .down } =
       some { s with pc := (Dk, blockRow prog k), dir := .down } := by
@@ -636,12 +641,12 @@ theorem corridorRunLeft (prog : CMProgram)
       rw [playfieldWidth]
       exact entryColumn_mono prog (i + 1) prog.length (by omega)
     rw [entryColumn_succ] at hmono
-    dsimp [w] -- no_squeeze: corridor route
+    dsimp only [w]
     rw [hC]
     have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
     omega
   have hDK : Dk < w := by
-    dsimp [w, Dk] -- no_squeeze: corridor route
+    dsimp only [w, Dk]
     rw [playfieldWidth]
     exact entryColumn_strict_mono prog hk
   have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
@@ -660,13 +665,13 @@ theorem corridorRunLeft (prog : CMProgram)
       omega
   have hblock : blockRow prog i - 1 < h := by
     have hbr : blockRow prog i ≤ h := by
-      dsimp [h] -- no_squeeze: corridor route
+      dsimp only [h]
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
     omega
   have hiH : i + 1 < h := by
     have h1 : blockRow prog (i + 1) ≤ h := by
-      dsimp [h] -- no_squeeze: corridor route
+      dsimp only [h]
       rw [playfieldHeight]
       exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
     have h3 : blockRow prog i < blockRow prog (i + 1) := by
@@ -675,7 +680,7 @@ theorem corridorRunLeft (prog : CMProgram)
       omega
     omega
   have hkHlt : blockRow prog k < h := by
-    dsimp [h] -- no_squeeze: corridor route
+    dsimp only [h]
     rw [playfieldHeight]
     exact blockRow_strict_mono prog hk
   have hBRk : prog.length ≤ blockRow prog k := blockRow_ge_length prog k
@@ -700,7 +705,7 @@ theorem corridorRunLeft (prog : CMProgram)
     change corridorRowAt prog (branchColumn prog i) i = Direction.char Direction.left
     rw [corridor_turn prog i k c hget]
     have hge' : ¬(entryColumn prog k ≥ branchColumn prog i) := hge
-    simp [Direction.char, hge'] -- no_squeeze: corridor route
+    simp only [Direction.char, hge', ↓reduceIte, ↓Char.isValue]
   have hdropCell : (playfieldOf prog).get Dk i = 'v' := by
     have hcell := playfield_header_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
       (by exact hDK)
@@ -724,7 +729,7 @@ theorem corridorRunLeft (prog : CMProgram)
         (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp] -- no_squeeze: corridor route
+      · dsimp only [nUp]
         omega
     rw [hpos]
     rw [hgrid]
@@ -743,7 +748,7 @@ theorem corridorRunLeft (prog : CMProgram)
         (hx := hCW) (hk := by omega) (hy := hblock)]
       apply Prod.ext
       · rfl
-      · dsimp [nUp] -- no_squeeze: corridor route
+      · dsimp only [nUp]
         omega
     rw [hpos]
     rw [stepPos_left_pos w h C i (by omega) hCW (by omega)]
@@ -766,13 +771,13 @@ theorem corridorRunLeft (prog : CMProgram)
       congr
       · exact (Nat.mod_eq_of_lt (by omega : C - 1 < w)).symm
       · exact (Nat.mod_eq_of_lt (by omega : i < h)).symm)
-    (by exact hsm) (by rfl) (by simpa using hspacesAl) -- no_squeeze: corridor route
+    (by exact hsm) (by rfl) (by simpa only [] using hspacesAl)
     (by
       have hpos : runPos w h nAlong Direction.left ((C - 1) % w, i % h) = (Dk, i) := by
         rw [runPos_left_pos (x := C - 1) (y := i) (k := nAlong)
           (hy := by omega) (hk := by omega) (hx := by omega)]
         congr
-        · dsimp [nAlong] -- no_squeeze: corridor route
+        · dsimp only [nAlong]
           omega
       rw [hpos]
       rw [hgrid]
@@ -783,7 +788,7 @@ theorem corridorRunLeft (prog : CMProgram)
       rw [runPos_left_pos (x := C - 1) (y := i) (k := nAlong)
         (hy := by omega) (hk := by omega) (hx := by omega)]
       apply Prod.ext
-      · dsimp [nAlong] -- no_squeeze: corridor route
+      · dsimp only [nAlong]
         omega
       · rfl
     rw [hpos]
@@ -812,18 +817,18 @@ theorem corridorRunLeft (prog : CMProgram)
       congr
       · exact (Nat.mod_eq_of_lt hDK).symm
       · exact (Nat.mod_eq_of_lt (by omega : i + 1 < h)).symm) (by rfl)
-    (by simpa using hspacesDown) -- no_squeeze: corridor route
+    (by simpa only [↓Char.isValue] using hspacesDown)
   have hDownPos : runPos w h downSteps Direction.down (Dk % w, (i + 1) % h) =
     (Dk, blockRow prog k) := by
     rw [runPos_down_pos (x := Dk) (y := i + 1) (k := downSteps) (hx := hDK) (hb := by
         have : i + 1 + downSteps = blockRow prog k := by
-          dsimp [downSteps] -- no_squeeze: corridor route
+          dsimp only [downSteps]
           omega
         rw [this]
         exact hkHlt)]
     apply Prod.ext
     · rfl
-    · dsimp [downSteps] -- no_squeeze: corridor route
+    · dsimp only [downSteps]
       omega
   have hDown : run downSteps { s with pc := (Dk, i + 1), dir := .down } =
       some { s with pc := (Dk, blockRow prog k), dir := .down } := by
@@ -864,7 +869,7 @@ theorem corridor_run (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         + (blockRow prog k - i - 1)
         = (blockRow prog i - i) + (entryColumn prog k - branchColumn prog i)
           + (blockRow prog k - i - 1) by
-      simp [hge]] -- no_squeeze: corridor route
+      simp only [hge, ↓reduceIte] ]
     exact h
   · have h := corridorRunLeft prog i k c hi hk hwell hget s hsm hpc hdir hgrid hge
     rw [show (blockRow prog i - i)
@@ -873,7 +878,7 @@ theorem corridor_run (prog : CMProgram) (i k : ℕ) (c : Fin 2)
         + (blockRow prog k - i - 1)
         = (blockRow prog i - i) + (branchColumn prog i - entryColumn prog k)
           + (blockRow prog k - i - 1) by
-      simp [hge]] -- no_squeeze: corridor route
+      simp only [hge, ↓reduceIte] ]
     exact h
 
 end Completeness

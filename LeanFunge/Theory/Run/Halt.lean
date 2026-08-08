@@ -37,7 +37,7 @@ theorem decodeChar_halt_iff (c : Char) : decodeChar c = .halt ↔ c = '@' := by
   constructor
   · intro h
     unfold decodeChar at h
-    split at h <;> simp at h -- no_squeeze: decode match
+    split at h <;> simp only [reduceCtorEq] at h
     · rfl
   · intro h
     rw [h]
@@ -51,20 +51,19 @@ theorem step_none_iff_halt (s : State w h) :
   · intro h
     unfold step at h
     cases hsm : s.stringMode with
-    | true => simp [hsm] at h -- no_squeeze: string mode
+    | true => simp only [hsm, reduceCtorEq] at h
     | false =>
         rw [hsm] at h
         cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) with
-        | halt => exact ⟨by simp -- no_squeeze: non-halt cell
+        | halt => exact ⟨by simp only [Bool.false_eq_true, not_false_eq_true]
             , rfl⟩
-        | _ => simp [hdec] at h -- no_squeeze: non-halt cell
+        | _ => simp only [hdec, reduceCtorEq] at h
   · intro h
     rcases h with ⟨hsm, hdec⟩
     unfold step
     cases hm : s.stringMode with
-    | true => exfalso; exact hsm (by simp [hm] -- no_squeeze: non-halt cell
-        )
-    | false => simp [hdec] -- no_squeeze: non-halt cell
+    | true => exfalso; exact hsm (by simp only [hm])
+    | false => simp only [hdec]
 
 /-- A halting run reaches a state whose next step halts. -/
 theorem run_none_exists_halt (s : State w h) (n : ℕ) (hnone : run n s = none) :

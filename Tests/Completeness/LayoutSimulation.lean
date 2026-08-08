@@ -20,12 +20,24 @@ example : wellPlaced layoutProgram := by
   constructor
   · unfold wellFormed
     intro i hi c k hk
-    simp [layoutProgram] at hi -- no_squeeze: concrete
+    simp only [
+      layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add, Nat.reduceAdd] at hi
     fin_cases c <;> interval_cases i <;>
-      (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
+      (simp only [
+        layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD,
+        List.length_cons, List.length_nil, zero_add, Nat.reduceAdd,
+        Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero, Option.getD_some,
+        Fin.zero_eta, reduceCtorEq, or_self, Nat.one_lt_ofNat,
+        List.getElem_cons_succ, CMInstr.decz.injEq, true_and, or_false,
+        Nat.reduceLT, Nat.lt_add_one, Fin.mk_one, zero_ne_one, false_and] at hk ⊢; try omega)
   · intro i hi
-    simp [layoutProgram] at hi -- no_squeeze: concrete
-    interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+    simp only [
+      layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add, Nat.reduceAdd] at hi
+    interval_cases i <;> simp only [
+      CMInstr.instrAt, layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD, List.length_cons,
+      List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero,
+      Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true, List.getElem_cons_succ,
+      Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
 
 /-- The two-counter machine run is simulated by the playfield run. -/
 example :
@@ -36,12 +48,26 @@ example :
     constructor
     · unfold wellFormed
       intro i hi c k hk
-      simp [layoutProgram] at hi -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
       fin_cases c <;> interval_cases i <;>
-        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
+        (simp only [
+          layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD,
+          List.length_cons, List.length_nil, zero_add, Nat.reduceAdd,
+          Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero, Option.getD_some,
+          Fin.zero_eta, reduceCtorEq, or_self, Nat.one_lt_ofNat,
+          List.getElem_cons_succ, CMInstr.decz.injEq, true_and, or_false,
+          Nat.reduceLT, Nat.lt_add_one, Fin.mk_one, zero_ne_one, false_and] at hk ⊢; try omega)
     · intro i hi
-      simp [layoutProgram] at hi -- no_squeeze: concrete
-      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
+      interval_cases i <;> simp only [
+        CMInstr.instrAt, layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD, List.length_cons,
+        List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
+        List.getElem_cons_zero, Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true,
+        List.getElem_cons_succ, Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
   rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, hb⟩
   refine ⟨m, ?_⟩
   rw [hrun]
@@ -67,12 +93,26 @@ example : CMInstr.halts layoutProgram (CMInstr.startCM 1 0) →
     constructor
     · unfold wellFormed
       intro i hi c k hk
-      simp [layoutProgram] at hi -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
       fin_cases c <;> interval_cases i <;>
-        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
+        (simp only [
+          layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD,
+          List.length_cons, List.length_nil, zero_add, Nat.reduceAdd,
+          Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero, Option.getD_some,
+          Fin.zero_eta, reduceCtorEq, or_self, Nat.one_lt_ofNat,
+          List.getElem_cons_succ, CMInstr.decz.injEq, true_and, or_false,
+          Nat.reduceLT, Nat.lt_add_one, Fin.mk_one, zero_ne_one, false_and] at hk ⊢; try omega)
     · intro i hi
-      simp [layoutProgram] at hi -- no_squeeze: concrete
-      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
+      interval_cases i <;> simp only [
+        CMInstr.instrAt, layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD, List.length_cons,
+        List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
+        List.getElem_cons_zero, Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true,
+        List.getElem_cons_succ, Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
   exact simulation_halts layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide)
 
 /-- The playfield run reflects the machine run's positions and encodings. -/
@@ -84,12 +124,26 @@ example :
     constructor
     · unfold wellFormed
       intro i hi c k hk
-      simp [layoutProgram] at hi -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
       fin_cases c <;> interval_cases i <;>
-        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
+        (simp only [
+          layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD,
+          List.length_cons, List.length_nil, zero_add, Nat.reduceAdd,
+          Nat.ofNat_pos, getElem?_pos, List.getElem_cons_zero, Option.getD_some,
+          Fin.zero_eta, reduceCtorEq, or_self, Nat.one_lt_ofNat,
+          List.getElem_cons_succ, CMInstr.decz.injEq, true_and, or_false,
+          Nat.reduceLT, Nat.lt_add_one, Fin.mk_one, zero_ne_one, false_and] at hk ⊢; try omega)
     · intro i hi
-      simp [layoutProgram] at hi -- no_squeeze: concrete
-      interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
+      simp only [
+        layoutProgram, Fin.isValue, List.length_cons, List.length_nil, zero_add,
+        Nat.reduceAdd] at hi
+      interval_cases i <;> simp only [
+        CMInstr.instrAt, layoutProgram, Fin.isValue, List.getD_eq_getElem?_getD, List.length_cons,
+        List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
+        List.getElem_cons_zero, Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true,
+        List.getElem_cons_succ, Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
   exact simulation_map layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3
 
 /-- `layoutProgram` normalizes to itself with an appended `halt`. -/

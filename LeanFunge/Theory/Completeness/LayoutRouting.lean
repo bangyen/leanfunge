@@ -359,7 +359,8 @@ theorem blockCellList_row_ne_header (prog : CMProgram) (j y : ℕ) (hjy : j ≠ 
     omega
   · rcases blockCorridorCells_mem prog j (prog.getD j .halt) c hc with ⟨k, hk, hck⟩
     simp only [corridorCells, List.mem_cons, List.not_mem_nil, or_false] at hck
-    rcases hck with hck | hck <;> simp [hck] <;> omega -- no_squeeze: header row skip
+    rcases hck with hck | hck <;> simp only [
+      hck, List.getD_eq_getElem?_getD, ge_iff_le, tsub_le_iff_right, ↓Char.isValue, ne_eq] <;> omega
 
 /-- A later block does not touch a header cell. -/
 theorem lastCellAt_block_after_header (prog : CMProgram) (y k x : ℕ) (hyk : y < k)
@@ -508,7 +509,8 @@ theorem lastCellAt_block_header (prog : CMProgram) (y x : ℕ) (hy : y < prog.le
         simp only [hxE, and_self, ↓reduceIte, ↓Char.isValue, eq_comm, ge_iff_le,
           right_eq_ite_iff]
         all_goals intro h; exfalso; omega
-      · simp [hxE, eq_comm] -- no_squeeze: corridor readback
+      · simp only [
+        hxE, eq_comm, and_true, ↓reduceIte, Nat.add_one_sub_one, ge_iff_le, ↓Char.isValue]
   | jump k =>
       have hk : k < prog.length := ht 0 k (Or.inr hget)
       have hDk : entryColumn prog k < playfieldWidth prog := by
@@ -541,7 +543,9 @@ theorem lastCellAt_block_header (prog : CMProgram) (y x : ℕ) (hy : y < prog.le
         simp only [hxE, and_self, ↓reduceIte, ↓Char.isValue, eq_comm, ge_iff_le,
           Order.add_one_le_iff, right_eq_ite_iff]
         all_goals intro h; exfalso; omega
-      · simp [hxE, eq_comm] -- no_squeeze: corridor readback
+      · simp only [
+        hxE, eq_comm, and_true, ↓reduceIte, Nat.add_one_sub_one, ge_iff_le, Order.add_one_le_iff,
+        ↓Char.isValue]
   | inc c0 =>
       simp only [corridorRowAt]
       rw [hget]
@@ -654,11 +658,11 @@ theorem blockRow_find (prog : CMProgram) (r : ℕ) (hr0 : prog.length ≤ r)
     have hz : prog.length = 0 := by omega
     have h0 : playfieldHeight prog = 0 := by
       unfold playfieldHeight
-      simp [blockRow, hz] -- no_squeeze: corridor route
+      simp only [blockRow, hz]
     omega
   have hfirst : ∃ j : ℕ, j ≤ prog.length ∧ r < blockRow prog j := by
     refine ⟨prog.length, by rfl, ?_⟩
-    simpa [playfieldHeight] using hr -- no_squeeze: corridor route
+    simpa only [playfieldHeight] using hr
   set j := Nat.find hfirst
   have hjle : j ≤ prog.length := (Nat.find_spec hfirst).1
   have hjr : r < blockRow prog j := (Nat.find_spec hfirst).2
@@ -673,7 +677,7 @@ theorem blockRow_find (prog : CMProgram) (r : ℕ) (hr0 : prog.length ≤ r)
   have hjpos : 0 < j := by
     by_contra h
     have hj0 : j = 0 := by omega
-    have hjr0 : r < blockRow prog 0 := by simpa [hj0] using hjr -- no_squeeze: corridor route
+    have hjr0 : r < blockRow prog 0 := by simpa only [hj0] using hjr
     have hbr0 : blockRow prog 0 ≤ r := by
       unfold blockRow
       exact hr0
@@ -704,14 +708,23 @@ theorem blockBodyAt_exit_or_space (instr : CMInstr) (dy : ℕ) (hdy : dy < block
   cases instr with
   | inc c0 =>
       fin_cases c0 <;> by_cases h : dy = 0
-        <;> simp [blockBodyAt, blockWidth, h] -- no_squeeze: corridor route
+        <;> simp only [
+          blockBodyAt, blockWidth, h, OfNat.ofNat_ne_zero, and_true, ↓reduceIte, OfNat.ofNat_ne_one,
+          Nat.succ_ne_self, and_self, ↓Char.isValue, Char.reduceEq, or_true, and_false, or_false]
   | decz c0 _ =>
       fin_cases c0 <;> by_cases h : dy = 3
-        <;> simp [blockBodyAt, blockWidth, h] -- no_squeeze: corridor route
+        <;> simp only [
+          blockBodyAt, blockWidth, h, OfNat.ofNat_ne_zero, and_self, ↓reduceIte, OfNat.ofNat_ne_one,
+          Nat.reduceEqDiff, Nat.succ_ne_self, and_true, ↓Char.isValue, Char.reduceEq, or_true,
+          false_and, and_false, or_false]
   | jump _ =>
-      simp [blockBodyAt, blockWidth] -- no_squeeze: corridor route
+      simp only [
+        blockBodyAt, blockWidth, OfNat.ofNat_ne_zero, false_and, ↓reduceIte, OfNat.ofNat_ne_one,
+        ↓Char.isValue, Char.reduceEq, or_false]
   | halt =>
-      simp [blockBodyAt, blockWidth] -- no_squeeze: corridor route
+      simp only [
+        blockBodyAt, blockWidth, OfNat.ofNat_ne_zero, false_and, ↓reduceIte, OfNat.ofNat_ne_one,
+        ↓Char.isValue, Char.reduceEq, or_false]
 
 /-- The cells on the branch column of block `i`, strictly above the block,
     are spaces. -/
@@ -759,7 +772,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
         have hCne_k : C ≠ entryColumn prog k' := hCnotentry k'
         unfold corridorRowAt
         rw [hget]
-        simp [hCne, hCne_k] -- no_squeeze: corridor route
+        simp only [hCne, hCne_k, ↓reduceIte, ↓Char.isValue]
     | jump k' =>
         have hCne : C ≠ entryColumn prog r + 1 := by
           intro h
@@ -771,7 +784,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
         have hCne_k : C ≠ entryColumn prog k' := hCnotentry k'
         unfold corridorRowAt
         rw [hget]
-        simp [hCne, hCne_k] -- no_squeeze: corridor route
+        simp only [hCne, hCne_k, ↓reduceIte, ↓Char.isValue]
     | inc c0 =>
         unfold corridorRowAt
         rw [hget]
@@ -812,7 +825,7 @@ theorem corridorUp_cell (prog : CMProgram) (i r : ℕ) (hi : i < prog.length)
     rw [hc1, hc2] at hcell
     rw [blockBodyAt_out (prog.getD j .halt) (C - entryColumn prog j)
         (r - blockRow prog j) hdx] at hcell
-    simpa using hcell -- no_squeeze: corridor route
+    simpa only [↓Char.isValue] using hcell
 
 end Completeness
 

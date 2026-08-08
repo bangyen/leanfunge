@@ -51,9 +51,10 @@ theorem stepState_input_prefix (s : State w h) (instr : Instruction) :
   by_cases hic : instr = .inputChar
   · subst instr
     cases h : s.input with
-    | nil => exact ⟨[], by simp [stepState, h] -- no_squeeze: eof input
+    | nil => exact ⟨[], by simp only [stepState, h, List.append_nil]
         ⟩
-    | cons c rest => exact ⟨[c], by simp [stepState, h] -- no_squeeze: input char
+    | cons c rest => exact ⟨[c], by simp only [
+      stepState, h, Int.ofNat_eq_natCast, List.cons_append, List.nil_append]
         ⟩
   · by_cases hii : instr = .inputInt
     · subst instr
@@ -62,7 +63,7 @@ theorem stepState_input_prefix (s : State w h) (instr : Instruction) :
     · exact ⟨[], by
         cases instr <;> first
           | contradiction
-          | simp [stepState] -- no_squeeze: input unchanged
+          | simp only [stepState, List.nil_append, gt_iff_lt, Int.ofNat_eq_natCast]
         ⟩
 
 /-- A step-state transition appends to the output: the new output extends the
@@ -78,7 +79,8 @@ theorem stepState_output_prefix (s : State w h) (instr : Instruction) :
     · exact ⟨"", by
         cases instr <;> first
           | contradiction
-          | cases h : s.input <;> simp [stepState, h] -- no_squeeze: output unchanged
+          | cases h : s.input <;> simp only [
+            stepState, h, String.append_empty, gt_iff_lt, Int.ofNat_eq_natCast]
         ⟩
 
 /-- A step consumes a prefix of the input: the remaining input is a suffix of
@@ -90,14 +92,14 @@ theorem step_input_prefix (s s' : State w h) (hstep : step s = some s') :
   | true =>
       rw [hsm] at hstep
       have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by
-        simpa using hstep -- no_squeeze: string mode
+        simpa only [Option.some.injEq] using hstep
       subst s'
-      exact ⟨[], by simp [stepString_input] -- no_squeeze: string input
+      exact ⟨[], by simp only [stepString_input, List.nil_append]
         ⟩
   | false =>
       rw [hsm] at hstep
       by_cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt
-      · simp [hdec] at hstep -- no_squeeze: halt cell
+      · simp only [hdec, reduceCtorEq] at hstep
       · simp only [Option.some.injEq] at hstep
         subst s'
         rcases stepState_input_prefix s (decodeChar (s.grid.get s.pc.1 s.pc.2)) with ⟨pre, hpre⟩
@@ -111,14 +113,14 @@ theorem step_output_prefix (s s' : State w h) (hstep : step s = some s') :
   | true =>
       rw [hsm] at hstep
       have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by
-        simpa using hstep -- no_squeeze: string mode
+        simpa only [Option.some.injEq] using hstep
       subst s'
-      exact ⟨"", by simp [stepString_output] -- no_squeeze: string output
+      exact ⟨"", by simp only [stepString_output, String.append_empty]
         ⟩
   | false =>
       rw [hsm] at hstep
       by_cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt
-      · simp [hdec] at hstep -- no_squeeze: halt cell
+      · simp only [hdec, reduceCtorEq] at hstep
       · simp only [Option.some.injEq] at hstep
         subst s'
         rcases stepState_output_prefix s (decodeChar (s.grid.get s.pc.1 s.pc.2)) with ⟨suf, hsuf⟩
@@ -133,7 +135,7 @@ theorem run_input_prefix (s : State w h) (n : ℕ) (s' : State w h) (h : run n s
       rw [run] at h
       injection h with hs'
       rw [hs']
-      exact ⟨[], by simp -- no_squeeze: zero steps
+      exact ⟨[], by simp only [List.nil_append]
         ⟩
   | succ n ih =>
       rcases hrun : run n s with _ | sₙ
@@ -145,7 +147,7 @@ theorem run_input_prefix (s : State w h) (n : ℕ) (s' : State w h) (h : run n s
         rcases step_input_prefix sₙ s' hstep with ⟨pre₂, hpre₂⟩
         exact ⟨pre₁ ++ pre₂, by
           rw [hpre₁, hpre₂]
-          simp [List.append_assoc] -- no_squeeze: input concatenation
+          simp only [List.append_assoc]
           ⟩
 
 /-- A run appends to the output: the output at any point extends the initial
@@ -157,7 +159,7 @@ theorem run_output_prefix (s : State w h) (n : ℕ) (s' : State w h) (h : run n 
       rw [run] at h
       injection h with hs'
       rw [hs']
-      exact ⟨"", by simp -- no_squeeze: zero steps
+      exact ⟨"", by simp only [String.append_empty]
         ⟩
   | succ n ih =>
       rcases hrun : run n s with _ | sₙ
@@ -169,7 +171,7 @@ theorem run_output_prefix (s : State w h) (n : ℕ) (s' : State w h) (h : run n 
         rcases step_output_prefix sₙ s' hstep with ⟨suf₂, hsuf₂⟩
         exact ⟨suf₁ ++ suf₂, by
           rw [hsuf₂, hsuf₁]
-          simp [String.append_assoc] -- no_squeeze: output concatenation
+          simp only [String.append_assoc]
           ⟩
 
 end LeanFunge

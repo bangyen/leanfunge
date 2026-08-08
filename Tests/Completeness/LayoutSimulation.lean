@@ -21,7 +21,8 @@ example : wellPlaced layoutProgram := by
   · unfold wellFormed
     intro i hi c k hk
     simp [layoutProgram] at hi -- no_squeeze: concrete
-    fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+    fin_cases c <;> interval_cases i <;>
+      (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
   · intro i hi
     simp [layoutProgram] at hi -- no_squeeze: concrete
     interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
@@ -36,7 +37,8 @@ example :
     · unfold wellFormed
       intro i hi c k hk
       simp [layoutProgram] at hi -- no_squeeze: concrete
-      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+      fin_cases c <;> interval_cases i <;>
+        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
     · intro i hi
       simp [layoutProgram] at hi -- no_squeeze: concrete
       interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
@@ -59,13 +61,15 @@ example :
   decide
 
 /-- The machine halts, and the playfield halts along with it. -/
-example : CMInstr.halts layoutProgram (CMInstr.startCM 1 0) → halts (playfieldStart layoutProgram (CMInstr.startCM 1 0)) := by
+example : CMInstr.halts layoutProgram (CMInstr.startCM 1 0) →
+    halts (playfieldStart layoutProgram (CMInstr.startCM 1 0)) := by
   have hwellPlaced : wellPlaced layoutProgram := by
     constructor
     · unfold wellFormed
       intro i hi c k hk
       simp [layoutProgram] at hi -- no_squeeze: concrete
-      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+      fin_cases c <;> interval_cases i <;>
+        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
     · intro i hi
       simp [layoutProgram] at hi -- no_squeeze: concrete
       interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
@@ -81,7 +85,8 @@ example :
     · unfold wellFormed
       intro i hi c k hk
       simp [layoutProgram] at hi -- no_squeeze: concrete
-      fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: concrete
+      fin_cases c <;> interval_cases i <;>
+        (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: concrete
     · intro i hi
       simp [layoutProgram] at hi -- no_squeeze: concrete
       interval_cases i <;> simp [CMInstr.instrAt, layoutProgram] -- no_squeeze: concrete
@@ -98,8 +103,10 @@ example : wellPlaced (normalize layoutProgram) := by
 /-- Every two-counter machine has a simulating playfield: the capstone. -/
 example :
     ∃ prog' : CMProgram, wellPlaced prog' ∧
-      (CMInstr.halts layoutProgram (CMInstr.startCM 1 0) → halts (playfieldStart prog' (CMInstr.startCM 1 0))) := by
-  rcases (universal_simulation layoutProgram (CMInstr.startCM 1 0) (by decide)) with ⟨prog', hw, hh, hr⟩
+      (CMInstr.halts layoutProgram (CMInstr.startCM 1 0) →
+        halts (playfieldStart prog' (CMInstr.startCM 1 0))) := by
+  rcases (universal_simulation layoutProgram (CMInstr.startCM 1 0) (by decide)) with
+    ⟨prog', hw, hh, hr⟩
   exact ⟨prog', hw, hh⟩
 
 end LeanFunge.Tests

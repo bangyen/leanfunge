@@ -103,7 +103,8 @@ theorem run_string (x y n : ℕ) (s : State w h)
   | zero =>
       rw [run]
       congr 1
-      simp [stringCodes, runPos] -- no_squeeze: string
+      simp only [stringCodes, Int.ofNat_eq_natCast, List.range_zero, List.map_nil, List.reverse_nil,
+      List.nil_append, runPos]
       rw [← hpc]
   | succ n ih =>
       have hrun : run n s = some { s with
@@ -119,7 +120,7 @@ theorem run_string (x y n : ℕ) (s : State w h)
         stack := List.reverse (stringCodes s.grid s.dir x y (n + 1)) ++ s.stack,
         pc := runPos w h (n + 1) s.dir (x % w, y % h) }
       have hcell : mid.grid.get mid.pc.1 mid.pc.2 ≠ '"' := by
-        simp [mid] -- no_squeeze: string
+        simp only [↓Char.isValue, ne_eq, mid]
         exact hstr n (Nat.lt_succ_self n)
       have hstep : step mid = some { mid with
           stack := Stack.push mid.stack (Int.ofNat (mid.grid.get mid.pc.1 mid.pc.2).toNat),
@@ -127,7 +128,8 @@ theorem run_string (x y n : ℕ) (s : State w h)
         exact step_string_general mid (by simpa [mid] using hsm) hcell -- no_squeeze: string
       rw [hstep]
       congr 1
-      simp [mid, stringCodes, Stack.push, List.range_succ, List.reverse_append, runPos] -- no_squeeze: string
+      simp [mid, stringCodes, Stack.push, List.range_succ, -- no_squeeze: string
+        List.reverse_append, runPos]
 
 /-- An opening `"`, a string run over `n` non-quote cells, and a closing `"`
     push the block's codes, return to non-string mode, and land the pointer
@@ -147,7 +149,8 @@ theorem run_string_block (x y n : ℕ) (s : State w h)
   have h1 : run 1 s = some { s with
       stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) } := by
     rw [run, run]
-    change step s = some { s with stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
+    change step s = some { s with
+      stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
     rw [step_string_enter s hm (by simpa [hpc] using henter)] -- no_squeeze: string
     simp [hpc, hdir] -- no_squeeze: string
   let s₁ : State w h := { s with
@@ -173,15 +176,18 @@ theorem run_string_block (x y n : ℕ) (s : State w h)
   have h2 : run n s₁ = some s₂ := by
     rw [hn, hs₂]
   have hexit₁ : s₂.grid.get s₂.pc.1 s₂.pc.2 = '"' := by
-    simp [s₂] -- no_squeeze: string
+    simp only [↓Char.isValue, s₂]
     exact hexit
   have hsm₂ : s₂.stringMode = true := by simp [s₂] -- no_squeeze: string
-  have h3 : run 1 s₂ = some { s₂ with stringMode := false, pc := stepPos w h Direction.right s₂.pc } := by
+  have h3 : run 1 s₂ = some { s₂ with
+      stringMode := false, pc := stepPos w h Direction.right s₂.pc } := by
     rw [run, run]
-    change step s₂ = some { s₂ with stringMode := false, pc := stepPos w h Direction.right s₂.pc }
+    change step s₂ = some { s₂ with
+      stringMode := false, pc := stepPos w h Direction.right s₂.pc }
     rw [step_string_exit s₂ hsm₂ hexit₁]
     simp [s₂, hdir] -- no_squeeze: string
-  have h12 := run_append s { s with stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
+  have h12 := run_append s { s with
+      stringMode := true, pc := stepPos w h Direction.right (x % w, y % h) }
     (some s₂) 1 n h1 (by
       simpa [s₁] using h2) -- no_squeeze: string
   let s₃ : State w h := { s with
@@ -245,7 +251,8 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
   induction cs generalizing x y n rest s with
   | nil =>
       rw [← hlen]
-      simp [run, runPos] -- no_squeeze: string
+      simp only [List.length_nil, run, runPos, List.map_nil, String.ofList_nil, String.append_empty,
+      Option.some.injEq]
       have hrest : rest = s.stack := by
         rw [hstack]
         simp -- no_squeeze: string
@@ -302,7 +309,8 @@ theorem run_print (cs : List Int) (rest : Stack) (x y n : ℕ) (s : State w h)
         stack := rest,
         pc := runPos w h cs'.length Direction.right ((x + 1) % w, y % h) }
       have hrun' : run cs'.length s₁ = some s₂ := by
-        exact ih rest (x + 1) y cs'.length s₁ hpc₁ hsm₁ (by simp [s₁, hdir]) rfl hprint₁ rfl -- no_squeeze: string
+        exact ih rest (x + 1) y cs'.length s₁ hpc₁ hsm₁
+          (by simp [s₁, hdir]) rfl hprint₁ rfl -- no_squeeze: string
       have hn : n = 1 + cs'.length := by
         rw [← hlen]
         simp [Nat.add_comm] -- no_squeeze: string
@@ -338,7 +346,7 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
     have h := run_string_block x y n s hpc hm hdir henter hstr hexit
     simpa [s₀, codes] using h -- no_squeeze: string
   have hpc₀ : s₀.pc = ((x + n + 2) % w, y % h) := by
-    simp [s₀] -- no_squeeze: string
+    simp only [s₀]
     rw [runPos_right w h n (x + 1) y]
     rw [show stepPos w h Direction.right ((x + 1 + n) % w, y % h) =
         runPos w h 1 Direction.right ((x + 1 + n) % w, y % h) by
@@ -350,10 +358,13 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
   have hsm₀ : s₀.stringMode = false := by simp [s₀, hm] -- no_squeeze: string
   have hdir₀ : s₀.dir = Direction.right := by simp [s₀, hdir] -- no_squeeze: string
   have hlen : (List.reverse codes).length = n := by
-    simp [codes, stringCodes, List.length_map, List.length_reverse, List.length_range] -- no_squeeze: string
-  have hp := run_print (List.reverse codes) s.stack (x + n + 2) y n s₀ hpc₀ hsm₀ hdir₀ hlen hprint rfl
+    simp [codes, stringCodes, List.length_map, List.length_reverse, -- no_squeeze: string
+      List.length_range]
+  have hp := run_print (List.reverse codes) s.stack (x + n + 2) y n s₀ hpc₀ hsm₀ hdir₀ hlen
+    hprint rfl
   let s₂ : State w h := { s with
-    output := s.output ++ String.ofList (codes.map (fun v : Int => Char.ofNat (Int.toNat v))).reverse,
+    output := s.output ++
+      String.ofList (codes.map (fun v : Int => Char.ofNat (Int.toNat v))).reverse,
     stack := s.stack,
     pc := runPos w h (2 * n + 2) Direction.right (x % w, y % h) }
   have hprintrun : run n s₀ = some s₂ := by
@@ -364,7 +375,8 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
       have hx : x + n + 2 + n = x + (2 * n + 2) := by omega
       rw [hx]
     have h : { s₀ with
-        output := s₀.output ++ String.ofList ((List.reverse codes).map (fun v : Int => Char.ofNat (Int.toNat v))),
+        output := s₀.output ++
+          String.ofList ((List.reverse codes).map (fun v : Int => Char.ofNat (Int.toNat v))),
         stack := s.stack,
         pc := runPos w h n Direction.right ((x + n + 2) % w, y % h) } = s₂ := by
       simp [s₂, s₀, List.map_reverse, hpc_eq] -- no_squeeze: string

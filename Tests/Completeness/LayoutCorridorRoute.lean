@@ -30,7 +30,8 @@ example :
     unfold wellFormed
     intro i hi c k hk
     simp [layoutProgram] at hi -- no_squeeze: corridor route
-    fin_cases c <;> interval_cases i <;> simp [layoutProgram] at hk ⊢ <;> omega -- no_squeeze: corridor route
+    fin_cases c <;> interval_cases i <;>
+      (simp [layoutProgram] at hk ⊢; try omega) -- no_squeeze: corridor route
   have h := corridor_run layoutProgram 1 3 0 (by decide) (by decide) hwell
     (by decide) S rfl (by decide) rfl rfl
   simp only [h, Option.map]
@@ -53,7 +54,8 @@ example :
     unfold wellFormed
     intro i hi c k hk
     simp [prog] at hi -- no_squeeze: corridor route
-    fin_cases c <;> interval_cases i <;> simp [prog] at hk ⊢ <;> omega -- no_squeeze: corridor route
+    fin_cases c <;> interval_cases i <;>
+      (simp [prog] at hk ⊢; try omega) -- no_squeeze: corridor route
   have h := corridor_run prog 0 0 0 (by decide) (by decide) hwell
     (by decide) S rfl (by decide) rfl rfl
   simp only [h, Option.map]

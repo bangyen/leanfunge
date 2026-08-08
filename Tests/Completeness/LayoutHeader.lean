@@ -23,24 +23,20 @@ example : (playfieldOf layoutProgram).get 7 1 = '>' := by
     fin_cases c
     · rcases hk with hk | hk
       · have hk3 : k = 3 := by
-          change layoutProgram.getD 1 .halt = .decz 0 k at hk
-          simp at hk -- no_squeeze: concrete decz
+          change (CMInstr.decz 0 3) = (CMInstr.decz 0 k) at hk
           injection hk with h0 hk3
           omega
         rw [hk3]
         decide
-      · change layoutProgram.getD 1 .halt = .jump k at hk
-        simp at hk -- no_squeeze: concrete jump
+      · change (CMInstr.decz 0 3) = (CMInstr.jump k) at hk
         cases hk
     · rcases hk with hk | hk
-      · change layoutProgram.getD 1 .halt = .decz 1 k at hk
-        simp at hk -- no_squeeze: concrete decz
+      · change (CMInstr.decz 0 3) = (CMInstr.decz 1 k) at hk
         injection hk with h0 hk3
         have h01 : (0 : Fin 2) ≠ 1 := by decide
         exfalso
         exact h01 h0
-      · change layoutProgram.getD 1 .halt = .jump k at hk
-        simp at hk -- no_squeeze: concrete jump
+      · change (CMInstr.decz 0 3) = (CMInstr.jump k) at hk
         cases hk
   have h := playfield_header_get layoutProgram 7 1 (by decide) ht (by decide)
   simpa only [h, corridorRowAt] using (by decide : corridorRowAt layoutProgram 7 1 = '>')

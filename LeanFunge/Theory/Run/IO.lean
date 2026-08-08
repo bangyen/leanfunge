@@ -58,8 +58,7 @@ theorem stepState_input_prefix (s : State w h) (instr : Instruction) :
   · by_cases hii : instr = .inputInt
     · subst instr
       rcases parseInt_suffix s.input with ⟨pre, hpre⟩
-      exact ⟨pre, by simp [stepState]; exact hpre -- no_squeeze: input int
-        ⟩
+      exact ⟨pre, hpre⟩
     · exact ⟨[], by
         cases instr <;> first
           | contradiction
@@ -72,12 +71,10 @@ theorem stepState_output_prefix (s : State w h) (instr : Instruction) :
     ∃ suf : String, (stepState s instr).output = s.output ++ suf := by
   by_cases hpi : instr = .printInt
   · subst instr
-    exact ⟨String.ofList (formatInt (Stack.top s.stack)), by simp [stepState] -- no_squeeze: print int
-      ⟩
+    exact ⟨String.ofList (formatInt (Stack.top s.stack)), rfl⟩
   · by_cases hpc : instr = .printChar
     · subst instr
-      exact ⟨String.singleton (Char.ofNat (Int.toNat (Stack.top s.stack))), by simp [stepState] -- no_squeeze: print char
-        ⟩
+      exact ⟨String.singleton (Char.ofNat (Int.toNat (Stack.top s.stack))), rfl⟩
     · exact ⟨"", by
         cases instr <;> first
           | contradiction
@@ -92,7 +89,8 @@ theorem step_input_prefix (s s' : State w h) (hstep : step s = some s') :
   cases hsm : s.stringMode with
   | true =>
       rw [hsm] at hstep
-      have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by simpa using hstep -- no_squeeze: string mode
+      have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by
+        simpa using hstep -- no_squeeze: string mode
       subst s'
       exact ⟨[], by simp [stepString_input] -- no_squeeze: string input
         ⟩
@@ -100,7 +98,7 @@ theorem step_input_prefix (s s' : State w h) (hstep : step s = some s') :
       rw [hsm] at hstep
       by_cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt
       · simp [hdec] at hstep -- no_squeeze: halt cell
-      · simp at hstep -- no_squeeze: non-halt step
+      · simp only [Option.some.injEq] at hstep
         subst s'
         rcases stepState_input_prefix s (decodeChar (s.grid.get s.pc.1 s.pc.2)) with ⟨pre, hpre⟩
         exact ⟨pre, hpre⟩
@@ -112,7 +110,8 @@ theorem step_output_prefix (s s' : State w h) (hstep : step s = some s') :
   cases hsm : s.stringMode with
   | true =>
       rw [hsm] at hstep
-      have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by simpa using hstep -- no_squeeze: string mode
+      have hs' : stepString s (s.grid.get s.pc.1 s.pc.2) = s' := by
+        simpa using hstep -- no_squeeze: string mode
       subst s'
       exact ⟨"", by simp [stepString_output] -- no_squeeze: string output
         ⟩
@@ -120,7 +119,7 @@ theorem step_output_prefix (s s' : State w h) (hstep : step s = some s') :
       rw [hsm] at hstep
       by_cases hdec : decodeChar (s.grid.get s.pc.1 s.pc.2) = .halt
       · simp [hdec] at hstep -- no_squeeze: halt cell
-      · simp at hstep -- no_squeeze: non-halt step
+      · simp only [Option.some.injEq] at hstep
         subst s'
         rcases stepState_output_prefix s (decodeChar (s.grid.get s.pc.1 s.pc.2)) with ⟨suf, hsuf⟩
         exact ⟨suf, hsuf⟩

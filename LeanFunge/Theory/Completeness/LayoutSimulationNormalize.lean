@@ -228,10 +228,12 @@ private lemma normalizeAgree_jump (prog : CMProgram) (s t : CMState) (hc1 : s.c1
 
 /-- A single step of the normalized run agrees with the original run on the
     encoding and preserves the agreement. -/
-theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : normalizeAgree prog s t) :
+theorem normalize_step_encode (prog : CMProgram) (s t : CMState)
+    (hagree : normalizeAgree prog s t) :
     (CMInstr.step (normalize prog) s).map (fun s' => [encodeState s'])
       = (CMInstr.step prog t).map (fun s' => [encodeState s'])
-    ∧ ∀ s' t', CMInstr.step (normalize prog) s = some s' → CMInstr.step prog t = some t' → normalizeAgree prog s' t' := by
+    ∧ ∀ s' t', CMInstr.step (normalize prog) s = some s'
+        → CMInstr.step prog t = some t' → normalizeAgree prog s' t' := by
   rcases hagree with ⟨hc1, hc2, hp⟩
   rcases hp with hpeq | hhalt
   · by_cases hlt : t.pc < prog.length
@@ -245,9 +247,11 @@ theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : norma
           have h1 := CMInstr.step_inc prog t c hget
           have h2 := CMInstr.step_inc (normalize prog) s c hnorm
           have hinc : CMInstr.incCounter c s = CMInstr.incCounter c t := by
-            fin_cases c <;> simp [incCounter, write, CMInstr.read, hc1, hc2, hpeq] -- no_squeeze: simulation
+            fin_cases c <;> simp [incCounter, write, CMInstr.read, hc1, -- no_squeeze: simulation
+              hc2, hpeq]
           constructor
-          · fin_cases c <;> simp [h1, h2, hinc, encodeState, incCounter, write, CMInstr.read, hc1, hc2] -- no_squeeze: simulation
+          · fin_cases c <;> simp [h1, h2, encodeState, incCounter, -- no_squeeze: simulation
+              write, CMInstr.read, hc1, hc2]
           · intro s' t' hs' ht'
             rw [h2] at hs'
             rw [h1] at ht'
@@ -256,7 +260,8 @@ theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : norma
             subst s'
             subst t'
             have hinc : CMInstr.incCounter c s = CMInstr.incCounter c t := by
-              fin_cases c <;> simp [incCounter, write, CMInstr.read, hc1, hc2, hpeq] -- no_squeeze: simulation
+              fin_cases c <;>
+                simp [incCounter, write, CMInstr.read, hc1, hc2, hpeq] -- no_squeeze: simulation
             have hXY : { CMInstr.incCounter c s with pc := s.pc + 1 }
                 = { CMInstr.incCounter c t with pc := t.pc + 1 } := by
               rw [hinc]
@@ -270,7 +275,9 @@ theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : norma
             simp [clampInstr, hget_s] -- no_squeeze: simulation
           by_cases hz : read c t = 0
           · have h1 := CMInstr.step_decz_zero prog t c k hget hz
-            have h2 := CMInstr.step_decz_zero (normalize prog) s c (min k prog.length) hnorm (by simpa [CMInstr.read, hc1, hc2] using hz) -- no_squeeze: simulation
+            have h2 := CMInstr.step_decz_zero (normalize prog) s c
+              (min k prog.length) hnorm
+                (by simpa [CMInstr.read, hc1, hc2] using hz) -- no_squeeze: simulation
             constructor
             · simp [h1, h2, encodeState, hc1, hc2] -- no_squeeze: simulation
             · intro s' t' hs' ht'
@@ -282,15 +289,19 @@ theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : norma
               subst t'
               exact normalizeAgree_jump prog s t hc1 hc2 k
           · have h1 := CMInstr.step_decz_nonzero prog t c k hget hz
-            have h2 := CMInstr.step_decz_nonzero (normalize prog) s c (min k prog.length) hnorm (by simpa [CMInstr.read, hc1, hc2] using hz) -- no_squeeze: simulation
+            have h2 := CMInstr.step_decz_nonzero (normalize prog) s c
+              (min k prog.length) hnorm
+                (by simpa [CMInstr.read, hc1, hc2] using hz) -- no_squeeze: simulation
             have hdec : CMInstr.decCounter c s = CMInstr.decCounter c t := by
-              fin_cases c <;> simp [decCounter, write, CMInstr.read, hc1, hc2, hpeq] -- no_squeeze: simulation
+              fin_cases c <;>
+                simp [decCounter, write, CMInstr.read, hc1, hc2, hpeq] -- no_squeeze: simulation
             have hXY : { CMInstr.decCounter c s with pc := s.pc + 1 }
                 = { CMInstr.decCounter c t with pc := t.pc + 1 } := by
               rw [hdec]
               simp [hpeq] -- no_squeeze: simulation
             constructor
-            · fin_cases c <;> simp [h1, h2, hdec, encodeState, decCounter, write, CMInstr.read, hc1, hc2] -- no_squeeze: simulation
+            · fin_cases c <;> simp [h1, h2, encodeState, decCounter, -- no_squeeze: simulation
+              write, CMInstr.read, hc1, hc2]
             · intro s' t' hs' ht'
               rw [h2] at hs'
               rw [h1] at ht'
@@ -316,9 +327,6 @@ theorem normalize_step_encode (prog : CMProgram) (s t : CMState) (hagree : norma
             injection ht' with ht''
             subst s'
             subst t'
-            change normalizeAgree prog
-              { s with pc := min k prog.length }
-              { t with pc := k }
             exact normalizeAgree_jump prog s t hc1 hc2 k
       | halt =>
           have hget_s : instrAt prog s.pc = .halt := by rw [hpeq]; exact hget
@@ -362,13 +370,14 @@ private lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMSta
     (hagree : normalizeAgree prog s t) :
     (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s'])
       = (CMInstr.run prog n t).map (fun s' => [encodeState s'])
-    ∧ ∀ s' t', CMInstr.run (normalize prog) n s = some s' → CMInstr.run prog n t = some t' → normalizeAgree prog s' t' := by
+    ∧ ∀ s' t', CMInstr.run (normalize prog) n s = some s'
+        → CMInstr.run prog n t = some t' → normalizeAgree prog s' t' := by
   induction n with
   | zero =>
       constructor
       · simp [CMInstr.run, encodeState, hagree.1, hagree.2.1] -- no_squeeze: simulation
       · intro s' t' h1 h2
-        simp [CMInstr.run] at h1 h2 -- no_squeeze: simulation
+        simp only [CMInstr.run, Option.some.injEq] at h1 h2
         subst s'
         subst t'
         exact hagree
@@ -381,8 +390,12 @@ private lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMSta
             cases h2 : CMInstr.run prog n t with
             | none => exact h h2
             | some tₙ =>
-                have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = none := by simp [hnorm] -- no_squeeze: simulation
-                have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = some [encodeState tₙ] := by simp [h2] -- no_squeeze: simulation
+                have hleft : (CMInstr.run (normalize prog) n s).map
+                    (fun s' => [encodeState s']) = none := by
+                  simp [hnorm] -- no_squeeze: simulation
+                have hright : (CMInstr.run prog n t).map
+                    (fun s' => [encodeState s']) = some [encodeState tₙ] := by
+                  simp [h2] -- no_squeeze: simulation
                 rw [← hih.1] at hright
                 rw [hleft] at hright
                 simp at hright -- no_squeeze: simulation
@@ -391,12 +404,16 @@ private lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMSta
             simp -- no_squeeze: simulation
           · intro s' t' h1 h2
             rw [CMInstr.run_succ, hnorm] at h1
-            simp at h1 -- no_squeeze: simulation
+            simp only [Option.bind_none, reduceCtorEq] at h1
       | some sₙ =>
           cases hprog : CMInstr.run prog n t with
           | none =>
-              have hleft : (CMInstr.run (normalize prog) n s).map (fun s' => [encodeState s']) = some [encodeState sₙ] := by simp [hnorm] -- no_squeeze: simulation
-              have hright : (CMInstr.run prog n t).map (fun s' => [encodeState s']) = none := by simp [hprog] -- no_squeeze: simulation
+              have hleft : (CMInstr.run (normalize prog) n s).map
+                  (fun s' => [encodeState s']) = some [encodeState sₙ] := by
+                simp [hnorm] -- no_squeeze: simulation
+              have hright : (CMInstr.run prog n t).map
+                  (fun s' => [encodeState s']) = none := by
+                simp [hprog] -- no_squeeze: simulation
               rw [hih.1] at hleft
               rw [hright] at hleft
               simp at hleft -- no_squeeze: simulation
@@ -409,8 +426,8 @@ private lemma normalize_run_encode_aux (prog : CMProgram) (n : ℕ) (s t : CMSta
               · intro s' t' h1 h2
                 rw [CMInstr.run_succ, hnorm] at h1
                 rw [CMInstr.run_succ, hprog] at h2
-                simp at h1 -- no_squeeze: simulation
-                simp at h2 -- no_squeeze: simulation
+                simp only [Option.bind_some] at h1
+                simp only [Option.bind_some] at h2
                 exact hstep.2 s' t' h1 h2
 
 /-- The normalized program's encoded run matches the original's. -/
@@ -441,7 +458,8 @@ theorem normalize_halts_iff (prog : CMProgram) (s₀ : CMState) :
       cases h2 : CMInstr.run prog n s₀ with
       | none => exact h h2
       | some t =>
-          have hm : (CMInstr.run prog n s₀).map (fun s' => [encodeState s']) = some [encodeState t] := by
+          have hm : (CMInstr.run prog n s₀).map
+              (fun s' => [encodeState s']) = some [encodeState t] := by
             rw [h2]
             change some [encodeState t] = some [encodeState t]
             rfl
@@ -452,14 +470,16 @@ theorem normalize_halts_iff (prog : CMProgram) (s₀ : CMState) :
     rcases h with ⟨n, hn⟩
     have hmap := normalize_run_encode prog s₀ n
     rw [hn] at hmap
-    have hnormmap : (CMInstr.run (normalize prog) n s₀).map (fun s' => [encodeState s']) = none := by
+    have hnormmap : (CMInstr.run (normalize prog) n s₀).map
+        (fun s' => [encodeState s']) = none := by
       simpa using hmap -- no_squeeze: simulation
     have hrun : CMInstr.run (normalize prog) n s₀ = none := by
       by_contra h
       cases h2 : CMInstr.run (normalize prog) n s₀ with
       | none => exact h h2
       | some t =>
-          have hm : (CMInstr.run (normalize prog) n s₀).map (fun s' => [encodeState s']) = some [encodeState t] := by
+          have hm : (CMInstr.run (normalize prog) n s₀).map
+              (fun s' => [encodeState s']) = some [encodeState t] := by
             rw [h2]
             change some [encodeState t] = some [encodeState t]
             rfl

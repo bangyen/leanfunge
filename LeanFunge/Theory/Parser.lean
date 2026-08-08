@@ -238,7 +238,8 @@ theorem skipSpaces_suffix (input : List Char) :
       · rw [hc]
         rcases ih with ⟨pre, hpre⟩
         refine ⟨c :: pre, ?_⟩
-        simp [skipSpaces, hc] -- no_squeeze: space prefix
+        simp only [↓Char.isValue, hc, skipSpaces, ↓reduceIte, List.cons_append, List.cons.injEq,
+          true_and]
         rw [← hpre]
       · refine ⟨[], ?_⟩
         simp [skipSpaces, hc] -- no_squeeze: space prefix
@@ -316,7 +317,8 @@ theorem parseInt_suffix (input : List Char) :
           rw [parseInt_skip_minus_zero input rest ds rest' hsp htake hds]
           simp [hsp] -- no_squeeze: minus no digits
         · rcases skipSpaces_suffix input with ⟨pre, hpre⟩
-          have hre : rest = ds ++ rest' := by simpa [htake] using takeDigits_suffix rest -- no_squeeze: digit remainder
+          have hre : rest = ds ++ rest' := by
+            simpa [htake] using takeDigits_suffix rest -- no_squeeze: digit remainder
           refine ⟨pre ++ ('-' :: ds), ?_⟩
           conv => lhs; rw [hpre]
           rw [parseInt_skip_minus input rest ds rest' hsp htake hds]

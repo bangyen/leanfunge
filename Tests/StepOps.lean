@@ -80,4 +80,22 @@ example {w h : ℕ} (hw : 2 ≤ w) (s : State w h) (y : ℕ)
     step s = some { s with pc := (1, y % h) } :=
   step_trampoline_right_from_last hw s y hm hcell hpc hdir
 
+example {w h : ℕ} (hw : 2 ≤ w) (s : State w h) (y : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (0, y)) (hdir : s.dir = .left) :
+    step s = some { s with pc := (w - 2, y % h) } :=
+  step_trampoline_left_from_first hw s y hm hcell hpc hdir
+
+example {w h : ℕ} (hh : 2 ≤ h) (s : State w h) (x : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (x, h - 1)) (hdir : s.dir = .down) :
+    step s = some { s with pc := (x % w, 1) } :=
+  step_trampoline_down_from_last hh s x hm hcell hpc hdir
+
+example {w h : ℕ} (hh : 2 ≤ h) (s : State w h) (x : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (x, 0)) (hdir : s.dir = .up) :
+    step s = some { s with pc := (x % w, h - 2) } :=
+  step_trampoline_up_from_first hh s x hm hcell hpc hdir
+
 end LeanFunge.Tests

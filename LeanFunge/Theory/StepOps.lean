@@ -28,6 +28,9 @@ toroidal-wrapping instance of the `#` trampoline.
 * `step_inputChar_eof`: At end of input, `~` pushes `0`.
 * `step_inputInt`: `&` parses a decimal integer from the input stream.
 * `step_trampoline_right_from_last`: `#` at the last column wraps to column 1.
+* `step_trampoline_left_from_first`: `#` at column 0 wraps to column `w - 2`.
+* `step_trampoline_down_from_last`: `#` at the last row wraps to row 1.
+* `step_trampoline_up_from_first`: `#` at row 0 wraps to row `h - 2`.
 -/
 
 namespace LeanFunge
@@ -126,6 +129,52 @@ theorem step_trampoline_right_from_last {w h : ℕ} (hw : 2 ≤ w) (s : State w 
   have hnext : stepPos w h Direction.right (0, y % h) = (1, y % h) := by
     unfold stepPos
     simp only [Nat.mod_eq_of_lt (show 1 < w by omega), Nat.mod_mod]
+  rw [step_trampoline s hm hcell]
+  simp only [hpc, hdir, hmid, hnext]
+
+/-- `#` at column 0, moving left, skips across the wrap and lands at column
+    `w - 2`. -/
+theorem step_trampoline_left_from_first {w h : ℕ} (hw : 2 ≤ w) (s : State w h) (y : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (0, y)) (hdir : s.dir = .left) :
+    step s = some { s with pc := (w - 2, y % h) } := by
+  have hmid : stepPos w h Direction.left (0, y) = (w - 1, y % h) := by
+    unfold stepPos
+    rw [Nat.zero_add, Nat.mod_eq_of_lt (show w - 1 < w by omega)]
+  have hnext : stepPos w h Direction.left (w - 1, y % h) = (w - 2, y % h) := by
+    unfold stepPos
+    rw [show w - 1 + w - 1 = w + (w - 2) by omega, Nat.add_mod_left,
+      Nat.mod_eq_of_lt (show w - 2 < w by omega), Nat.mod_mod]
+  rw [step_trampoline s hm hcell]
+  simp only [hpc, hdir, hmid, hnext]
+
+/-- `#` at the last row, moving down, skips across the wrap and lands at
+    row 1. -/
+theorem step_trampoline_down_from_last {w h : ℕ} (hh : 2 ≤ h) (s : State w h) (x : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (x, h - 1)) (hdir : s.dir = .down) :
+    step s = some { s with pc := (x % w, 1) } := by
+  have hmid : stepPos w h Direction.down (x, h - 1) = (x % w, 0) := by
+    unfold stepPos
+    rw [Nat.sub_add_cancel (show 1 ≤ h by omega), Nat.mod_self]
+  have hnext : stepPos w h Direction.down (x % w, 0) = (x % w, 1) := by
+    unfold stepPos
+    simp only [Nat.zero_add, Nat.mod_eq_of_lt (show 1 < h by omega), Nat.mod_mod]
+  rw [step_trampoline s hm hcell]
+  simp only [hpc, hdir, hmid, hnext]
+
+/-- `#` at row 0, moving up, skips across the wrap and lands at row `h - 2`. -/
+theorem step_trampoline_up_from_first {w h : ℕ} (hh : 2 ≤ h) (s : State w h) (x : ℕ)
+    (hm : s.stringMode = false) (hcell : s.grid.get s.pc.1 s.pc.2 = '#')
+    (hpc : s.pc = (x, 0)) (hdir : s.dir = .up) :
+    step s = some { s with pc := (x % w, h - 2) } := by
+  have hmid : stepPos w h Direction.up (x, 0) = (x % w, h - 1) := by
+    unfold stepPos
+    rw [Nat.zero_add, Nat.mod_eq_of_lt (show h - 1 < h by omega)]
+  have hnext : stepPos w h Direction.up (x % w, h - 1) = (x % w, h - 2) := by
+    unfold stepPos
+    rw [show h - 1 + h - 1 = h + (h - 2) by omega, Nat.add_mod_left,
+      Nat.mod_eq_of_lt (show h - 2 < h by omega), Nat.mod_mod]
   rw [step_trampoline s hm hcell]
   simp only [hpc, hdir, hmid, hnext]
 

@@ -161,6 +161,14 @@ project convention that `Core` files contain only definitions.
   (`halt_unique`). Hence a halting run has a unique final state
   (`halts_unique_final`) and a unique output (`halt_output_unique`): for a
   fixed program and input the output is determined.
+- `Theory/Run/String.lean`: string-mode block semantics and precedence.
+  `run_string` pushes each traversed character's code and `run_string_block`
+  composes the opening quote, the run, and the closing quote; `run_print` and
+  `run_string_block_print` show the pushed codes print back out. String mode
+  also takes precedence over the instruction set: `step_string_mode` and
+  `run_string_mode` prove that while it is on, the interpreter never halts,
+  writes the playfield, consumes input, produces output, or turns — the cells
+  are data, not code.
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
   playfield and stays out of string mode (`run_space_step`).

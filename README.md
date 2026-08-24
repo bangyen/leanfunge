@@ -46,8 +46,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   decimal integer and `.` prints through a redefinable encoding that round-trips
   with the parser.
 - **Invariance, termination, divergence** (`Theory.Invariance`, `Theory.Run`,
-  `Theory.Termination`): only `p` writes the playfield, ranked machines
-  terminate, and all-space runs never halt.
+  `Theory.Termination`): only `p` writes the playfield, the playfield at any
+  step is the initial playfield plus the run's accumulated `p` writes (so a
+  cell never written keeps its value), ranked machines terminate, and
+  all-space runs never halt.
 - **Turing completeness** (`Theory.Completeness`): a fully verified
   construction showing Befunge-93 computes what every two-counter machine
   computes. The two-counter Minsky machine semantics (`TwoCounter`), the
@@ -121,7 +123,7 @@ Further properties of the language, ranked by value and feasibility.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Run-level `p`/`g` memory model** | High | The playfield at any step is the initial playfield plus the accumulated `p` writes; a cell never written keeps its value. Extends `run_grid_invariant` and lifts the Quine/SelfMod examples from kernel computation to theorems. |
+| **Run-level `p`/`g` memory model** | High | Proven: `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. Lifting the Quine/SelfMod examples from kernel computation to theorems remains. |
 | **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. |
 | **Output determinism** | Medium | For a fixed program and input, the output is unique: the program is a function `input → output`. An immediate corollary of determinism worth stating. |
 | **`#` trampoline wrapping in all four directions** | Medium | Only right-from-last-column is proven (`step_trampoline_right_from_last`); left, up, and down are the same lemma at the other edges. |

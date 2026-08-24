@@ -24,6 +24,32 @@ example (s : State w h) (n : ℕ) (s' : State w h)
   run_grid_invariant s n s' h hno
 
 example {w h : ℕ} (s : State w h) (s' : State w h) (hstep : step s = some s')
+    (hstr : s.stringMode = false)
+    (hins : decodeChar (s.grid.get s.pc.1 s.pc.2) = .put) :
+    s'.grid = Grid.put s.grid (putX s) (putY s) (putChar s) :=
+  step_grid_put hstep hstr hins
+
+example {w h : ℕ} (s : State w h) (s' : State w h) (x y : ℕ)
+    (hstep : step s = some s') (hp : stepPreservesCell x y s) :
+    s'.grid.get x y = s.grid.get x y :=
+  step_cell_of_stepPreservesCell x y hstep hp
+
+example (x y : ℕ) (s : State w h) (n : ℕ) (s' : State w h)
+    (h : run n s = some s')
+    (hno : ∀ k, k ≤ n → ∀ sₖ, run k s = some sₖ → stepPreservesCell x y sₖ) :
+    s'.grid.get x y = s.grid.get x y :=
+  run_cell_invariant x y s n s' h hno
+
+example {w h : ℕ} (s : State w h) (s' : State w h) (hstep : step s = some s') :
+    s'.grid = applyWrite s.grid (stepWrite s) :=
+  step_grid_applyWrite hstep
+
+example (s : State w h) (n : ℕ) (s' : State w h) (h : run n s = some s') :
+    s'.grid
+      = (runWrites n s).foldl (fun g wt => Grid.put g wt.1 wt.2.1 wt.2.2) s.grid :=
+  run_grid_writes s n s' h
+
+example {w h : ℕ} (s : State w h) (s' : State w h) (hstep : step s = some s')
     (hn : stepPreservesStack s) : s'.stack = s.stack :=
   step_stack_of_stepPreservesStack hstep hn
 

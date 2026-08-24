@@ -133,10 +133,15 @@ project convention that `Core` files contain only definitions.
   digits of `natDigits`, and `parseInt_formatInt` proves that re-parsing any
   `formatInt` output with `&` recovers the original integer — the generic dual
   of the `&` parser.
-- `Theory/Run.lean`: run-level invariance. A grid-preserving run leaves the
-  playfield unchanged across the whole run (`run_grid_invariant`), so a cell
-  never written by the put instruction keeps its value; a nop-only run leaves
-  the stack unchanged (`run_stack_invariant`).
+- `Theory/Run.lean`: run-level invariance and the memory model. A
+  grid-preserving run leaves the playfield unchanged across the whole run
+  (`run_grid_invariant`); a nop-only run leaves the stack unchanged
+  (`run_stack_invariant`). A put step writes exactly one cell
+  (`step_grid_put`, at the coordinates `putX`/`putY` with the character
+  `putChar`), so a cell no step of a run writes keeps its value
+  (`run_cell_invariant`), and the playfield after any number of steps is the
+  initial playfield with the run's accumulated put writes (`runWrites`)
+  applied in order (`run_grid_writes`).
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
   playfield and stays out of string mode (`run_space_step`).

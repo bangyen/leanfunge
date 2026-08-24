@@ -118,7 +118,7 @@ The remaining language tracks are complete: the string-mode block semantics
 the nop-run pointer movement (`run_spaces`), the prefix-only input consumption
 (`parseInt_suffix`, `run_input_prefix`), the string-mode output round-trip
 (`run_print`, `run_string_block_print`), the halting characterization
-(`halts_iff_at`), and the I/O separation (`step_input_prefix`/`step_output_prefix`,
+(`halts_iff_at`), the output determinism (`halt_unique`), and the I/O separation (`step_input_prefix`/`step_output_prefix`,
 `run_input_prefix`/`run_output_prefix`) are all proven.
 
 ### Future language properties

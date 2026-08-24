@@ -174,6 +174,43 @@ example {w h : ℕ} (n : ℕ) (s : State w h)
       s'.output = s.output ∧ s'.dir = s.dir :=
   run_string_mode n s hin
 
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hsafe : SafeInstr (decodeChar (s.grid.get s.pc.1 s.pc.2))) :
+    ∃ s', step s = some s' ∧ s'.dir = s.dir ∧ s'.grid = s.grid ∧
+      s'.stringMode = false ∧
+      (match s.dir with
+       | .right | .left => s'.pc.2 % h = s.pc.2 % h
+       | .up | .down => s'.pc.1 % w = s.pc.1 % w) :=
+  step_safe hm hsafe
+
+example {w h : ℕ} {g : Grid w h} {d : Direction} {pos p : ℕ × ℕ}
+    (hw : 0 < w) (hh : 0 < h)
+    (hp : match d with
+          | .right | .left => p.2 % h = pos.2 % h
+          | .up | .down => p.1 % w = pos.1 % w)
+    (hline : SafeLine g d pos) :
+    SafeInstr (decodeChar (g.get p.1 p.2)) :=
+  safe_at_pc hw hh hp hline
+
+example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
+    (hm : s.stringMode = false) (hline : SafeLine s.grid s.dir s.pc) (n : ℕ) :
+    ∃ s', run n s = some s' ∧ s'.dir = s.dir ∧ s'.grid = s.grid ∧
+      s'.stringMode = false ∧
+      (match s.dir with
+       | .right | .left => s'.pc.2 % h = s.pc.2 % h
+       | .up | .down => s'.pc.1 % w = s.pc.1 % w) :=
+  run_safe_line_step hw hh hm hline n
+
+example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
+    (hm : s.stringMode = false) (hline : SafeLine s.grid s.dir s.pc) (n : ℕ) :
+    run n s ≠ none :=
+  run_safe_line_some hw hh hm hline n
+
+example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
+    (hm : s.stringMode = false) (hline : SafeLine s.grid s.dir s.pc) :
+    ¬ halts s :=
+  not_halts_safe_line hw hh hm hline
+
 example {w h : ℕ} (s : State w h) (ch : Char) :
     (stepString s ch).grid = s.grid :=
   stepString_grid s ch

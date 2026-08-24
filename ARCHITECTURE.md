@@ -171,7 +171,12 @@ project convention that `Core` files contain only definitions.
   are data, not code.
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
-  playfield and stays out of string mode (`run_space_step`).
+  playfield and stays out of string mode (`run_space_step`). This generalizes
+  to any straight line of safe cells (`SafeLine`) — cells that neither halt,
+  turn, write the playfield, nor toggle string mode: the pointer keeps its
+  direction and stays on the line forever, so the program diverges
+  (`not_halts_safe_line`), in all four directions. Excluding `p` is necessary
+  because a write could place an `@` further along the line.
 - `Theory/Run/Relational.lean`: multi-step relational semantics. `runRel`
   lifts `stepRel` to finite runs, including halt propagation; deterministic
   runs refine it, one-step relational runs coincide with `stepRel`, and both

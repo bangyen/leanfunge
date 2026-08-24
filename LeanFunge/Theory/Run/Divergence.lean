@@ -135,7 +135,7 @@ theorem step_safe {s : State w h} (hm : s.stringMode = false)
   | printChar => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
   | trampoline =>
       refine ⟨_, rfl, rfl, rfl, hm, ?_⟩
-      show (match s.dir with
+      change (match s.dir with
         | .right | .left =>
             (stepPos w h s.dir (stepPos w h s.dir s.pc)).2 % h = s.pc.2 % h
         | .up | .down =>

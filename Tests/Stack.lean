@@ -41,4 +41,22 @@ example (op : Int → Int → Int) (a b : Int) (s : Stack) :
     Stack.drop (Stack.applyBinary op (a :: b :: s)) = s :=
   Stack.applyBinary_drop2 op a b s
 
+example : Stack.pop ([] : Stack) = ([], 0) := Stack.pop_nil
+
+example : Stack.top ([] : Stack) = 0 := Stack.top_nil
+
+example : Stack.drop ([] : Stack) = [] := Stack.drop_nil
+
+example : Stack.dup ([] : Stack) = [0] := Stack.dup_nil
+
+example : Stack.swap ([] : Stack) = [0] := Stack.swap_nil
+
+example (a : Int) : Stack.swap [a] = [0, a] := Stack.swap_singleton a
+
+example (op : Int → Int → Int) : Stack.applyBinary op ([] : Stack) = [op 0 0] :=
+  Stack.applyBinary_nil op
+
+example (op : Int → Int → Int) (a : Int) : Stack.applyBinary op [a] = [op 0 a] :=
+  Stack.applyBinary_singleton op a
+
 end LeanFunge.Tests

@@ -129,7 +129,7 @@ Further properties of the language, ranked by value and feasibility.
 | :--- | :--- | :--- |
 | **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
 | **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. |
-| **Output determinism** | Medium | For a fixed program and input, the output is unique: the program is a function `input → output`. An immediate corollary of determinism worth stating. |
+| **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
 | **`#` trampoline wrapping in all four directions** | Medium | Only right-from-last-column is proven (`step_trampoline_right_from_last`); left, up, and down are the same lemma at the other edges. |
 | **Straight-line divergence without `@`** | Medium | Any straight run of cells with no `@` and no turn never halts; generalizes `run_space_some` from all-space playfields to arbitrary non-halting straight lines. |
 | **Stack underflow semantics** | Low | The interpreter's choices (`Stack.top [] = 0`, `Stack.dup [] = [0]`, `applyBinary` fills missing operands with `0`) are defined but unproven; document every instruction on empty and short stacks. |
@@ -176,15 +176,15 @@ unspecified; LeanFunge makes the following choices, all documented in
   round-trip (`parseInt_formatInt`) is fully generic.
 - Every verified example is deterministic; the nondeterminism of `?` is
   captured by the transition relation rather than the executable interpreter.
-- The completeness development (`Theory.Completeness`) has verified the
-  two-counter machine semantics, the pair encoding, the generic cell lookup
-  and generic `inc`/`jump`/`halt` block execution on the generated playfield,
-  and concrete simulated programs end-to-end. The fully generic theorem —
-  that *every* two-counter machine has a playfield that simulates it — is in
-  progress (see the Roadmap); it needs the generic `decz` block execution and
-  the geometric routing lemmas. It does not require changing the fixed-grid
-  semantics: unbounded memory comes from the unbounded stack, and the finite
-  playfield supplies only finite control.
+- The completeness development (`Theory.Completeness`) is complete for
+  Befunge-93's side: `universal_simulation` gives *every* two-counter machine
+  a playfield that simulates it. What it does not claim is the classical
+  result that two-counter machines are themselves Turing complete, which
+  mathlib does not contain; that last step is a library of classical
+  computability theory rather than a gap in this development. The
+  construction does not require changing the fixed-grid semantics: unbounded
+  memory comes from the unbounded stack, and the finite playfield supplies
+  only finite control.
 
 ## Installation & Building
 

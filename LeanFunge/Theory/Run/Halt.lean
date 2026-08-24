@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Run.Relational
 import Mathlib.Data.Nat.Notation
+import Mathlib.Logic.ExistsUnique
 
 /-!
 # Run-Level Halting Characterization
@@ -12,7 +14,9 @@ import Mathlib.Data.Nat.Notation
 A program halts exactly when the instruction pointer reaches the `@` cell
 outside string mode. This module makes that precise: the single-step halting
 condition is a `halt` instruction at the pointer outside string mode, and a
-finite run halts exactly when some intermediate state satisfies it.
+finite run halts exactly when some intermediate state satisfies it. That
+halting configuration is moreover unique, so the output of a halting program
+is well defined.
 
 ## Theorems
 
@@ -28,6 +32,12 @@ finite run halts exactly when some intermediate state satisfies it.
 * `halts_iff_at`: A run halts exactly when it reaches the `@` cell outside
   string mode.
 * `halts_of_at_cell`: Reaching the `@` cell outside string mode halts the run.
+* `run_none_stays_none`: Once a run has halted it stays halted.
+* `halt_unique`: A run reaches at most one halting configuration, at one step
+  count.
+* `halt_output_unique`: The output of a halting run is unique.
+* `halts_unique_final`: A halting run has a unique final state, reached at a
+  unique step count — for a fixed program and input the output is determined.
 -/
 
 namespace LeanFunge
@@ -128,5 +138,59 @@ theorem halts_of_at_cell (s : State w h) (m : ℕ) (sₘ : State w h)
     (hat : sₘ.grid.get sₘ.pc.1 sₘ.pc.2 = '@') : halts s := by
   rw [halts_iff_at]
   exact ⟨m, sₘ, hr, hsm, hat⟩
+
+/-- Once a run has halted it stays halted: no later step count revives it. -/
+theorem run_none_stays_none (s : State w h) (k : ℕ) (hs : step s = none)
+    (hk : 0 < k) : run k s = none := by
+  rcases k with _ | k
+  · exact absurd hk (by decide)
+  · clear hk
+    induction k with
+    | zero => rw [run, run]; exact hs
+    | succ k ih => rw [run, ih]; rfl
+
+/-- A run reaches at most one halting configuration, at one step count: the
+    `@` the pointer reaches, and when it reaches it, are both determined. -/
+theorem halt_unique (s : State w h) {m m' : ℕ} {sₘ sₘ' : State w h}
+    (hr : run m s = some sₘ) (hs : step sₘ = none)
+    (hr' : run m' s = some sₘ') (hs' : step sₘ' = none) :
+    m = m' ∧ sₘ = sₘ' := by
+  have key : ∀ (a b : ℕ) (sa sb : State w h), a ≤ b →
+      run a s = some sa → step sa = none → run b s = some sb →
+      a = b ∧ sa = sb := by
+    intro a b sa sb hab ha hsa hb
+    obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hab
+    rcases Nat.eq_zero_or_pos k with hk | hk
+    · subst hk
+      rw [Nat.add_zero] at hb
+      rw [ha] at hb
+      injection hb with hb
+      exact ⟨rfl, hb⟩
+    · have hnone : run (a + k) s = none := run_append s sa none a k ha
+        (run_none_stays_none sa k hsa hk)
+      rw [hnone] at hb
+      cases hb
+  rcases Nat.le_total m m' with hle | hle
+  · exact key m m' sₘ sₘ' hle hr hs hr'
+  · obtain ⟨he, hse⟩ := key m' m sₘ' sₘ hle hr' hs' hr
+    exact ⟨he.symm, hse.symm⟩
+
+/-- The output of a halting run is unique. -/
+theorem halt_output_unique (s : State w h) {m m' : ℕ} {sₘ sₘ' : State w h}
+    (hr : run m s = some sₘ) (hs : step sₘ = none)
+    (hr' : run m' s = some sₘ') (hs' : step sₘ' = none) :
+    sₘ.output = sₘ'.output := by
+  rw [(halt_unique s hr hs hr' hs').2]
+
+/-- A halting run has a unique final state, reached at a unique step count: for
+    a fixed program and input the resulting output is determined. -/
+theorem halts_unique_final (s : State w h) (hh : halts s) :
+    ∃! p : ℕ × State w h, run p.1 s = some p.2 ∧ step p.2 = none := by
+  rcases (halts_iff_reaches_halt s).mp hh with ⟨m, sₘ, hr, hs⟩
+  refine ⟨(m, sₘ), ⟨hr, hs⟩, ?_⟩
+  rintro ⟨m', sₘ'⟩ ⟨hr', hs'⟩
+  obtain ⟨he, hse⟩ := halt_unique s hr' hs' hr hs
+  simp only [Prod.mk.injEq]
+  exact ⟨he, hse⟩
 
 end LeanFunge

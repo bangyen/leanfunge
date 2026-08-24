@@ -28,6 +28,8 @@ suffix extension of the output.
 * `step_output_prefix`: A step appends to the output.
 * `run_input_prefix`: A run consumes a prefix of the input.
 * `run_output_prefix`: A run appends to the output.
+* `stepString_grid`: A string-mode step leaves the playfield unchanged.
+* `stepString_dir`: A string-mode step leaves the direction unchanged.
 -/
 
 namespace LeanFunge
@@ -41,6 +43,18 @@ theorem stepString_input (s : State w h) (ch : Char) :
 /-- A string-mode step leaves the output unchanged. -/
 theorem stepString_output (s : State w h) (ch : Char) :
     (stepString s ch).output = s.output := by
+  unfold stepString
+  cases (ch.toNat == '"'.toNat) <;> rfl
+
+/-- A string-mode step leaves the playfield unchanged. -/
+theorem stepString_grid (s : State w h) (ch : Char) :
+    (stepString s ch).grid = s.grid := by
+  unfold stepString
+  cases (ch.toNat == '"'.toNat) <;> rfl
+
+/-- A string-mode step leaves the direction unchanged. -/
+theorem stepString_dir (s : State w h) (ch : Char) :
+    (stepString s ch).dir = s.dir := by
   unfold stepString
   cases (ch.toNat == '"'.toNat) <;> rfl
 

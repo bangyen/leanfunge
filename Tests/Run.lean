@@ -163,6 +163,25 @@ example (x y n : ℕ) (s : State w h) (hpc : s.pc = (x % w, y % h))
       pc := runPos w h n s.dir (x % w, y % h) } :=
   run_string x y n s hpc hsm hstr
 
+example {w h : ℕ} (s : State w h) (hsm : s.stringMode = true) :
+    ∃ s', step s = some s' ∧ s'.grid = s.grid ∧ s'.input = s.input ∧
+      s'.output = s.output ∧ s'.dir = s.dir :=
+  step_string_mode s hsm
+
+example {w h : ℕ} (n : ℕ) (s : State w h)
+    (hin : ∀ k < n, ∀ sₖ, run k s = some sₖ → sₖ.stringMode = true) :
+    ∃ s', run n s = some s' ∧ s'.grid = s.grid ∧ s'.input = s.input ∧
+      s'.output = s.output ∧ s'.dir = s.dir :=
+  run_string_mode n s hin
+
+example {w h : ℕ} (s : State w h) (ch : Char) :
+    (stepString s ch).grid = s.grid :=
+  stepString_grid s ch
+
+example {w h : ℕ} (s : State w h) (ch : Char) :
+    (stepString s ch).dir = s.dir :=
+  stepString_dir s ch
+
 example (s : State w h) (hm : s.stringMode = false)
     (hcell : s.grid.get s.pc.1 s.pc.2 = ',') :
     step s = some { s with

@@ -134,7 +134,7 @@ Further properties of the language, ranked by value and feasibility.
 | **Straight-line divergence without `@`** | Medium | Any straight run of cells with no `@` and no turn never halts; generalizes `run_space_some` from all-space playfields to arbitrary non-halting straight lines. |
 | **Stack underflow semantics** | Low | The interpreter's choices (`Stack.top [] = 0`, `Stack.dup [] = [0]`, `applyBinary` fills missing operands with `0`) are defined but unproven; document every instruction on empty and short stacks. |
 | **Division and modulo by zero** | Low | `/` and `%` on a zero divisor push `0` (Lean's `Int` division); pin down the formalization's choice explicitly, since Befunge-93 leaves it undefined. |
-| **String-mode precedence** | Medium | In string mode the instruction set is ignored: string-mode steps never halt, write to the grid, or consume input or produce output. The "string mode is data, not code" property. |
+| **String-mode precedence** | Medium | Done. `step_string_mode` shows a string-mode step never halts, writes the grid, consumes input, produces output, or turns; `run_string_mode` lifts it to any run that stays in string mode. The "string mode is data, not code" property. |
 | **Quote balance** | Medium | Along any path, string mode is off exactly when an even number of `"` cells were crossed; a compositional statement over string runs. |
 
 ## Scope & Limitations

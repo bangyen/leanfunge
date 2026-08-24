@@ -5,6 +5,7 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
 import LeanFunge.Theory.Direction
+import LeanFunge.Theory.Run.IO
 import LeanFunge.Theory.Run.Relational
 import LeanFunge.Theory.Step
 import Mathlib.Data.Nat.Notation
@@ -23,6 +24,11 @@ pops `n` codes and appends their characters, and `run_string_block_print`
 composes the string block with the print run so the output round-trips: the
 string block's characters come back out (in reverse order, as the codes are
 popped most recent first).
+
+String mode also takes precedence over the instruction set: `step_string_mode`
+and `run_string_mode` show that while string mode is on, the interpreter never
+halts, writes the playfield, consumes input, produces output, or turns — the
+cells are data, not code.
 
 ## Main definitions
 
@@ -51,6 +57,10 @@ popped most recent first).
   the output.
 * `run_string_block_print`: A string block followed by print cells outputs the
   block's characters in reverse, restoring the stack.
+* `step_string_mode`: A string-mode step never halts, writes the playfield,
+  consumes input, produces output, or turns.
+* `run_string_mode`: A run that stays in string mode throughout leaves the
+  playfield, input, output, and direction untouched.
 -/
 
 namespace LeanFunge
@@ -385,5 +395,42 @@ theorem run_string_block_print (x y n : ℕ) (s : State w h)
   have hsum : (n + 2) + n = 2 * n + 2 := by omega
   have htotal := run_append s s₀ (some s₂) (n + 2) n hblock hprintrun
   simpa only [hsum, s₂] using htotal
+
+/-- In string mode the instruction set is ignored: the step never halts, never
+    writes the playfield, never consumes input, never produces output, and
+    never turns. Only the stack, the mode toggle, and the pointer move. -/
+theorem step_string_mode (s : State w h) (hsm : s.stringMode = true) :
+    ∃ s', step s = some s' ∧ s'.grid = s.grid ∧ s'.input = s.input ∧
+      s'.output = s.output ∧ s'.dir = s.dir := by
+  refine ⟨stepString s (s.grid.get s.pc.1 s.pc.2), ?_, ?_, ?_, ?_, ?_⟩
+  · unfold step
+    dsimp only
+    rw [hsm]
+  · exact stepString_grid _ _
+  · exact stepString_input _ _
+  · exact stepString_output _ _
+  · exact stepString_dir _ _
+
+/-- A run that stays in string mode throughout never halts, and leaves the
+    playfield, input, output, and direction untouched: string mode is data,
+    not code. The hypothesis is necessary — a closing `"` leaves string mode,
+    after which the instruction set applies again. -/
+theorem run_string_mode (n : ℕ) (s : State w h)
+    (hin : ∀ k < n, ∀ sₖ, run k s = some sₖ → sₖ.stringMode = true) :
+    ∃ s', run n s = some s' ∧ s'.grid = s.grid ∧ s'.input = s.input ∧
+      s'.output = s.output ∧ s'.dir = s.dir := by
+  induction n with
+  | zero => exact ⟨s, rfl, rfl, rfl, rfl, rfl⟩
+  | succ n ih =>
+      obtain ⟨sₙ, hrun, hg, hi, ho, hd⟩ := ih (fun k hk sₖ hsₖ =>
+        hin k (Nat.lt_succ_of_lt hk) sₖ hsₖ)
+      have hsm : sₙ.stringMode = true := hin n (Nat.lt_succ_self n) sₙ hrun
+      obtain ⟨s', hstep, hg', hi', ho', hd'⟩ := step_string_mode sₙ hsm
+      refine ⟨s', ?_, ?_, ?_, ?_, ?_⟩
+      · rw [run, hrun]; exact hstep
+      · rw [hg', hg]
+      · rw [hi', hi]
+      · rw [ho', ho]
+      · rw [hd', hd]
 
 end LeanFunge

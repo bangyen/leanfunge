@@ -142,6 +142,15 @@ project convention that `Core` files contain only definitions.
   (`run_cell_invariant`), and the playfield after any number of steps is the
   initial playfield with the run's accumulated put writes (`runWrites`)
   applied in order (`run_grid_writes`).
+- `Theory/Memory.lean`: the memory model of the example programs. A playfield
+  with no put instruction anywhere (`gridNoPut`) is unchanged across any run
+  (`run_grid_invariant_of_noPut`), which proves the quine never modifies
+  itself at any number of steps (`quine_grid_invariant`) — a statement no
+  fixed-step computation can make. The self-modifying programs each perform
+  exactly one write (`selfmod_runWrites`, `exec_runWrites`), so their
+  playfields are the initial playfield plus that write (`selfmod_grid`,
+  `exec_grid`) and every other cell is unchanged (`selfmod_grid_other`,
+  `exec_grid_other`).
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
   playfield and stays out of string mode (`run_space_step`).
@@ -227,7 +236,9 @@ no external interpreter is trusted.
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the
-instruction pointer reach and execute the written instruction.
+instruction pointer reach and execute the written instruction. `Theory/Memory.lean`
+lifts these kernel computations to theorems about the whole playfield (see
+below).
 
 `DecimalOutput` is the first verified "library" program: a reusable routine
 that reads a non-negative integer with `&` and prints it back as characters.

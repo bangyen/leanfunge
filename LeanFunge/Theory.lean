@@ -7,6 +7,7 @@ import LeanFunge.Theory.Completeness
 import LeanFunge.Theory.Direction
 import LeanFunge.Theory.Grid
 import LeanFunge.Theory.Invariance
+import LeanFunge.Theory.Memory
 import LeanFunge.Theory.Output
 import LeanFunge.Theory.Parser
 import LeanFunge.Theory.Random

@@ -112,8 +112,11 @@ project convention that `Core` files contain only definitions.
 - `Theory/StepOps.lean`: single-step semantics for the remaining instructions —
   `/`, `%`, the comparison instruction, `:`, `\`, `$`, `~` (including the
   end-of-input case), and `&` — completing single-step coverage of the
-  instruction set. `step_trampoline_right_from_last` proves that `#` at the
-  last column skips across the torus wrap to column 1.
+  instruction set. Four lemmas prove that `#` skips across the torus wrap at
+  every edge: `step_trampoline_right_from_last` (last column to column 1),
+  `step_trampoline_left_from_first` (column 0 to column `w - 2`),
+  `step_trampoline_down_from_last` (last row to row 1), and
+  `step_trampoline_up_from_first` (row 0 to row `h - 2`).
 - `Theory/Invariance.lean`: program-level equivalence. A space is a pure no-op;
   every instruction except `p` leaves the playfield unchanged; and `p` writes
   exactly the addressed cell (bridging to `Theory/Grid`). These are the

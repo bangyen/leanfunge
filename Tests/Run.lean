@@ -58,6 +58,26 @@ example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
     s'.grid = s.grid :=
   run_grid_invariant_of_noPut hw hh hg n s' h
 
+example {w h : ℕ} (s : State w h) (k : ℕ) (hs : step s = none) (hk : 0 < k) :
+    run k s = none :=
+  run_none_stays_none s k hs hk
+
+example {w h : ℕ} (s : State w h) {m m' : ℕ} {sₘ sₘ' : State w h}
+    (hr : run m s = some sₘ) (hs : step sₘ = none)
+    (hr' : run m' s = some sₘ') (hs' : step sₘ' = none) :
+    m = m' ∧ sₘ = sₘ' :=
+  halt_unique s hr hs hr' hs'
+
+example {w h : ℕ} (s : State w h) {m m' : ℕ} {sₘ sₘ' : State w h}
+    (hr : run m s = some sₘ) (hs : step sₘ = none)
+    (hr' : run m' s = some sₘ') (hs' : step sₘ' = none) :
+    sₘ.output = sₘ'.output :=
+  halt_output_unique s hr hs hr' hs'
+
+example {w h : ℕ} (s : State w h) (hh : halts s) :
+    ∃! p : ℕ × State w h, run p.1 s = some p.2 ∧ step p.2 = none :=
+  halts_unique_final s hh
+
 example {w h : ℕ} (s : State w h) (s' : State w h) (hstep : step s = some s')
     (hn : stepPreservesStack s) : s'.stack = s.stack :=
   step_stack_of_stepPreservesStack hstep hn

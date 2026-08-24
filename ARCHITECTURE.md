@@ -151,6 +151,13 @@ project convention that `Core` files contain only definitions.
   playfields are the initial playfield plus that write (`selfmod_grid`,
   `exec_grid`) and every other cell is unchanged (`selfmod_grid_other`,
   `exec_grid_other`).
+- `Theory/Run/Halt.lean`: halting characterization and determinism. A run
+  halts exactly when it reaches the `@` cell outside string mode
+  (`halts_iff_at`); once halted it stays halted (`run_none_stays_none`), so a
+  run reaches at most one halting configuration at one step count
+  (`halt_unique`). Hence a halting run has a unique final state
+  (`halts_unique_final`) and a unique output (`halt_output_unique`): for a
+  fixed program and input the output is determined.
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
   playfield and stays out of string mode (`run_space_step`).

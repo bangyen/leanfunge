@@ -19,6 +19,7 @@ import Mathlib.Data.Nat.Notation
 * `stepWrite`: The write a single step performs, if any.
 * `applyWrite`: Apply an optional write to a playfield.
 * `runWrites`: The writes performed by the first `n` steps of a run, in order.
+* `gridNoPut`: A playfield with no put instruction in any of its cells.
 
 ## Theorems
 
@@ -36,6 +37,10 @@ import Mathlib.Data.Nat.Notation
 * `run_grid_writes`: The playfield after `n` steps is the initial playfield
   with the run's accumulated put writes applied in order — the run-level
   memory model.
+* `stepPreservesGrid_of_gridNoPut`: On a playfield with no put instruction,
+  every state preserves the playfield.
+* `run_grid_invariant_of_noPut`: A program with no put instruction cannot
+  modify itself, for every number of steps.
 -/
 
 namespace LeanFunge
@@ -410,5 +415,45 @@ theorem run_grid_writes (s : State w h) (n : ℕ) (s' : State w h)
         · rfl
         · simp only [List.foldl_append, List.foldl_cons, List.foldl_nil]
           rfl
+
+/-- A playfield with no put instruction in any of its cells: a program that
+    cannot modify itself. -/
+def gridNoPut (g : Grid w h) : Prop :=
+  ∀ x < w, ∀ y < h, decodeChar (g.cells y x) ≠ .put
+
+instance (g : Grid w h) : Decidable (gridNoPut g) := by
+  unfold gridNoPut
+  infer_instance
+
+/-- On a playfield with no put instruction, every state preserves the
+    playfield: the wrapped pointer always lands on a non-put cell. -/
+theorem stepPreservesGrid_of_gridNoPut {s : State w h} (hw : 0 < w) (hh : 0 < h)
+    (hg : gridNoPut s.grid) : stepPreservesGrid s := by
+  right
+  unfold Grid.get
+  exact hg _ (Nat.mod_lt _ hw) _ (Nat.mod_lt _ hh)
+
+/-- A playfield containing no put instruction is unchanged across any run: the
+    program cannot modify itself, for every number of steps. Unlike a
+    step-count-specific computation, this quantifies over all runs. -/
+theorem run_grid_invariant_of_noPut {s : State w h} (hw : 0 < w) (hh : 0 < h)
+    (hg : gridNoPut s.grid) (n : ℕ) (s' : State w h) (h : run n s = some s') :
+    s'.grid = s.grid := by
+  induction n generalizing s' with
+  | zero =>
+      rw [run] at h
+      injection h with hs'
+      rw [hs']
+  | succ n ih =>
+      rcases hrun : run n s with _ | sₙ
+      · rw [run, hrun] at h
+        cases h
+      · rw [run, hrun] at h
+        have hstep : step sₙ = some s' := by simpa only using h
+        have hsₙ : sₙ.grid = s.grid := ih sₙ hrun
+        have hgₙ : gridNoPut sₙ.grid := by
+          rw [hsₙ]; exact hg
+        exact (step_grid_of_stepPreservesGrid hstep
+          (stepPreservesGrid_of_gridNoPut hw hh hgₙ)).trans hsₙ
 
 end LeanFunge

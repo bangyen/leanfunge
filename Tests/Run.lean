@@ -49,6 +49,15 @@ example (s : State w h) (n : ℕ) (s' : State w h) (h : run n s = some s') :
       = (runWrites n s).foldl (fun g wt => Grid.put g wt.1 wt.2.1 wt.2.2) s.grid :=
   run_grid_writes s n s' h
 
+example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
+    (hg : gridNoPut s.grid) : stepPreservesGrid s :=
+  stepPreservesGrid_of_gridNoPut hw hh hg
+
+example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
+    (hg : gridNoPut s.grid) (n : ℕ) (s' : State w h) (h : run n s = some s') :
+    s'.grid = s.grid :=
+  run_grid_invariant_of_noPut hw hh hg n s' h
+
 example {w h : ℕ} (s : State w h) (s' : State w h) (hstep : step s = some s')
     (hn : stepPreservesStack s) : s'.stack = s.stack :=
   step_stack_of_stepPreservesStack hstep hn

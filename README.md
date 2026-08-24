@@ -50,6 +50,10 @@ The implementation is organized into `Core` (definitions), `Theory`
   step is the initial playfield plus the run's accumulated `p` writes (so a
   cell never written keeps its value), ranked machines terminate, and
   all-space runs never halt.
+- **Memory model of the examples** (`Theory.Memory`): a program whose
+  playfield holds no `p` cannot modify itself at any number of steps — proved
+  for the quine — and the self-modifying programs' playfields are pinned down
+  in full as the initial playfield plus their single write.
 - **Turing completeness** (`Theory.Completeness`): a fully verified
   construction showing Befunge-93 computes what every two-counter machine
   computes. The two-counter Minsky machine semantics (`TwoCounter`), the
@@ -123,7 +127,7 @@ Further properties of the language, ranked by value and feasibility.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Run-level `p`/`g` memory model** | High | Proven: `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. Lifting the Quine/SelfMod examples from kernel computation to theorems remains. |
+| **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
 | **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. |
 | **Output determinism** | Medium | For a fixed program and input, the output is unique: the program is a function `input → output`. An immediate corollary of determinism worth stating. |
 | **`#` trampoline wrapping in all four directions** | Medium | Only right-from-last-column is proven (`step_trampoline_right_from_last`); left, up, and down are the same lemma at the other edges. |

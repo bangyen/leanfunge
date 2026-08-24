@@ -98,4 +98,16 @@ example {w h : ℕ} (hh : 2 ≤ h) (s : State w h) (x : ℕ)
     step s = some { s with pc := (x % w, h - 2) } :=
   step_trampoline_up_from_first hh s x hm hcell hpc hdir
 
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '/') (b : Int) (rest : Stack)
+    (hstack : s.stack = 0 :: b :: rest) :
+    step s = some { s with stack := 0 :: rest, pc := stepPos w h s.dir s.pc } :=
+  step_div_zero s hm hcell b rest hstack
+
+example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '%') (b : Int) (rest : Stack)
+    (hstack : s.stack = 0 :: b :: rest) :
+    step s = some { s with stack := b :: rest, pc := stepPos w h s.dir s.pc } :=
+  step_mod_zero s hm hcell b rest hstack
+
 end LeanFunge.Tests

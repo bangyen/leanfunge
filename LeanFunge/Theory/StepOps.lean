@@ -31,6 +31,8 @@ toroidal-wrapping instance of the `#` trampoline.
 * `step_trampoline_left_from_first`: `#` at column 0 wraps to column `w - 2`.
 * `step_trampoline_down_from_last`: `#` at the last row wraps to row 1.
 * `step_trampoline_up_from_first`: `#` at row 0 wraps to row `h - 2`.
+* `step_div_zero`: `/` by zero pushes `0`.
+* `step_mod_zero`: `%` by zero pushes the dividend.
 -/
 
 namespace LeanFunge
@@ -177,5 +179,26 @@ theorem step_trampoline_up_from_first {w h : ℕ} (hh : 2 ≤ h) (s : State w h)
       Nat.mod_eq_of_lt (show h - 2 < h by omega), Nat.mod_mod]
   rw [step_trampoline s hm hcell]
   simp only [hpc, hdir, hmid, hnext]
+
+/-! ### Division and modulo by zero
+
+Befunge-93 leaves division by zero undefined. This formalization inherits
+Lean's `Int` conventions, which are not symmetric: `/` by zero pushes `0`, but
+`%` by zero pushes the dividend unchanged. -/
+
+/-- `/` by zero pushes `0`. -/
+theorem step_div_zero (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '/') (b : Int) (rest : Stack)
+    (hstack : s.stack = 0 :: b :: rest) :
+    step s = some { s with stack := 0 :: rest, pc := stepPos w h s.dir s.pc } := by
+  rw [step_div s hm hcell 0 b rest hstack, Int.ediv_zero]
+
+/-- `%` by zero pushes the dividend unchanged, following Lean's `Int`
+    convention `b % 0 = b` — unlike `/`, which pushes `0`. -/
+theorem step_mod_zero (s : State w h) (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '%') (b : Int) (rest : Stack)
+    (hstack : s.stack = 0 :: b :: rest) :
+    step s = some { s with stack := b :: rest, pc := stepPos w h s.dir s.pc } := by
+  rw [step_mod s hm hcell 0 b rest hstack, Int.emod_zero]
 
 end LeanFunge

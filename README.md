@@ -132,8 +132,8 @@ Further properties of the language, ranked by value and feasibility.
 | **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
 | **`#` trampoline wrapping in all four directions** | Medium | Done. `step_trampoline_left_from_first`, `step_trampoline_down_from_last`, and `step_trampoline_up_from_first` join `step_trampoline_right_from_last`, covering the skip across the wrap at all four edges. |
 | **Straight-line divergence without `@`** | Medium | Done. `not_halts_safe_line` proves any run along a line of safe cells diverges, in all four directions, generalizing `run_space_some` off all-space playfields. A safe cell also excludes `p` (a write could place an `@` further along the line) and `"` (it would leave the instruction set behind). |
-| **Stack underflow semantics** | Low | The interpreter's choices (`Stack.top [] = 0`, `Stack.dup [] = [0]`, `applyBinary` fills missing operands with `0`) are defined but unproven; document every instruction on empty and short stacks. |
-| **Division and modulo by zero** | Low | `/` and `%` on a zero divisor push `0` (Lean's `Int` division); pin down the formalization's choice explicitly, since Befunge-93 leaves it undefined. |
+| **Stack underflow semantics** | Low | Done. `pop_nil`, `top_nil`, `drop_nil`, `dup_nil`, `swap_nil`, `swap_singleton`, `applyBinary_nil`, and `applyBinary_singleton` pin down every accessor on an empty or one-element stack. On a singleton the missing operand is the *second-popped* one, so `-` on `[5]` computes `0 - 5 = -5`. |
+| **Division and modulo by zero** | Low | Done, and the conventions are *not* symmetric: `step_div_zero` shows `/` by zero pushes `0`, but `step_mod_zero` shows `%` by zero pushes the dividend unchanged (Lean's `Int` has `b % 0 = b`). Befunge-93 leaves both undefined. |
 | **String-mode precedence** | Medium | Done. `step_string_mode` shows a string-mode step never halts, writes the grid, consumes input, produces output, or turns; `run_string_mode` lifts it to any run that stays in string mode. The "string mode is data, not code" property. |
 | **Quote balance** | Medium | Along any path, string mode is off exactly when an even number of `"` cells were crossed; a compositional statement over string runs. |
 
@@ -156,7 +156,10 @@ unspecified; LeanFunge makes the following choices, all documented in
 
 - **Toroidal playfield**: coordinates are reduced modulo the playfield size on
   every access, so the playfield is a torus.
-- **Stack underflow**: popping an empty stack yields `0`.
+- **Stack underflow**: popping an empty stack yields `0`, and a binary
+  operation on a short stack fills its missing operands with `0`.
+- **Division by zero**: `/` by zero pushes `0`, while `%` by zero pushes the
+  dividend unchanged, inheriting Lean's `Int` conventions.
 - **`p`/`g` argument order**: coordinates are popped as `y` then `x`, then the
   value, matching the Funge-98 convention.
 - **Input**: `~` consumes from an explicit input stream (pushing `0` at EOF);

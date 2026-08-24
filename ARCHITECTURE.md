@@ -92,7 +92,10 @@ Theorems are kept separate from definitions (`LeanFunge/Theory`), mirroring the
 project convention that `Core` files contain only definitions.
 
 - `Theory/Stack.lean`: identity and involutive properties of the stack
-  operations. These proofs are definitional (`rfl`).
+  operations, together with the underflow semantics — every accessor on an
+  empty or one-element stack (`pop_nil` through `applyBinary_singleton`),
+  which fill missing operands with `0`. These proofs are definitional
+  (`rfl`).
 - `Theory/Grid.lean`: `get_put_self`, `put_put`, and `get_put_other` —
   algebra of the self-modifying playfield. The proofs expose the `if`/`dite`
   behind `put` with `change`, then reason with `dif_pos`/`dif_neg`.
@@ -116,7 +119,10 @@ project convention that `Core` files contain only definitions.
   every edge: `step_trampoline_right_from_last` (last column to column 1),
   `step_trampoline_left_from_first` (column 0 to column `w - 2`),
   `step_trampoline_down_from_last` (last row to row 1), and
-  `step_trampoline_up_from_first` (row 0 to row `h - 2`).
+  `step_trampoline_up_from_first` (row 0 to row `h - 2`). `step_div_zero` and
+  `step_mod_zero` pin down division by zero, which is asymmetric: `/` pushes
+  `0` but `%` pushes the dividend unchanged, inheriting Lean's `Int`
+  conventions.
 - `Theory/Invariance.lean`: program-level equivalence. A space is a pure no-op;
   every instruction except `p` leaves the playfield unchanged; and `p` writes
   exactly the addressed cell (bridging to `Theory/Grid`). These are the

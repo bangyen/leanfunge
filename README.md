@@ -126,18 +126,18 @@ straight-line divergence (`not_halts_safe_line`), the quote balance
 (`step_input_prefix`/`step_output_prefix`,
 `run_input_prefix`/`run_output_prefix`) are all proven.
 
-### Open work
+### Undecidability
 
 The language-property program is complete — every row in the table that
 follows this one is proven, as is the halting equivalence that closes the
 completeness capstone and the lift of the run-level laws to the
-nondeterministic semantics. What remains is undecidability, and most of that
-row turns out to be unblocked — see [`UNDECIDABILITY.md`](UNDECIDABILITY.md);
-only 2CM universality is genuinely external.
+nondeterministic semantics. Undecidability is now proven too, conditional on
+the one classical fact mathlib does not contain — see
+[`UNDECIDABILITY.md`](UNDECIDABILITY.md).
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Halting problem undecidability** | High | Scoped in [`UNDECIDABILITY.md`](UNDECIDABILITY.md). Most of the row is unblocked: the statement must be phrased over *program text* (`Grid` holds a function `ℕ → ℕ → Char`, so a state-based domain is not `Primcodable` at all), and on that domain the `Primcodable` instances, a rows-based playfield, a `Computable` compiler, and the reduction itself are all provable today — `simulation_halts_iff` already gives the halting *equivalence*. The one external input is 2CM universality: mathlib has no counter-machine model, so the gap is a reduction `Turing.ToPartrec.Code → 2CM` (Minsky's theorem), a separate mathlib-scale project. The plan is to land the conditional theorem with that as a named hypothesis. |
+| **Halting problem undecidability** | Done | Proven, conditional on one external fact: `befunge_undecidable_of_twoCounter` shows that if two-counter halting is undecidable then so is Befunge-93 halting. The statement is phrased over program *text* — `Grid` holds a function `ℕ → ℕ → Char`, so a state-based domain is not `Primcodable` at all — and the reduction composes a rows-based playfield, a boot prelude carrying `State.init` to the simulation's start state, and a `Computable` compiler. What remains external is 2CM universality itself: mathlib has no counter-machine model, so that gap is a reduction `Turing.ToPartrec.Code → 2CM` (Minsky's theorem), a separate mathlib-scale project. See [`UNDECIDABILITY.md`](UNDECIDABILITY.md). |
 
 ### Completed language properties
 

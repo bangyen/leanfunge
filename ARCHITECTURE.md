@@ -242,7 +242,9 @@ project convention that `Core` files contain only definitions.
   equivalent to a well-placed one (clamp the
   targets, append a `halt`), so `universal_simulation` provides a simulating
   playfield for every machine: its run matches the machine's encoded run and it
-  halts whenever the machine does.
+  halts exactly when the machine does (`simulation_halts_iff`; the converse
+  direction rests on `sim_step` taking at least one playfield step per machine
+  step, so the playfield step count grows with the machine's).
 
 ## Verified Example Programs
 

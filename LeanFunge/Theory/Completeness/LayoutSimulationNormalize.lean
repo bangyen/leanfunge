@@ -509,20 +509,19 @@ theorem normalize_halts_iff (prog : CMProgram) (s₀ : CMState) :
 theorem universal_simulation (prog : CMProgram) (s₀ : CMState) (hs₀ : s₀.pc < prog.length) :
     ∃ prog' : CMProgram,
       wellPlaced prog' ∧
-      (CMInstr.halts prog s₀ → halts (playfieldStart prog' s₀)) ∧
+      (halts (playfieldStart prog' s₀) ↔ CMInstr.halts prog s₀) ∧
       ∀ n : ℕ, ∃ m : ℕ,
         (run m (playfieldStart prog' s₀)).map (fun s => s.stack)
           = (CMInstr.run prog n s₀).map (fun s => [encodeState s]) := by
   refine ⟨normalize prog, wellPlaced_normalize prog, ?_, ?_⟩
-  · intro h
-    have hlen : s₀.pc < (normalize prog).length := by
+  · have hlen : s₀.pc < (normalize prog).length := by
       dsimp only [normalize]
       simp only [
         List.length_append, List.length_map, List.length_cons, List.length_nil, zero_add,
         Order.lt_add_one_iff]
       omega
-    exact simulation_halts (normalize prog) (wellPlaced_normalize prog) s₀ hlen
-      ((normalize_halts_iff prog s₀).mpr h)
+    exact (simulation_halts_iff (normalize prog) (wellPlaced_normalize prog) s₀
+      hlen).trans (normalize_halts_iff prog s₀)
   · intro n
     have hlen : s₀.pc < (normalize prog).length := by
       dsimp only [normalize]

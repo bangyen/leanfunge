@@ -28,6 +28,8 @@ holds only when the last instruction is a `halt` — which is exactly what
 
 * `blockCellList_col_lt`: Every block cell sits inside the playfield width.
 * `playfield_boot_push`: Column zero of row zero holds the boot push.
+* `boot_run`: The prelude carries `State.init` to `playfieldStart`.
+* `boot_halts_iff`: The compiled playfield halts exactly when the machine does.
 -/
 
 namespace LeanFunge
@@ -128,6 +130,123 @@ theorem playfield_boot_push (prog : CMProgram) (hne : prog ≠ [])
     rw [Nat.mod_eq_of_lt (by omega : 1 < playfieldWidth prog)] at h1
     omega)]
   simp
+
+/-- Pushing the digit one. -/
+theorem step_push_one {gw gh : ℕ} (s : State gw gh)
+    (hm : s.stringMode = false)
+    (hcell : s.grid.get s.pc.1 s.pc.2 = '1') :
+    step s = some { s with
+      stack := Stack.push s.stack 1,
+      pc := stepPos gw gh s.dir s.pc } := by
+  unfold step
+  simp only [decodeChar, stepState, Stack.push, hm, hcell]
+
+/-- The boot prelude carries `State.init` to `playfieldStart` for the all-zero
+    machine state. The run is: push `1` at the boot cell and move right; turn
+    down at block zero's entry column; then descend the header rows, every one
+    of which is a space or another edge's drop. -/
+theorem boot_run (prog : CMProgram) (hne : prog ≠ []) (hwp : wellPlaced prog) :
+    run (prog.length + 1) (State.init (playfieldOf prog))
+      = some (playfieldStart prog (CMInstr.startCM 0 0)) := by
+  have hwell := hwp.1
+  have hlen : 0 < prog.length := List.length_pos_of_ne_nil hne
+  have he0 : entryColumn prog 0 = 1 := rfl
+  have hw : 1 < playfieldWidth prog := by
+    have := entryColumn_strict_mono prog hlen
+    unfold playfieldWidth; omega
+  have hbr0 : blockRow prog 0 = prog.length := rfl
+  have hh : prog.length < playfieldHeight prog := by
+    have := blockRow_strict_mono prog hlen
+    unfold playfieldHeight; omega
+  -- step one: the push at the boot cell, moving right
+  have hpush : step (State.init (playfieldOf prog))
+      = some { State.init (playfieldOf prog) with
+          stack := [1], pc := (1, 0) } := by
+    rw [step_push_one _ rfl (playfield_boot_push prog hne hwp)]
+    congr 1
+    have hhpos : 0 < playfieldHeight prog := by omega
+    simp only [State.init, stepPos, Stack.push,
+      Nat.mod_eq_of_lt hw, Nat.mod_eq_of_lt hhpos]
+  -- step two: the turn down at block zero's entry column
+  have hhpos : 0 < playfieldHeight prog := by omega
+  have hturn : step { State.init (playfieldOf prog) with
+        stack := [1], pc := (1, 0) }
+      = some { State.init (playfieldOf prog) with
+          stack := [1], pc := (1, 1), dir := .down } := by
+    rw [step_dir_down _ rfl (by
+      have := playfield_boot_turn prog hne
+      rwa [he0] at this)]
+    congr 1
+    simp only [stepPos, Nat.mod_eq_of_lt hw,
+      Nat.mod_eq_of_lt (by omega : (1:ℕ) < playfieldHeight prog)]
+  -- the remaining steps descend the header rows to block zero's entry
+  have hdesc : run (prog.length - 1)
+      { State.init (playfieldOf prog) with
+        stack := [1], pc := (1, 1), dir := .down }
+      = some { State.init (playfieldOf prog) with
+          stack := [1], pc := (1, prog.length), dir := .down } := by
+    have hrun := run_down
+      (s := { State.init (playfieldOf prog) with
+              stack := [1], pc := (1, 1), dir := .down })
+      (n := prog.length - 1) (x := 1) (y := 1) rfl
+      (by simp only [Nat.mod_eq_of_lt hw,
+            Nat.mod_eq_of_lt (by omega : (1:ℕ) < playfieldHeight prog)])
+      rfl
+      (by
+        intro k hk
+        have hpos : runPos (playfieldWidth prog) (playfieldHeight prog) k .down
+            (1 % playfieldWidth prog, 1 % playfieldHeight prog) = (1, 1 + k) := by
+          have hstep := runPos_down_pos (playfieldWidth prog) (playfieldHeight prog) 1 1 k hw
+            (by omega : 1 + k < playfieldHeight prog)
+          simpa only [Nat.mod_eq_of_lt hw,
+            Nat.mod_eq_of_lt (by omega : (1:ℕ) < playfieldHeight prog)] using hstep
+        rw [hpos]
+        have hlt : 1 + k < blockRow prog 0 := by rw [hbr0]; omega
+        simpa only [he0] using
+          corridorDown_cell prog 0 hlen hwell (1 + k) hlt)
+    rw [hrun]
+    congr 1
+    have hpos : runPos (playfieldWidth prog) (playfieldHeight prog) (prog.length - 1) .down
+        (1 % playfieldWidth prog, 1 % playfieldHeight prog) = (1, prog.length) := by
+      have hstep := runPos_down_pos (playfieldWidth prog) (playfieldHeight prog) 1 1
+        (prog.length - 1) hw (by omega)
+      have hfix : (1 : ℕ) + (prog.length - 1) = prog.length := by omega
+      rw [hfix] at hstep
+      simpa only [Nat.mod_eq_of_lt hw,
+        Nat.mod_eq_of_lt (by omega : (1:ℕ) < playfieldHeight prog)] using hstep
+    rw [hpos]
+  -- assemble: push, turn, then the descent
+  have hstep2 : run 2 (State.init (playfieldOf prog))
+      = some { State.init (playfieldOf prog) with
+          stack := [1], pc := (1, 1), dir := .down } := by
+    have h1 : run 1 (State.init (playfieldOf prog))
+        = some { State.init (playfieldOf prog) with stack := [1], pc := (1, 0) } := by
+      rw [run, run, Option.bind]
+      exact hpush
+    have h2 : run 1 { State.init (playfieldOf prog) with stack := [1], pc := (1, 0) }
+        = some { State.init (playfieldOf prog) with
+            stack := [1], pc := (1, 1), dir := .down } := by
+      rw [run, run, Option.bind]
+      exact hturn
+    exact run_append _ _ _ 1 1 h1 h2
+  have htotal := run_append _ _ _ 2 (prog.length - 1) hstep2 hdesc
+  rw [show prog.length + 1 = 2 + (prog.length - 1) by omega]
+  rw [htotal]
+  unfold playfieldStart blockEntry
+  have henc : encodeState { pc := 0, c1 := 0, c2 := 0 } = 1 := by
+    simp [encodeState, encode]
+  simp only [CMInstr.startCM, hbr0, henc, he0]
+
+/-- The compiled playfield, started the ordinary way, halts exactly when the
+    machine does. -/
+theorem boot_halts_iff (prog : CMProgram) (hne : prog ≠ []) (hwp : wellPlaced prog) :
+    halts (State.init (playfieldOf prog))
+      ↔ CMInstr.halts prog (CMInstr.startCM 0 0) := by
+  rw [halts_iff_of_run _ _ _ (boot_run prog hne hwp)]
+  exact simulation_halts_iff prog hwp (CMInstr.startCM 0 0)
+    (by
+      have := List.length_pos_of_ne_nil hne
+      simpa [CMInstr.startCM] using this)
 
 end Completeness
 

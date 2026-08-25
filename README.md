@@ -125,14 +125,28 @@ straight-line divergence (`not_halts_safe_line`), the quote balance
 (`step_input_prefix`/`step_output_prefix`,
 `run_input_prefix`/`run_output_prefix`) are all proven.
 
-### Future language properties
+### Open work
 
-Further properties of the language, ranked by value and feasibility.
+The language-property program is complete — every row in the table that
+follows this one is proven. What remains is the reduction that would close the
+completeness capstone, and the lift of the run-level laws to the
+nondeterministic semantics.
+
+| Task | Priority | Status |
+| :--- | :--- | :--- |
+| **Halting converse for the simulation** | High | `simulation_halts` proves only that a halting machine yields a halting playfield. The converse — the generated playfield halts *only if* the machine does — would make the pair an iff, turning the undecidability row into a provable reduction plus one external fact. Not a corollary of `sim_run`: it returns `∃ m` with no monotonicity of `m` in the machine step count, so it must first be strengthened to expose a monotone step map. |
+| **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. Note the reduction above is the part that can be proven here; only the classical fact is external. |
+| **Relational lifts of the run-level laws** | Medium | Every run-level law — the memory model, quote parity, string-mode precedence, straight-line divergence, and the I/O prefixes — is proven for the deterministic `run` only. Since `?` only chooses a direction, the direction-independent ones should hold along every `runRel` trace; `Theory.Run.Relational` and `Theory.Random` supply the machinery. |
+| **`decodeChar` nop characterization** | Low | `decodeChar_halt_iff` and `decodeChar_stringMode_iff` pin down `@` and `"`; the `| _ => .nop` catch-all is uncharacterized. State that a character outside the instruction table decodes to `nop`. |
+
+### Completed language properties
+
+Properties of the language proven since the completeness construction landed,
+ranked by value and feasibility.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
 | **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
-| **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. |
 | **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
 | **`#` trampoline wrapping in all four directions** | Medium | Done. `step_trampoline_left_from_first`, `step_trampoline_down_from_last`, and `step_trampoline_up_from_first` join `step_trampoline_right_from_last`, covering the skip across the wrap at all four edges. |
 | **Straight-line divergence without `@`** | Medium | Done. `not_halts_safe_line` proves any run along a line of safe cells diverges, in all four directions, generalizing `run_space_some` off all-space playfields. A safe cell also excludes `p` (a write could place an `@` further along the line) and `"` (it would leave the instruction set behind). |
@@ -183,6 +197,8 @@ unspecified; LeanFunge makes the following choices, all documented in
   round-trip (`parseInt_formatInt`) is fully generic.
 - Every verified example is deterministic; the nondeterminism of `?` is
   captured by the transition relation rather than the executable interpreter.
+  The run-level laws are likewise proven for the deterministic `run` only —
+  lifting them to `runRel` is open work.
 - The completeness development (`Theory.Completeness`) is complete for
   Befunge-93's side: `universal_simulation` gives *every* two-counter machine
   a playfield that simulates it. What it does not claim is the classical

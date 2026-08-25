@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.LayoutRouting
-import LeanFunge.Theory.Completeness.LayoutRouting
 
 /-!
 # Corridor Routing Foundation Tests

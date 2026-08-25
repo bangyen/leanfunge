@@ -3,12 +3,12 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
-import Mathlib.Computability.Halting
 import LeanFunge.Theory.Completeness.Encodable
 import LeanFunge.Theory.Completeness.LayoutBoot
 import LeanFunge.Theory.Completeness.LayoutRows
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.PrimrecLayout
+import Mathlib.Computability.Halting
 
 /-!
 # Undecidability of Befunge-93 Halting
@@ -24,8 +24,14 @@ Everything else is machine-checked here. The statement is phrased over program
 function `ℕ → ℕ → Char`, which is not `Primcodable`, so no predicate over grids
 can be the domain of a `ComputablePred` at all.
 
-## Main statements
+## Main definitions
 
+* `compile`: The compiled playfield of a machine, as text.
+
+## Theorems
+
+* `compile_halts_iff`: Halting of the compiled text is halting of the machine.
+* `computable_compile`: The compiler is computable.
 * `befunge_undecidable_of_twoCounter`: If two-counter halting is undecidable,
   so is Befunge-93 halting.
 -/
@@ -51,7 +57,7 @@ theorem compile_halts_iff (prog : CMProgram) :
       ↔ CMInstr.halts prog (CMInstr.startCM 0 0) := by
   have hne : normalize prog ≠ [] := by
     unfold normalize
-    exact List.append_ne_nil_of_right_ne_nil _ (by simp)
+    exact List.append_ne_nil_of_right_ne_nil _ (by simp only [ne_eq, List.cons_ne_self, not_false_eq_true])
   have hwp : wellPlaced (normalize prog) := wellPlaced_normalize prog
   show halts (State.init (Grid.ofRows (playfieldWidth (normalize prog))
     (playfieldHeight (normalize prog)) (playfieldRowsOf (normalize prog)))) ↔ _

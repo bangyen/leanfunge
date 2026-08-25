@@ -56,6 +56,12 @@ increasing.
 * `layout_decz_branch`: The generated playfield places the branch cell.
 * `layout_jog`: The generated playfield places the decrement jog.
 * `layout_halt`: The generated playfield places the halt.
+* `blockRow_foldl`: `blockRow` as a fold over the block indices.
+* `blockWidth_two`: A block is at least two columns wide.
+* `entryColumn_foldl`: `entryColumn` as a fold over the block indices — the
+  closed form the computability proof works against.
+* `entryColumn_pos`: Every entry column is at least one: column zero is the
+  boot column.
 -/
 
 namespace LeanFunge
@@ -122,7 +128,7 @@ theorem blockRow_succ (prog : CMProgram) (i : ℕ) :
 
 /-- A block is at least two columns wide. -/
 theorem blockWidth_two (instr : CMInstr) : 2 ≤ blockWidth instr := by
-  cases instr <;> simp [blockWidth]
+  cases instr <;> simp only [blockWidth, Nat.reduceLeDiff]
 
 /-- Every entry column is at least one: column zero is the boot column. -/
 theorem entryColumn_pos (prog : CMProgram) (i : ℕ) : 1 ≤ entryColumn prog i := by

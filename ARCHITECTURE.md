@@ -251,6 +251,25 @@ project convention that `Core` files contain only definitions.
   halts exactly when the machine does (`simulation_halts_iff`; the converse
   direction rests on `sim_step` taking at least one playfield step per machine
   step, so the playfield step count grows with the machine's).
+  The undecidability reduction sits on top of that. Its statement cannot
+  quantify over interpreter states: `Grid` stores its cells as a *function*
+  `ℕ → ℕ → Char`, which is not `Primcodable`, so the domain has to be program
+  *text*. `LayoutRows.lean` supplies it — `playfieldRowsOf` emits the generated
+  playfield as a `List (List Char)` and `ofRows_playfieldRowsOf` proves the two
+  agree *as grids*, so the simulation theorems transport by rewriting rather
+  than through a bisimulation layer. `LayoutBoot.lean` closes the remaining
+  gap between `State.init` (origin, facing right, empty stack) and
+  `playfieldStart` (a block entry, facing down, carrying the encoded state):
+  `entryColumn` is re-based to leave column zero free, and a two-cell prelude
+  on row zero pushes `1 = encodeState (startCM 0 0)` and turns the pointer down
+  into the shared descent, so `boot_run` lands exactly on `playfieldStart` and
+  `boot_halts_iff` follows. `Encodable.lean` gives the `Primcodable` instances
+  the domain needs, including one for `Char`, which mathlib lacks.
+  `PrimrecLayout.lean` proves the compiler primitive recursive, and
+  `Undecidable.lean` assembles the reduction: if two-counter halting is
+  undecidable then so is Befunge-93 halting
+  (`befunge_undecidable_of_twoCounter`). The two-counter fact itself stays
+  external — see `UNDECIDABILITY.md`.
 
 ## Verified Example Programs
 
@@ -304,7 +323,8 @@ verify the loop programs without hitting the default recursion limit.
 - `LeanFunge/Core`: Definitions (Direction, Stack, Grid, Instruction, State,
   Semantics, Parser).
 - `LeanFunge/Theory`: Theorems (Stack, Grid, Direction, Step, StepOps,
-  Invariance, Random, Parser, Output, Run, Termination, Completeness).
+  Invariance, Random, Parser, Output, Run, Termination, Completeness,
+  Undecidable).
 - `LeanFunge/Examples`: Verified example programs.
 - `Tests`: Executable `example` statements that re-assert the theorems.
 - `scripts`: Repository guard checks (naming, imports, copyright, formatting).
@@ -315,3 +335,25 @@ The project requires Mathlib pinned at `v4.28.0` (see `lakefile.toml`). The
 playfield and position arithmetic rely on the `ℕ` notation from
 `Mathlib.Data.Nat.Notation`; `Core` files import it directly. In Lean 4.28
 `List.get?` was removed, so `Grid.ofRows` uses `List.getD`.
+
+### Two traps in the layout proofs
+
+**Rewrite the instruction and unfold the cell builders in the *same* `simp`.**
+`corridorCells` computes the branch column from `blockWidth (prog.getD i .halt)`
+internally. Rewriting with a `hget : prog.getD j .halt = ...` *first* and
+unfolding `corridorCells` *second* materializes fresh `blockWidth (prog.getD j
+.halt)` terms that the rewrite never saw, and the resulting goals do not match
+any hypothesis about the block's width. Put `hget` in the simp set alongside
+`blockCellList`, `corridorCells`, and `blockWidth` so the unfolding runs to a
+fixpoint:
+
+```lean
+simp only [blockCellList, hget, corridorCells, blockWidth, ...] at hc
+```
+
+**State `Primrec` facts uncurried, with `list_foldl`'s implicit types given.**
+The curried `Primrec₂` form leaves the fold's accumulator type a metavariable,
+and instance resolution then fails with `Primcodable ?m` — an error that points
+at the instance rather than at the missing type annotation. `PrimrecLayout`
+states every fact as `Primrec (fun p : A × B => ...)` and passes `(β := _)`
+and `(σ := _)` explicitly.

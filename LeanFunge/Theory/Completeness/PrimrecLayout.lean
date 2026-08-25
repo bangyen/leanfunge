@@ -3,11 +3,11 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
-import Mathlib.Computability.Primrec.List
 import LeanFunge.Theory.Completeness.Encodable
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutRows
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
+import Mathlib.Computability.Primrec.List
 
 /-!
 # The Compiler is Primitive Recursive
@@ -25,12 +25,43 @@ how the `Primcodable` instance is built. Functions defined by recursion on a
 block index go through the `entryColumn_foldl` and `blockRow_foldl` closed
 forms, since a `Primrec` argument cannot follow the recursion itself.
 
+## Main definitions
+
+* `InstrSum`: The sum type `CMInstr` is encoded through.
+* `CMInstr.target`, `CMInstr.counter`: The payload an instruction names.
+* `CMInstr.isInc`, `CMInstr.isDecz`, `CMInstr.isJump`: The constructor tests.
+
 ## Theorems
 
 * `primrec_blockWidth`, `primrec_blockHeight`: The per-instruction geometry.
 * `primrec_counterDigit`: The counter digit character.
 * `primrec_playfieldRowsOf`: The generated playfield as text.
 * `primrec_normalize`: Clamping the targets and appending a `halt`.
+* `blockCellList_cases`: `blockCellList` restated as nested tests on the
+  instruction, so that the computability proof can dispatch without
+  matching.
+* `primrec_blockCellList`: The cells of a block.
+* `primrec_blockHeight`: The block height, as a function of the encoded
+  instruction.
+* `primrec_blockRow`: The block row, via its closed form.
+* `primrec_bootCells`: The boot prelude's cells.
+* `primrec_clampInstr`: Clamping a jump target into range.
+* `primrec_corridorCells`: The corridor cells of a jump edge.
+* `primrec_counter`: The counter an instruction names is primitive
+  recursive.
+* `primrec_decz`: The `decz` constructor is primitive recursive.
+* `primrec_entryColumn`: The entry column, via its closed form.
+* `primrec_instrAt`: Reading the instruction at an index.
+* `primrec_isDecz`: The `decz` test is primitive recursive.
+* `primrec_isInc`: The `inc` test is primitive recursive.
+* `primrec_isJump`: The `jump` test is primitive recursive.
+* `primrec_jump`: The `jump` constructor is primitive recursive.
+* `primrec_lastCellAt`: The last-cell lookup: a fold with a positional test.
+* `primrec_playfieldCells`: Every placed cell of the playfield.
+* `primrec_playfieldHeight`: The playfield height.
+* `primrec_playfieldWidth`: The playfield width.
+* `primrec_target`: The jump target an instruction names is primitive
+  recursive.
 -/
 
 namespace LeanFunge
@@ -215,8 +246,9 @@ theorem blockCellList_cases (prog : CMProgram) (i : ℕ) :
          ((entryColumn prog i + 1, blockRow prog i), '@')]) := by
   unfold blockCellList
   cases hget : prog.getD i .halt <;>
-    simp [CMInstr.isInc, CMInstr.isDecz, CMInstr.isJump,
-      CMInstr.target, CMInstr.counter]
+    simp only [↓Char.isValue, List.cons_append, List.nil_append, CMInstr.isInc,
+      Bool.false_eq_true, ↓reduceIte, CMInstr.isDecz, CMInstr.isJump,
+      CMInstr.counter, CMInstr.target]
 
 /-- The accessors are primitive recursive. -/
 theorem primrec_target : Primrec CMInstr.target := by
@@ -446,8 +478,9 @@ theorem primrec_clampInstr :
         else if p.2.isDecz then CMInstr.decz p.2.counter (min p.2.target p.1)
         else p.2 := by
     funext p
-    cases p.2 <;> simp [clampInstr, CMInstr.isJump, CMInstr.isDecz,
-      CMInstr.target, CMInstr.counter]
+    cases p.2 <;>
+      simp only [clampInstr, CMInstr.isJump, Bool.false_eq_true, ↓reduceIte,
+        CMInstr.isDecz, CMInstr.counter, CMInstr.target]
   rw [h]
   have hmin : Primrec (fun p : ℕ × CMInstr => min p.2.target p.1) :=
     Primrec.nat_min.comp (primrec_target.comp Primrec.snd) Primrec.fst

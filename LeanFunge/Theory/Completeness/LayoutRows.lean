@@ -33,6 +33,22 @@ reproduces the grid by construction.
 * `playfieldRowsOf_row_length`: Every row has the playfield width.
 * `playfieldOf_cells`: The raw cell function is the last-placed cell in range.
 * `ofRows_playfieldRowsOf`: The text form rebuilds the generated playfield.
+* `foldl_put_cells`: Folding puts, read at raw coordinates in range, is the
+  last-cell lookup.
+* `foldl_put_cells_out`: Outside the playfield extent, a fold of puts leaves
+  the cell untouched: every put lands at a coordinate already reduced modulo
+  the size.
+* `playfieldHeight_pos`: A nonempty program has positive height.
+* `playfieldOf_cells_out`: Outside the playfield extent, the generated
+  playfield is all spaces.
+* `playfieldRowsOf_getD_length`: Every row of the text form is at most the
+  playfield width, including the empty padding row past the last.
+* `playfieldRowsOf_getD_out_width`: Past the playfield width, the text form
+  reads a space.
+* `playfieldRowsOf_getD_row`: The row at `y`, inside the playfield, is the
+  mapped range of that row.
+* `playfieldWidth_pos`: Every playfield has positive width: column 0 is the
+  boot column, so the entry columns start at one.
 -/
 
 namespace LeanFunge
@@ -52,14 +68,14 @@ def playfieldRowsOf (prog : CMProgram) : List (List Char) :=
 @[simp]
 theorem playfieldRowsOf_length (prog : CMProgram) :
     (playfieldRowsOf prog).length = playfieldHeight prog := by
-  simp [playfieldRowsOf]
+  simp only [playfieldRowsOf, ↓Char.isValue, List.length_map, List.length_range]
 
 /-- Every generated row spans the playfield width. -/
 theorem playfieldRowsOf_row_length (prog : CMProgram) (row : List Char)
     (hrow : row ∈ playfieldRowsOf prog) : row.length = playfieldWidth prog := by
   unfold playfieldRowsOf at hrow
   rcases List.mem_map.1 hrow with ⟨y, -, rfl⟩
-  simp
+  simp only [↓Char.isValue, List.length_map, List.length_range]
 
 /-- The row at `y`, inside the playfield, is the mapped range of that row. -/
 theorem playfieldRowsOf_getD_row (prog : CMProgram) (y : ℕ)
@@ -80,9 +96,9 @@ theorem playfieldRowsOf_getD_length (prog : CMProgram) (y : ℕ) :
   by_cases hy : y < playfieldHeight prog
   · rw [List.getD_eq_getElem?_getD]
     simp only [List.getElem?_map, List.getElem?_range, hy, Option.map_some, Option.getD_some]
-    simp
-  · rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by simp; omega)]
-    simp
+    simp only [↓Char.isValue, List.length_map, List.length_range, le_refl]
+  · rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by simp only [List.length_map, List.length_range]; omega)]
+    simp only [Option.getD_none, List.length_nil, zero_le]
 
 /-- Past the playfield width, the text form reads a space. -/
 theorem playfieldRowsOf_getD_out_width (prog : CMProgram) (x y : ℕ)
@@ -204,7 +220,7 @@ theorem ofRows_playfieldRowsOf (prog : CMProgram) (hne : prog ≠ []) :
       · rfl
       · rw [List.getD_eq_getElem?_getD,
           List.getElem?_eq_none (by rw [playfieldRowsOf_length]; exact Nat.not_lt.1 hy)]
-        simp
+        simp only [Option.getD_none, List.length_nil, zero_le]
   cases hg : playfieldOf prog with
   | mk cg =>
     cases hr : Grid.ofRows (playfieldWidth prog) (playfieldHeight prog)

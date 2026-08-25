@@ -192,7 +192,10 @@ What is *not* claimed:
   (`ComputablePred.halting_problem`); turning the equivalence into a Befunge
   undecidability statement additionally needs the 2CM bridge above, together
   with `Primcodable` encodings and a `Computable` proof for the
-  machine-to-playfield compiler.
+  machine-to-playfield compiler. `UNDECIDABILITY.md` scopes this out: the
+  statement has to be phrased over program *text* (`Grid` stores a function, so
+  a state-based domain is not encodable at all), and on that domain everything
+  except the 2CM bridge is provable today.
 
 Everything the construction claims — the cell lookups, the block executions,
 the corridor routing, the step-for-step simulation, and the universality

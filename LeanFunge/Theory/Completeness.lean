@@ -9,6 +9,7 @@ import LeanFunge.Theory.Completeness.LayoutBlock
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCorridor
 import LeanFunge.Theory.Completeness.LayoutRouting
+import LeanFunge.Theory.Completeness.LayoutRows
 import LeanFunge.Theory.Completeness.LayoutSimulation
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.PairEncoding

@@ -69,8 +69,8 @@ statement form without redoing any of the simulation proof.
 | # | Piece | Blocker | Size |
 | :-- | :--- | :--- | :--- |
 | A | `Primcodable` for `CMInstr`, `CMProgram`, `CMState` | none | **done** |
-| A′ | `Primcodable Char` (needs `PrimrecPred UInt32.isValidChar`) | none | small–medium |
-| B | `playfieldRowsOf` + the `ofRows` bridge lemma | none | small–medium |
+| A′ | `Primcodable Char` (needs `PrimrecPred UInt32.isValidChar`) | none | small–medium, **on C's critical path** |
+| B | `playfieldRowsOf` + the `ofRows` bridge lemma | none | **done** |
 | B′ | Bootstrap from `State.init` to the block-0 entry | none | medium |
 | C | `Computable` proof for the compiler | none | medium |
 | D | Conditional undecidability theorem | none | small, given A–C, B′ |
@@ -109,13 +109,53 @@ prove `Primrec`. A nested-sum `ofEquiv` is the natural first cut, but a flat
 lemmas. Not worth over-engineering up front — but if C stalls, this is the first
 thing to revisit.
 
-### B. Rows-based playfield — small–medium
+### B. Rows-based playfield — done
 
-Define `playfieldRowsOf` as above and prove it agrees with `playfieldOf` under
-`Grid.ofRows`. `Theory/Grid.lean` already has the out-of-range lemmas
-(`ofRows_cells_out_of_rows`, `ofRows_cells_out_of_col`) that this needs for the
-padding cases. The work is bookkeeping about `Grid.put` folds versus row
-indexing — fiddly, but with no conceptual gap.
+`Theory/Completeness/LayoutRows.lean` defines `playfieldRowsOf` and proves
+
+```lean
+theorem ofRows_playfieldRowsOf (prog : CMProgram) (hne : prog ≠ []) :
+    Grid.ofRows (playfieldWidth prog) (playfieldHeight prog) (playfieldRowsOf prog)
+      = playfieldOf prog
+```
+
+Three things worth recording about how it landed:
+
+**Aim for grid equality, not `get`-agreement.** `Grid` is a one-field structure,
+so this is provable by `funext` on `cells`, and the simulation theorems then
+transport by plain `rw`. Settling for `∀ x y, get = get` would have required
+run-level congruence lemmas — a bisimulation layer that would dwarf B itself.
+Verified: the bridge rewrites a `halts (State.init (Grid.ofRows ...))` statement
+into `halts (playfieldStart ...)` in two lines.
+
+**The nonemptiness hypothesis is load-bearing.** `Grid.get` reduces coordinates
+modulo the size, but `Grid.ofRows` indexes `cells` at *raw* coordinates, so the
+two agree only when the rows list covers the full extent — and for `w = 0` or
+`h = 0`, `n % 0 = n` breaks the guard comparison. It cannot bite in practice
+(an empty program places no cells), but rather than case-split on it the lemma
+takes `prog ≠ []` and derives `playfieldWidth_pos` / `playfieldHeight_pos` from
+the existing `entryColumn_strict_mono` and `blockRow_ge_length`.
+
+**A `cells`-level twin of `foldl_put_get` was needed.** The existing
+`LayoutCells` machinery characterizes `.get`; the `funext` works on `.cells` at
+raw coordinates. `foldl_put_cells` and `foldl_put_cells_out` supply the in-range
+and out-of-range halves, and `playfieldOf_cells` / `playfieldOf_cells_out` lift
+them to the playfield.
+
+**Statement-domain decision (affects C and D).** `playfieldRowsOf` supplies the
+rows, but the width and height are *separate* outputs of the construction, and
+`Grid.ofRows` takes them as explicit arguments. Rather than have D re-derive
+dimensions from the rows list (with its ragged-row and empty-list edge cases),
+the predicate domain should be the triple `ℕ × ℕ × List (List Char)`:
+
+```lean
+fun p : ℕ × ℕ × List (List Char) => halts (State.init (Grid.ofRows p.1 p.2.1 p.2.2))
+```
+
+This is `Primcodable` given A′, needs no dimension derivation, and the compiler
+of C emits the triple directly. `playfieldRowsOf_length` and
+`playfieldRowsOf_row_length` pin the dimensions for anyone who does want them.
+**C's compiler target and D's statement must name this same domain.**
 
 ### B′. The bootstrap: `State.init` is not `playfieldStart` — medium
 

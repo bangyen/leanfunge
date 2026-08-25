@@ -40,6 +40,9 @@ so the program halts in two steps along every branch.
   halts after two steps.
 * `coin_halts_nondeterministic`: The two-step relational run halts, and the
   four choices are genuinely distinct intermediate states.
+* `coin_step_only`: The `?` has no successors beyond the four choices.
+* `coin_halts_only`: *Every* two-step relational run halts — the converse of
+  `coin_halts_any`, so halting does not depend on the choice.
 * `coin_deterministic_halts`: The deterministic interpreter also halts in two
   steps, taking the "keep going right" branch.
 -/
@@ -87,6 +90,32 @@ theorem coin_halts_nondeterministic :
       (coinAfter .left).pc ≠ (coinAfter .right).pc ∧
       runRel 2 coinState none :=
   ⟨by decide, by decide, coin_halts_any .right⟩
+
+/-- Every successor of the `?` is one of the four direction choices: the
+    deterministic branch keeps the current direction, and the nondeterministic
+    branch names its direction outright. -/
+theorem coin_step_only (s' : Option (State 3 3)) (h : stepRel coinState s') :
+    ∃ d : Direction, s' = some (coinAfter d) := by
+  rcases h with hdet | ⟨d, _, _, hd⟩
+  · exact ⟨.right, hdet⟩
+  · exact ⟨d, hd⟩
+
+/-- *Every* two-step relational run from the coin flip halts, whichever
+    direction the `?` chose. Together with `coin_halts_any` this makes halting
+    after two steps independent of the nondeterminism. -/
+theorem coin_halts_only (result : Option (State 3 3))
+    (h : runRel 2 coinState result) : result = none := by
+  rcases h with ⟨s₁, h₁, hstep⟩ | ⟨_, hres⟩
+  · rw [runRel_one] at h₁
+    obtain ⟨d, hd⟩ := coin_step_only _ h₁
+    rw [Option.some.inj hd] at hstep
+    rcases hstep with hdet | ⟨d', _, hr', _⟩
+    · rw [show step (coinAfter d) = none by cases d <;> decide] at hdet
+      exact hdet
+    · exfalso
+      revert hr'
+      cases d <;> decide
+  · exact hres
 
 /-- The deterministic interpreter halts in two steps as well, taking the
     "keep the current direction" branch. -/

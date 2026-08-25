@@ -21,6 +21,7 @@ import Mathlib.Data.Nat.Notation
   coordinates reads it back.
 * `ofRows_cells_out_of_rows`: Missing rows are spaces.
 * `ofRows_cells_out_of_col`: Missing cells in a row are spaces.
+* `get_eq_get_mod`: Reading a cell ignores any out-of-range coordinates.
 -/
 
 namespace LeanFunge
@@ -117,4 +118,13 @@ theorem ofRows_cells_out_of_col (row : List Char) (hx : row.length ≤ x) :
   exact List.getD_eq_default (l := row) (n := x) (d := ' ') hx
 
 end Grid
+
+/-- Reading a cell ignores any out-of-range part of the coordinates: the
+    playfield is a torus, so a pointer outside the grid still reads the
+    wrapped cell. -/
+theorem get_eq_get_mod (g : Grid w h) (x y : ℕ) :
+    g.get x y = g.get (x % w) (y % h) := by
+  unfold Grid.get
+  simp only [Nat.mod_mod]
+
 end LeanFunge

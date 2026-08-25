@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Direction
 import Mathlib.Data.Nat.Notation
 
 /-!
@@ -53,6 +54,13 @@ import Mathlib.Data.Nat.Notation
 * `stepState_stringMode_toggle`: The toggle instruction turns string mode on.
 * `stepState_dir_of_ne`: Every instruction that does not turn leaves the
   direction unchanged.
+* `stepState_pc_lt`: Every state transition leaves the pointer inside the
+  playfield.
+* `stepString_pc_lt`: A string-mode transition leaves the pointer inside the
+  playfield.
+* `step_pc_lt`: Every step leaves the pointer inside the playfield.
+* `run_pc_lt`: After at least one step, the pointer is inside the
+  playfield.
 -/
 
 namespace LeanFunge
@@ -353,5 +361,55 @@ theorem stepState_dir_of_ne (s : State w h) (instr : Instruction)
       unfold stepState
       cases h : s.input <;> rfl
   | _ => rfl
+
+/-! ### The pointer invariant
+
+Every pointer update goes through `stepPos`, which reduces its coordinates
+modulo the playfield size, so the interpreter never carries an out-of-range
+pointer after a step. The initial pointer of `State.init` is `(0, 0)`, in
+range whenever the playfield is non-empty. A hand-built out-of-range pointer
+is harmless in any case, since `Grid.get` wraps its coordinates
+(`get_eq_get_mod`). -/
+
+/-- Every state transition leaves the pointer inside the playfield. -/
+theorem stepState_pc_lt (hw : 0 < w) (hh : 0 < h) (s : State w h)
+    (instr : Instruction) (hne : instr ≠ .halt) :
+    (stepState s instr).pc.1 < w ∧ (stepState s instr).pc.2 < h := by
+  cases instr with
+  | halt => exact absurd rfl hne
+  | inputChar =>
+      unfold stepState
+      cases s.input <;> exact stepPos_lt hw hh _ _
+  | _ => exact stepPos_lt hw hh _ _
+
+/-- A string-mode transition also leaves the pointer inside the playfield. -/
+theorem stepString_pc_lt (hw : 0 < w) (hh : 0 < h) (s : State w h) (ch : Char) :
+    (stepString s ch).pc.1 < w ∧ (stepString s ch).pc.2 < h := by
+  unfold stepString
+  cases (ch.toNat == '"'.toNat) <;> exact stepPos_lt hw hh _ _
+
+/-- Every step leaves the pointer inside the playfield, whatever the pointer
+    was before: the interpreter never carries an out-of-range pointer. -/
+theorem step_pc_lt (hw : 0 < w) (hh : 0 < h) {s s' : State w h}
+    (hstep : step s = some s') : s'.pc.1 < w ∧ s'.pc.2 < h := by
+  by_cases hsm : s.stringMode = true
+  · rw [step_eq_stepString s hsm] at hstep
+    injection hstep with hs'
+    rw [← hs']
+    exact stepString_pc_lt hw hh s _
+  · have hf : s.stringMode = false := stringMode_false_of_not hsm
+    have hnh := decodeChar_ne_halt_of_step hf hstep
+    rw [step_eq_stepState s hf hnh] at hstep
+    injection hstep with hs'
+    rw [← hs']
+    exact stepState_pc_lt hw hh s _ hnh
+
+/-- After at least one step, the pointer is inside the playfield. -/
+theorem run_pc_lt (hw : 0 < w) (hh : 0 < h) (n : ℕ) {s s' : State w h}
+    (hrun : run (n + 1) s = some s') : s'.pc.1 < w ∧ s'.pc.2 < h := by
+  rcases hn : run n s with _ | sn
+  · rw [run, hn] at hrun; cases hrun
+  · rw [run, hn] at hrun
+    exact step_pc_lt hw hh (by simpa only using hrun)
 
 end LeanFunge

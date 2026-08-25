@@ -85,4 +85,21 @@ example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
 example (c : Char) : decodeChar c = .nop ↔ c ∉ instrChars :=
   decodeChar_nop_iff c
 
+example {w h : ℕ} (hw : 0 < w) (hh : 0 < h) (s : State w h) (instr : Instruction)
+    (hne : instr ≠ .halt) :
+    (stepState s instr).pc.1 < w ∧ (stepState s instr).pc.2 < h :=
+  stepState_pc_lt hw hh s instr hne
+
+example {w h : ℕ} (hw : 0 < w) (hh : 0 < h) (s : State w h) (ch : Char) :
+    (stepString s ch).pc.1 < w ∧ (stepString s ch).pc.2 < h :=
+  stepString_pc_lt hw hh s ch
+
+example {w h : ℕ} (hw : 0 < w) (hh : 0 < h) {s s' : State w h}
+    (hstep : step s = some s') : s'.pc.1 < w ∧ s'.pc.2 < h :=
+  step_pc_lt hw hh hstep
+
+example {w h : ℕ} (hw : 0 < w) (hh : 0 < h) (n : ℕ) {s s' : State w h}
+    (hrun : run (n + 1) s = some s') : s'.pc.1 < w ∧ s'.pc.2 < h :=
+  run_pc_lt hw hh n hrun
+
 end LeanFunge.Tests

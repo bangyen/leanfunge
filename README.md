@@ -109,9 +109,9 @@ universality statement — is verified for every program (via normalization):
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
-| **Generic routing** | High | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
-| **Simulation induction** | High | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
+| **Generic `decz` block execution** | Done | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
+| **Generic routing** | Done | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
+| **Simulation induction** | Done | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
 | **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts *exactly when* the machine does. |
 
 The remaining language tracks are complete: the string-mode block semantics

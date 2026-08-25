@@ -201,6 +201,22 @@ example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
        | .up | .down => s'.pc.1 % w = s.pc.1 % w) :=
   run_safe_line_step hw hh hm hline n
 
+example (c : Char) : decodeChar c = .stringMode ↔ c = '"' :=
+  decodeChar_stringMode_iff c
+
+example {w h : ℕ} {s s' : State w h} (hstep : step s = some s') :
+    s'.stringMode = xor s.stringMode (s.grid.get s.pc.1 s.pc.2 == '"') :=
+  step_stringMode_xor hstep
+
+example {w h : ℕ} (n : ℕ) (s s' : State w h) (hrun : run n s = some s') :
+    s'.stringMode = xor s.stringMode (decide (quoteSteps n s % 2 = 1)) :=
+  run_stringMode_parity n s s' hrun
+
+example {w h : ℕ} (n : ℕ) (s s' : State w h) (hsm : s.stringMode = false)
+    (hrun : run n s = some s') :
+    s'.stringMode = false ↔ quoteSteps n s % 2 = 0 :=
+  run_stringMode_even n s s' hsm hrun
+
 example {w h : ℕ} (s : State w h) (hw : 0 < w) (hh : 0 < h)
     (hm : s.stringMode = false) (hline : SafeLine s.grid s.dir s.pc) (n : ℕ) :
     run n s ≠ none :=

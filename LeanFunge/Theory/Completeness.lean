@@ -16,6 +16,7 @@ import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.PairEncoding
 import LeanFunge.Theory.Completeness.Routing
 import LeanFunge.Theory.Completeness.TwoCounter
+import LeanFunge.Theory.Completeness.Undecidable
 
 /-!
 # Turing Completeness Aggregator

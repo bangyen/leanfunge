@@ -103,4 +103,22 @@ example : (run 6 wrapState).map (fun s => (s.pc, s.grid.get 0 0)) = some ((0, 0)
 example : run 7 wrapState = none :=
   wrap_halts
 
+example (d : Direction) :
+    stepRel coinState (some (coinAfter d)) ∧
+      decodeChar ((coinAfter d).grid.get (coinAfter d).pc.1 (coinAfter d).pc.2)
+        = .halt :=
+  coin_step_any d
+
+example (d : Direction) : runRel 2 coinState none :=
+  coin_halts_any d
+
+example :
+    (coinAfter .up).pc ≠ (coinAfter .down).pc ∧
+      (coinAfter .left).pc ≠ (coinAfter .right).pc ∧
+      runRel 2 coinState none :=
+  coin_halts_nondeterministic
+
+example : run 2 coinState = none :=
+  coin_deterministic_halts
+
 end LeanFunge.Tests

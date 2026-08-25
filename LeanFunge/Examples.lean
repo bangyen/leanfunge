@@ -12,6 +12,7 @@ import LeanFunge.Examples.HelloWorld
 import LeanFunge.Examples.Input
 import LeanFunge.Examples.PutGet
 import LeanFunge.Examples.Quine
+import LeanFunge.Examples.Random
 import LeanFunge.Examples.SelfMod
 import LeanFunge.Examples.Trampoline
 import LeanFunge.Examples.Wrap

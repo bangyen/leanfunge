@@ -33,16 +33,16 @@ example (prog : CMProgram) {i j : ℕ} (h : i < j) : entryColumn prog i < entryC
 example (prog : CMProgram) {i j : ℕ} (h : i < j) : blockRow prog i < blockRow prog j :=
   blockRow_strict_mono prog h
 
-example : (playfieldOf layoutProgram).get 0 4 = '>' :=
+example : (playfieldOf layoutProgram).get 1 4 = '>' :=
   layout_entry
 
-example : (playfieldOf layoutProgram).get 7 6 = '|' :=
+example : (playfieldOf layoutProgram).get 8 6 = '|' :=
   layout_decz_branch
 
-example : (playfieldOf layoutProgram).get 8 9 = 'v' :=
+example : (playfieldOf layoutProgram).get 9 9 = 'v' :=
   layout_jog
 
-example : (playfieldOf layoutProgram).get 12 13 = '@' :=
+example : (playfieldOf layoutProgram).get 13 13 = '@' :=
   layout_halt
 
 end LeanFunge.Tests

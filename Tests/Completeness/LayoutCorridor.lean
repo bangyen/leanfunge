@@ -18,11 +18,11 @@ open LeanFunge.Completeness
 /-- A drop down the fall-through column reaches the next entry. -/
 example :
     ((run 1 { State.init (playfieldOf layoutProgram) with
-        pc := (3, 5), dir := .down }).map (fun s => s.pc))
-      = some (3, 6) := by
+        pc := (4, 5), dir := .down }).map (fun s => s.pc))
+      = some (4, 6) := by
   let S : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
-    { State.init (playfieldOf layoutProgram) with pc := (3, 5), dir := .down }
-  change ((run 1 S).map (fun s => s.pc)) = some (3, 6)
+    { State.init (playfieldOf layoutProgram) with pc := (4, 5), dir := .down }
+  change ((run 1 S).map (fun s => s.pc)) = some (4, 6)
   have h := fallthrough_drop layoutProgram 0 (by decide) S rfl rfl rfl rfl
   simp only [h, Option.map]
   decide

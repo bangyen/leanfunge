@@ -18,11 +18,11 @@ open LeanFunge.Completeness
     remainder on top of the encoded pair at the branch cell. -/
 example :
     ((run 4 { State.init (playfieldOf layoutProgram) with
-        stack := [Int.ofNat 8], pc := (3, 6) }).map (fun s => (s.stack, s.pc)))
-      = some ([Int.ofNat 0, Int.ofNat 8], (7, 6)) := by
+        stack := [Int.ofNat 8], pc := (4, 6) }).map (fun s => (s.stack, s.pc)))
+      = some ([Int.ofNat 0, Int.ofNat 8], (8, 6)) := by
   let S : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
-    { State.init (playfieldOf layoutProgram) with stack := [Int.ofNat 8], pc := (3, 6) }
-  change ((run 4 S).map (fun s => (s.stack, s.pc))) = some ([Int.ofNat 0, Int.ofNat 8], (7, 6))
+    { State.init (playfieldOf layoutProgram) with stack := [Int.ofNat 8], pc := (4, 6) }
+  change ((run 4 S).map (fun s => (s.stack, s.pc))) = some ([Int.ofNat 0, Int.ofNat 8], (8, 6))
   have h := deczBlock_prefix layoutProgram 1 (by decide)
       (show layoutProgram.getD 1 .halt = .decz 0 3 by decide) S rfl rfl rfl rfl
   simp only [h, counterVal, Option.map]

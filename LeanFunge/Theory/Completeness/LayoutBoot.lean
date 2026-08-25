@@ -74,14 +74,12 @@ theorem blockCellList_col_lt (prog : CMProgram) (j : ℕ) (c : (ℕ × ℕ) × C
         have hst := hstrict (by rw [hget]; exact fun h => CMInstr.noConfusion h)
         rw [hget] at hst
         simpa only [blockWidth] using hst
-      simp only [blockCellList, hget, blockWidth, List.mem_cons, List.not_mem_nil,
-        or_false] at hc
+      simp only [hget, List.mem_cons, List.not_mem_nil, or_false] at hc
       rcases hc with h | h | h | h <;> subst h <;> simp only [] <;> omega
   | halt =>
       rw [hget] at hnext
       simp only [blockWidth] at hnext
-      simp only [blockCellList, hget, blockWidth, List.mem_cons, List.not_mem_nil,
-        or_false] at hc
+      simp only [hget, List.mem_cons, List.not_mem_nil, or_false] at hc
       rcases hc with h | h <;> subst h <;> simp only [] <;> omega
   | jump k =>
       have hk : k < prog.length := hwell j hj 0 k (Or.inr hget)
@@ -89,7 +87,7 @@ theorem blockCellList_col_lt (prog : CMProgram) (j : ℕ) (c : (ℕ × ℕ) × C
         unfold playfieldWidth; exact entryColumn_strict_mono prog hk
       rw [hget] at hnext
       simp only [blockWidth] at hnext
-      simp only [blockCellList, hget, corridorCells, blockWidth, List.cons_append,
+      simp only [hget, corridorCells, blockWidth, List.cons_append,
         List.nil_append, List.mem_cons, List.not_mem_nil, or_false] at hc
       rcases hc with h | h | h | h <;> subst h <;> simp only [] <;> omega
   | decz cc k =>
@@ -100,7 +98,7 @@ theorem blockCellList_col_lt (prog : CMProgram) (j : ℕ) (c : (ℕ × ℕ) × C
         have hst := hstrict (by rw [hget]; exact fun h => CMInstr.noConfusion h)
         rw [hget] at hst
         simpa only [blockWidth] using hst
-      simp only [blockCellList, hget, corridorCells, blockWidth, List.cons_append,
+      simp only [hget, corridorCells, blockWidth, List.cons_append,
         List.nil_append, List.mem_cons, List.not_mem_nil, or_false] at hc
       rcases hc with h|h|h|h|h|h|h|h|h|h|h <;> subst h <;> simp only [] <;> omega
 

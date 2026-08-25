@@ -97,7 +97,8 @@ theorem playfieldRowsOf_getD_length (prog : CMProgram) (y : ℕ) :
   · rw [List.getD_eq_getElem?_getD]
     simp only [List.getElem?_map, List.getElem?_range, hy, Option.map_some, Option.getD_some]
     simp only [↓Char.isValue, List.length_map, List.length_range, le_refl]
-  · rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by simp only [List.length_map, List.length_range]; omega)]
+  · rw [List.getD_eq_getElem?_getD,
+      List.getElem?_eq_none (by simp only [List.length_map, List.length_range]; omega)]
     simp only [Option.getD_none, List.length_nil, zero_le]
 
 /-- Past the playfield width, the text form reads a space. -/

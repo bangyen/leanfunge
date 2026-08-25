@@ -32,6 +32,8 @@ is well defined.
 * `halts_iff_at`: A run halts exactly when it reaches the `@` cell outside
   string mode.
 * `halts_of_at_cell`: Reaching the `@` cell outside string mode halts the run.
+* `run_none_add`: Once a run yields `none`, running longer still does.
+* `halts_iff_of_run`: Halting transports across a finite prefix of a run.
 * `run_none_stays_none`: Once a run has halted it stays halted.
 * `halt_unique`: A run reaches at most one halting configuration, at one step
   count.
@@ -138,6 +140,38 @@ theorem halts_of_at_cell (s : State w h) (m : ℕ) (sₘ : State w h)
     (hat : sₘ.grid.get sₘ.pc.1 sₘ.pc.2 = '@') : halts s := by
   rw [halts_iff_at]
   exact ⟨m, sₘ, hr, hsm, hat⟩
+
+/-- Once a run yields `none`, running longer still yields `none`. -/
+theorem run_none_add (s : State w h) {n : ℕ} (hn : run n s = none) (m : ℕ) :
+    run (n + m) s = none := by
+  induction m with
+  | zero => simpa using hn
+  | succ j ih => rw [← Nat.add_assoc] at *; rw [run, ih]; rfl
+
+/-- Halting transports across a finite prefix of a run: a state halts exactly
+    when any state it reaches halts. The reachable state stands in for the
+    original, which is what lets a bootstrap prefix be discharged. -/
+theorem halts_iff_of_run (s s' : State w h) (k : ℕ)
+    (hk : run k s = some s') : halts s ↔ halts s' := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n - k, ?_⟩
+    rcases Nat.lt_or_ge n k with hlt | hle
+    · -- `s` already halted before reaching `s'`, contradicting `run k s = some s'`
+      exfalso
+      have hsplit := run_none_add s hn (k - n)
+      rw [Nat.add_sub_cancel' (Nat.le_of_lt hlt)] at hsplit
+      rw [hsplit] at hk; cases hk
+    · cases hr : run (n - k) s' with
+      | none => rfl
+      | some t =>
+          exfalso
+          have hcomp : run (k + (n - k)) s = some t :=
+            run_append s s' (some t) k (n - k) hk hr
+          rw [Nat.add_sub_cancel' hle] at hcomp
+          rw [hcomp] at hn; cases hn
+  · rintro ⟨n, hn⟩
+    exact ⟨k + n, run_append s s' none k n hk hn⟩
 
 /-- Once a run has halted it stays halted: no later step count revives it. -/
 theorem run_none_stays_none (s : State w h) (k : ℕ) (hs : step s = none)

@@ -129,13 +129,13 @@ yields the capstone:
     universal_simulation prog s₀ (hs₀ : s₀.pc < prog.length) :
       ∃ prog',
         wellPlaced prog' ∧
-        (CMInstr.halts prog s₀ → halts (playfieldStart prog' s₀)) ∧
+        (halts (playfieldStart prog' s₀) ↔ CMInstr.halts prog s₀) ∧
         ∀ n : ℕ, ∃ m : ℕ,
           (run m (playfieldStart prog' s₀)).map (fun s => s.stack)
             = (CMInstr.run prog n s₀).map (fun s => [encodeState s])
 
 Read aloud: for every two-counter machine, there is a well-placed Befunge-93
-playfield that halts whenever the machine halts, and whose stack after `m`
+playfield that halts exactly when the machine halts, and whose stack after `m`
 steps is exactly the encoding of the machine's state after `n` steps — the
 playfield *is* the machine.
 
@@ -181,10 +181,14 @@ What is *not* claimed:
   simulate Turing machines is a classical result not present in mathlib. This
   development stops at the (machine-checked) simulation of 2CMs on Befunge-93
   playfields; the last step to full Turing-completeness is a library of
-  classical computability theory, not a Lean gap here.
-- **The surrounding language tracks.** String-mode block semantics, output
-  monotonicity, and input consumption are separate ongoing efforts (see the
-  README roadmap); the completeness construction uses none of them.
+  classical computability theory, not a Lean gap here. Note the halting
+  *equivalence* is proven (`simulation_halts_iff`) — the playfield halts
+  exactly when the machine does — so what remains external is only the
+  classical fact, not the correspondence.
+- **Undecidability itself.** The equivalence above says the generated
+  playfield's halting mirrors the machine's. Turning that into a statement
+  about decidability requires a formal notion of computability, which is the
+  same missing library.
 
 Everything the construction claims — the cell lookups, the block executions,
 the corridor routing, the step-for-step simulation, and the universality

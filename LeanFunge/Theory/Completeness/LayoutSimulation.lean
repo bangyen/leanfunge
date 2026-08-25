@@ -115,6 +115,8 @@ position and stack, and lift halting from the machine to the playfield.
   encodings.
 
 * `simulation_halts`: If the machine halts, the playfield halts.
+* `simulation_halts_converse`: If the playfield halts, the machine halts.
+* `simulation_halts_iff`: The playfield halts exactly when the machine halts.
 
 -/
 namespace LeanFunge
@@ -607,7 +609,9 @@ theorem step_pc_lt (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CM
       rw [CMInstr.step_halt prog s₀ hget] at hstep
       cases hstep
 
-/-- One machine step is a playfield run to the successor entry. -/
+/-- One machine step is a playfield run of at least one step to the successor
+    entry. The step count is positive, which is what makes the simulation's
+    step count grow with the machine's. -/
 theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
     (hs₀ : s₀.pc < prog.length)
     (hfall : s₀.pc + 1 < prog.length ∨ CMInstr.instrAt prog s₀.pc = .halt)
@@ -615,7 +619,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
     (hsm : s.stringMode = false) (hpc : s.pc = blockEntry prog s₀.pc)
     (hgrid : s.grid = playfieldOf prog) (hstack : s.stack = [encodeState s₀]) :
     match CMInstr.step prog s₀ with
-    | some s' => ∃ n, run n s = some (afterState prog s s')
+    | some s' => ∃ n, 0 < n ∧ run n s = some (afterState prog s s')
     | none => run 2 s = none := by
   cases hget : CMInstr.instrAt prog s₀.pc with
   | inc c =>
@@ -633,7 +637,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             cases h
           exact this hh
       have hrun := sim_inc prog s₀.pc c hi1 hinc s hsm hpc hgrid hstack
-      refine ⟨5, ?_⟩
+      refine ⟨5, by omega, ?_⟩
       simpa only [afterState, blockEntry] using hrun
   | decz c k =>
       have hdecz : prog.getD s₀.pc .halt = .decz c k := by
@@ -651,7 +655,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
               cases h
             exact this hh
         have hrun := sim_decz_zero prog s₀.pc k c hi1 hwell hdecz s hsm hpc hgrid hstack hz
-        refine ⟨5 + corridorSteps prog s₀.pc k, ?_⟩
+        refine ⟨5 + corridorSteps prog s₀.pc k, by omega, ?_⟩
         simpa only [afterState, blockEntry] using hrun
       · have hs := CMInstr.step_decz_nonzero prog s₀ c k hget hz
         rw [hs]
@@ -665,7 +669,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
               cases h
             exact this hh
         have hrun := sim_decz_nonzero prog s₀.pc c hi1 hdecz s hsm hpc hgrid hstack hz
-        refine ⟨10, ?_⟩
+        refine ⟨10, by omega, ?_⟩
         simpa only [afterState, blockEntry] using hrun
   | jump k =>
       have hjump : prog.getD s₀.pc .halt = .jump k := by
@@ -682,7 +686,7 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
             cases h
           exact this hh
       have hrun := sim_jump prog s₀.pc k hi1 hwell hjump s hsm hpc hgrid hstack
-      refine ⟨2 + corridorSteps prog s₀.pc k, ?_⟩
+      refine ⟨2 + corridorSteps prog s₀.pc k, by omega, ?_⟩
       simpa only [afterState, blockEntry] using hrun
   | halt =>
       have hhalt : prog.getD s₀.pc .halt = .halt := by
@@ -695,29 +699,37 @@ theorem sim_step (prog : CMProgram) (hwell : wellFormed prog) (s₀ : CMState)
 open CMInstr
 
 /-- The machine run is simulated by the playfield run: the playfield reaches
-    the successor block with the successor state's encoding, or stops. -/
+    the successor block with the successor state's encoding, or stops. While
+    the machine is still running, the playfield step count is at least the
+    machine's, since every simulated step takes at least one playfield step. -/
 theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMState)
     (hs₀ : s₀.pc < prog.length) (n : ℕ) :
     ∃ m, run m (playfieldStart prog s₀)
         = (CMInstr.run prog n s₀).map (fun s' => afterState prog (playfieldStart prog s₀) s')
+      ∧ (∀ s', CMInstr.run prog n s₀ = some s' → n ≤ m)
       ∧ ∀ s', CMInstr.run prog n s₀ = some s' → s'.pc < prog.length := by
   induction n with
   | zero =>
-      refine ⟨0, ?_, ?_⟩
+      refine ⟨0, ?_, ?_, ?_⟩
       · rw [show run 0 (playfieldStart prog s₀) = some (playfieldStart prog s₀) by rfl]
         rw [show CMInstr.run prog 0 s₀ = some s₀ by rfl]
         simp only [playfieldStart, afterState, blockEntry, Option.map_some]
+      · intro _ _
+        exact Nat.le_refl 0
       · intro s' h
         have h' : s' = s₀ := by
           simpa only [CMInstr.run, Option.some.injEq] using h.symm
         subst s'
         exact hs₀
   | succ n ih =>
-      rcases ih with ⟨mₙ, hrunₙ, hbₙ⟩
+      rcases ih with ⟨mₙ, hrunₙ, hgrowₙ, hbₙ⟩
       by_cases hnone : CMInstr.run prog n s₀ = none
-      · refine ⟨mₙ, ?_, ?_⟩
+      · refine ⟨mₙ, ?_, ?_, ?_⟩
         · rw [hrunₙ, CMInstr.run_succ, hnone]
           simp only [Option.map_none, Option.bind_none]
+        · intro s' h
+          rw [CMInstr.run_succ, hnone] at h
+          simp only [Option.bind_none, reduceCtorEq] at h
         · intro s' h
           rw [CMInstr.run_succ, hnone] at h
           simp only [Option.bind_none, reduceCtorEq] at h
@@ -744,7 +756,7 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
               (afterState prog (playfieldStart prog s₀) sₙ) := by
               rw [hrunₙ, hrunₙ']
               simp only [Option.map_some]
-            refine ⟨mₙ + 2, ?_, ?_⟩
+            refine ⟨mₙ + 2, ?_, ?_, ?_⟩
             · have hcomp : run (mₙ + 2) (playfieldStart prog s₀) = none := by
                 exact run_append (playfieldStart prog s₀)
                   (afterState prog (playfieldStart prog s₀) sₙ) none mₙ 2 hreach hrun2
@@ -754,17 +766,20 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
             · intro s' h
               rw [CMInstr.run_succ, hrunₙ'] at h
               simp only [hnone', Option.bind_some, reduceCtorEq] at h
+            · intro s' h
+              rw [CMInstr.run_succ, hrunₙ'] at h
+              simp only [hnone', Option.bind_some, reduceCtorEq] at h
         | some s' =>
             have hs' := hstep
             rw [hstep2] at hs'
-            rcases hs' with ⟨n', hrun'⟩
+            rcases hs' with ⟨n', hn'pos, hrun'⟩
             have hlt' : s'.pc < prog.length :=
               step_pc_lt prog hwellPlaced sₙ (hbₙ sₙ hrunₙ') s' hstep2
             have hreach : run mₙ (playfieldStart prog s₀) = some
               (afterState prog (playfieldStart prog s₀) sₙ) := by
               rw [hrunₙ, hrunₙ']
               simp only [Option.map_some]
-            refine ⟨mₙ + n', ?_, ?_⟩
+            refine ⟨mₙ + n', ?_, ?_, ?_⟩
             · have hcomp : run (mₙ + n') (playfieldStart prog s₀) = some
                 (afterState prog (playfieldStart prog s₀) s') := by
                 have hcomp' : run (mₙ + n') (playfieldStart prog s₀)
@@ -777,6 +792,9 @@ theorem sim_run (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMSta
               rw [hcomp]
               rw [CMInstr.run_succ, hrunₙ']
               simp only [hstep2, Option.bind_some, Option.map_some]
+            · intro s'' _
+              have hle : n ≤ mₙ := hgrowₙ sₙ hrunₙ'
+              omega
             · intro s'' h
               rw [CMInstr.run_succ, hrunₙ'] at h
               simp only [hstep2, Option.bind_some, Option.some.injEq] at h
@@ -790,7 +808,7 @@ theorem simulation_map (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ 
     (hs₀ : s₀.pc < prog.length) (n : ℕ) :
     ∃ m, (run m (playfieldStart prog s₀)).map (fun s => (s.pc, s.stack))
       = (CMInstr.run prog n s₀).map (fun s => (blockEntry prog s.pc, [encodeState s])) := by
-  rcases (sim_run prog hwellPlaced s₀ hs₀ n) with ⟨m, hrun, hb⟩
+  rcases (sim_run prog hwellPlaced s₀ hs₀ n) with ⟨m, hrun, _hgrow, hb⟩
   refine ⟨m, ?_⟩
   rw [hrun]
   rw [Option.map_map]
@@ -802,10 +820,47 @@ theorem simulation_halts (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s�
     CMInstr.halts prog s₀ → halts (playfieldStart prog s₀) := by
   intro h
   rcases h with ⟨n, hn⟩
-  rcases (sim_run prog hwellPlaced s₀ hs₀ n) with ⟨m, hrun, hb⟩
+  rcases (sim_run prog hwellPlaced s₀ hs₀ n) with ⟨m, hrun, _hgrow, hb⟩
   rw [hn] at hrun
   refine ⟨m, ?_⟩
   simpa only [Option.map_none] using hrun
+
+open CMInstr
+
+/-- If the playfield halts, the machine halts. -/
+theorem simulation_halts_converse (prog : CMProgram) (hwellPlaced : wellPlaced prog)
+    (s₀ : CMState) (hs₀ : s₀.pc < prog.length) :
+    halts (playfieldStart prog s₀) → CMInstr.halts prog s₀ := by
+  intro hp
+  by_contra hm
+  -- the machine never halts: every step count yields some state
+  have halive : ∀ n, ∃ sn, CMInstr.run prog n s₀ = some sn := by
+    intro n
+    rcases hn : CMInstr.run prog n s₀ with _ | sn
+    · exact absurd ⟨n, hn⟩ hm
+    · exact ⟨sn, rfl⟩
+  rcases hp with ⟨k, hk⟩
+  -- pick a machine step count at least k
+  rcases halive k with ⟨sk, hsk⟩
+  rcases sim_run prog hwellPlaced s₀ hs₀ k with ⟨m, hrun, hgrow, _hb⟩
+  have hkm : k ≤ m := hgrow sk hsk
+  -- the playfield is still alive at m, but halted at k ≤ m
+  have hsome : run m (playfieldStart prog s₀)
+      = some (afterState prog (playfieldStart prog s₀) sk) := by
+    rw [hrun, hsk]
+    simp only [Option.map_some]
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le hkm
+  rw [run_halts_mono (playfieldStart prog s₀) hk] at hsome
+  cases hsome
+
+open CMInstr
+
+/-- The playfield halts exactly when the machine halts. -/
+theorem simulation_halts_iff (prog : CMProgram) (hwellPlaced : wellPlaced prog)
+    (s₀ : CMState) (hs₀ : s₀.pc < prog.length) :
+    halts (playfieldStart prog s₀) ↔ CMInstr.halts prog s₀ :=
+  ⟨simulation_halts_converse prog hwellPlaced s₀ hs₀,
+   simulation_halts prog hwellPlaced s₀ hs₀⟩
 
 end Completeness
 

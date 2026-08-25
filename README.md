@@ -86,7 +86,7 @@ The implementation is organized into `Core` (definitions), `Theory`
     every two-counter machine is equivalent to a well-placed program (clamp
     the targets, append a `halt`), so `universal_simulation` provides a
     simulating playfield for every machine: its run matches the machine's
-    encoded run and it halts whenever the machine does.
+    encoded run and it halts exactly when the machine does.
   The earlier concrete verifications — the transfer program, a looping program
   with a backward jump, and the branch-free single-row fragment — were the
   stepping stones for this generic development and are now subsumed by it;
@@ -111,7 +111,7 @@ universality statement — is verified for every program (via normalization):
 | **Generic `decz` block execution** | High | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
 | **Generic routing** | High | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
 | **Simulation induction** | High | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
-| **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts whenever the machine does. |
+| **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts *exactly when* the machine does. |
 
 The remaining language tracks are complete: the string-mode block semantics
 (`run_string_block`), the run-level output monotonicity (`run_output_prefix`),
@@ -128,14 +128,13 @@ straight-line divergence (`not_halts_safe_line`), the quote balance
 ### Open work
 
 The language-property program is complete — every row in the table that
-follows this one is proven. What remains is the reduction that would close the
-completeness capstone, and the lift of the run-level laws to the
-nondeterministic semantics.
+follows this one is proven, as is the halting equivalence that closes the
+completeness capstone. What remains is the lift of the run-level laws to the
+nondeterministic semantics, and one external blocker.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Halting converse for the simulation** | High | `simulation_halts` proves only that a halting machine yields a halting playfield. The converse — the generated playfield halts *only if* the machine does — would make the pair an iff, turning the undecidability row into a provable reduction plus one external fact. Not a corollary of `sim_run`: it returns `∃ m` with no monotonicity of `m` in the machine step count, so it must first be strengthened to expose a monotone step map. |
-| **Halting problem undecidability** | High | The capstone: `universal_simulation` plus the classical fact that two-counter-machine halting is undecidable. Blocked on an external computability library, as mathlib does not contain the classical 2CM universality result. Note the reduction above is the part that can be proven here; only the classical fact is external. |
+| **Halting problem undecidability** | High | Blocked on an external computability library: mathlib has neither the classical 2CM universality result nor a formal notion of decidability. The correspondence itself is no longer the gap — `simulation_halts_iff` proves the playfield halts *exactly when* the machine does — so what remains external is the classical fact alone. |
 | **Relational lifts of the run-level laws** | Medium | Every run-level law — the memory model, quote parity, string-mode precedence, straight-line divergence, and the I/O prefixes — is proven for the deterministic `run` only. Since `?` only chooses a direction, the direction-independent ones should hold along every `runRel` trace; `Theory.Run.Relational` and `Theory.Random` supply the machinery. |
 | **`decodeChar` nop characterization** | Low | `decodeChar_halt_iff` and `decodeChar_stringMode_iff` pin down `@` and `"`; the `| _ => .nop` catch-all is uncharacterized. State that a character outside the instruction table decodes to `nop`. |
 
@@ -146,6 +145,7 @@ ranked by value and feasibility.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
+| **Halting converse for the simulation** | High | Done. `simulation_halts_converse` proves the generated playfield halts only if the machine does, so `simulation_halts_iff` makes the pair an equivalence and `universal_simulation` now states it. The converse needed `sim_step` to expose that each simulated step takes at least one playfield step, and `sim_run` to carry the resulting growth bound; the positivity was already implicit in the block step counts. |
 | **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
 | **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
 | **`#` trampoline wrapping in all four directions** | Medium | Done. `step_trampoline_left_from_first`, `step_trampoline_down_from_last`, and `step_trampoline_up_from_first` join `step_trampoline_right_from_last`, covering the skip across the wrap at all four edges. |

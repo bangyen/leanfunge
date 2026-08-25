@@ -68,7 +68,7 @@ example :
         List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
         List.getElem_cons_zero, Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true,
         List.getElem_cons_succ, Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
-  rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, hb⟩
+  rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, _hgrow, hb⟩
   refine ⟨m, ?_⟩
   rw [hrun]
   rw [Option.map_map]
@@ -154,13 +154,26 @@ example : normalize layoutProgram = [.inc 1, .decz 0 3, .inc 0, .halt, .halt] :=
 example : wellPlaced (normalize layoutProgram) := by
   exact wellPlaced_normalize layoutProgram
 
-/-- Every two-counter machine has a simulating playfield: the capstone. -/
+/-- Every two-counter machine has a simulating playfield: the capstone. The
+    playfield halts exactly when the machine does. -/
 example :
     ∃ prog' : CMProgram, wellPlaced prog' ∧
-      (CMInstr.halts layoutProgram (CMInstr.startCM 1 0) →
-        halts (playfieldStart prog' (CMInstr.startCM 1 0))) := by
+      (halts (playfieldStart prog' (CMInstr.startCM 1 0)) ↔
+        CMInstr.halts layoutProgram (CMInstr.startCM 1 0)) := by
   rcases (universal_simulation layoutProgram (CMInstr.startCM 1 0) (by decide)) with
     ⟨prog', hw, hh, hr⟩
   exact ⟨prog', hw, hh⟩
+
+/-- The playfield halts exactly when the machine halts. -/
+example (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMState)
+    (hs₀ : s₀.pc < prog.length) :
+    halts (playfieldStart prog s₀) ↔ CMInstr.halts prog s₀ :=
+  simulation_halts_iff prog hwellPlaced s₀ hs₀
+
+/-- If the playfield halts, the machine halts. -/
+example (prog : CMProgram) (hwellPlaced : wellPlaced prog) (s₀ : CMState)
+    (hs₀ : s₀.pc < prog.length) :
+    halts (playfieldStart prog s₀) → CMInstr.halts prog s₀ :=
+  simulation_halts_converse prog hwellPlaced s₀ hs₀
 
 end LeanFunge.Tests

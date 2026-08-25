@@ -69,7 +69,7 @@ statement form without redoing any of the simulation proof.
 | # | Piece | Blocker | Size |
 | :-- | :--- | :--- | :--- |
 | A | `Primcodable` for `CMInstr`, `CMProgram`, `CMState` | none | **done** |
-| A′ | `Primcodable Char` (needs `PrimrecPred UInt32.isValidChar`) | none | small–medium, **on C's critical path** |
+| A′ | `Primcodable Char` | none | **done** |
 | B | `playfieldRowsOf` + the `ofRows` bridge lemma | none | **done** |
 | B′ | Bootstrap from `State.init` to the block-0 entry | none | medium |
 | C | `Computable` proof for the compiler | none | medium |
@@ -92,16 +92,32 @@ comes free from the `List` instance. No research content.
 `Primcodable CMProgram` follows from the `List` instance. The `h2cm` hypothesis
 shape of §2.B′ typechecks against them.
 
-**`Char` (piece A′) is harder than it looks.** Mathlib has no `Primcodable` —
-nor even `Encodable` — instance for `Char` (confirmed by search), and
-`Primcodable.ofEquiv` is the *only* builder, requiring a genuine `Equiv` rather
-than the left injection `Char.toNat`/`Char.ofNat` provides (`ofNat` clamps
-invalid codepoints, so it is not injective on `ℕ`). The route is
-`Primcodable.subtype` (`Primrec/Basic.lean:815`) via
-`Char ≃ { n : UInt32 // n.isValidChar }`, which needs a `PrimrecPred` for
-`isValidChar`. That is a real proof obligation, not an import — revised from
-"small" to small–medium and split out as A′, since nothing else in A depends on
-it.
+**`Char` (piece A′): done.** Mathlib has no `Primcodable` — nor even
+`Encodable` — instance for `Char`, and `Primcodable.ofEquiv` is the only builder,
+requiring a genuine `Equiv`. The obvious `Char.toNat`/`Char.ofNat` pairing does
+*not* give one: `ofNat` clamps invalid code points to `'\0'`, so it is not
+injective on `ℕ`.
+
+The route that works goes through the subtype, and turned out to be short:
+
+```lean
+def charEquivSubtype : Char ≃ { n : ℕ // n.isValidChar } where
+  toFun c := ⟨c.toNat, c.valid⟩
+  invFun n := Char.ofNatAux n.1 n.2
+  left_inv _ := Char.ext rfl
+  right_inv _ := Subtype.ext rfl
+```
+
+`Char.ofNatAux` is the un-clamped constructor, taking the validity proof the
+subtype already carries, which is what makes both inverse directions `rfl`.
+The predicate side is easier than the `UInt32` framing suggested: `isValidChar`
+unfolds to `n < 0xd800 ∨ (0xdfff < n ∧ n < 0x110000)`, so `PrimrecPred.or`,
+`PrimrecPred.and`, and `Primrec.nat_lt` discharge it directly — no `UInt32`
+reasoning at all. Note `Primcodable.subtype` is a `def`, not an instance, so it
+must be supplied with `letI`.
+
+With this, `Primcodable (List (List Char))` and the full
+`ℕ × ℕ × List (List Char)` statement domain both resolve.
 
 **Encoding choice affects C.** Pick the `Equiv` so encode/decode stay easy to
 prove `Primrec`. A nested-sum `ofEquiv` is the natural first cut, but a flat

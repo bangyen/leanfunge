@@ -131,11 +131,13 @@ straight-line divergence (`not_halts_safe_line`), the quote balance
 The language-property program is complete — every row in the table that
 follows this one is proven, as is the halting equivalence that closes the
 completeness capstone and the lift of the run-level laws to the
-nondeterministic semantics. What remains is one external blocker.
+nondeterministic semantics. What remains is undecidability, and most of that
+row turns out to be unblocked — see [`UNDECIDABILITY.md`](UNDECIDABILITY.md);
+only 2CM universality is genuinely external.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Halting problem undecidability** | High | Blocked on one missing bridge, not a missing foundation. Mathlib *does* have a formal notion of decidability and the undecidability of the halting problem (`ComputablePred`, `ComputablePred.halting_problem` in `Mathlib.Computability.Halting`); what it lacks is any counter-machine model, so the gap is a reduction from a mathlib computability model (partrec or TM2) to two-counter machines, plus `Primcodable` encodings and a `Computable` proof for the machine-to-playfield compiler. The correspondence itself is no longer the gap — `simulation_halts_iff` proves the playfield halts *exactly when* the machine does. |
+| **Halting problem undecidability** | High | Scoped in [`UNDECIDABILITY.md`](UNDECIDABILITY.md). Most of the row is unblocked: the statement must be phrased over *program text* (`Grid` holds a function `ℕ → ℕ → Char`, so a state-based domain is not `Primcodable` at all), and on that domain the `Primcodable` instances, a rows-based playfield, a `Computable` compiler, and the reduction itself are all provable today — `simulation_halts_iff` already gives the halting *equivalence*. The one external input is 2CM universality: mathlib has no counter-machine model, so the gap is a reduction `Turing.ToPartrec.Code → 2CM` (Minsky's theorem), a separate mathlib-scale project. The plan is to land the conditional theorem with that as a named hypothesis. |
 
 ### Completed language properties
 

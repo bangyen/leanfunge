@@ -180,15 +180,19 @@ What is *not* claimed:
 - **The classical universality of two-counter machines.** That 2CMs can
   simulate Turing machines is a classical result not present in mathlib. This
   development stops at the (machine-checked) simulation of 2CMs on Befunge-93
-  playfields; the last step to full Turing-completeness is a library of
-  classical computability theory, not a Lean gap here. Note the halting
+  playfields; the last step to full Turing-completeness is the 2CM
+  universality result, which mathlib's computability library does not yet
+  contain, not a Lean gap here. Note the halting
   *equivalence* is proven (`simulation_halts_iff`) — the playfield halts
   exactly when the machine does — so what remains external is only the
   classical fact, not the correspondence.
 - **Undecidability itself.** The equivalence above says the generated
-  playfield's halting mirrors the machine's. Turning that into a statement
-  about decidability requires a formal notion of computability, which is the
-  same missing library.
+  playfield's halting mirrors the machine's. Mathlib supplies the formal
+  notion of decidability and the undecidability of the halting problem
+  (`ComputablePred.halting_problem`); turning the equivalence into a Befunge
+  undecidability statement additionally needs the 2CM bridge above, together
+  with `Primcodable` encodings and a `Computable` proof for the
+  machine-to-playfield compiler.
 
 Everything the construction claims — the cell lookups, the block executions,
 the corridor routing, the step-for-step simulation, and the universality

@@ -134,7 +134,7 @@ nondeterministic semantics. What remains is one external blocker.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
-| **Halting problem undecidability** | High | Blocked on an external computability library: mathlib has neither the classical 2CM universality result nor a formal notion of decidability. The correspondence itself is no longer the gap — `simulation_halts_iff` proves the playfield halts *exactly when* the machine does — so what remains external is the classical fact alone. |
+| **Halting problem undecidability** | High | Blocked on one missing bridge, not a missing foundation. Mathlib *does* have a formal notion of decidability and the undecidability of the halting problem (`ComputablePred`, `ComputablePred.halting_problem` in `Mathlib.Computability.Halting`); what it lacks is any counter-machine model, so the gap is a reduction from a mathlib computability model (partrec or TM2) to two-counter machines, plus `Primcodable` encodings and a `Computable` proof for the machine-to-playfield compiler. The correspondence itself is no longer the gap — `simulation_halts_iff` proves the playfield halts *exactly when* the machine does. |
 
 ### Completed language properties
 

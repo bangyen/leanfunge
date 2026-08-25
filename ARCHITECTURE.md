@@ -186,6 +186,12 @@ project convention that `Core` files contain only definitions.
   direction and stays on the line forever, so the program diverges
   (`not_halts_safe_line`), in all four directions. Excluding `p` is necessary
   because a write could place an `@` further along the line.
+- `Theory/Run/Nondeterminism.lean`: the run-level laws for the transition
+  relation. `stepRel_fields` splits a relational step into the deterministic
+  step or a `?` redirect that changes only the direction and the pointer, so
+  string-mode precedence, quote parity, and the I/O prefixes lift to `runRel`.
+  The write trace and the straight-line divergence do not lift: the former is
+  path-dependent, the latter is about travel in a fixed direction.
 - `Theory/Run/Relational.lean`: multi-step relational semantics. `runRel`
   lifts `stepRel` to finite runs, including halt propagation; deterministic
   runs refine it, one-step relational runs coincide with `stepRel`, and both

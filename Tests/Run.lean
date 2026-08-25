@@ -243,4 +243,41 @@ example (s : State w h) (hm : s.stringMode = false)
       pc := stepPos w h s.dir s.pc } :=
   step_printChar_general s hm hcell
 
+example {w h : ℕ} {s s' : State w h} (hrel : stepRel s (some s')) :
+    (step s = some s' ∨
+      (s'.grid = s.grid ∧ s'.stack = s.stack ∧ s'.stringMode = s.stringMode ∧
+        s'.input = s.input ∧ s'.output = s.output ∧
+        decodeChar (s.grid.get s.pc.1 s.pc.2) = .random)) :=
+  stepRel_fields hrel
+
+example {w h : ℕ} {s s' : State w h} (hsm : s.stringMode = true)
+    (hrel : stepRel s (some s')) :
+    s'.grid = s.grid ∧ s'.input = s.input ∧ s'.output = s.output :=
+  stepRel_string_mode hsm hrel
+
+example {w h : ℕ} {s s' : State w h} (hrel : stepRel s (some s')) :
+    s'.stringMode = xor s.stringMode (s.grid.get s.pc.1 s.pc.2 == '"') :=
+  stepRel_stringMode_xor hrel
+
+example {w h : ℕ} {s s' : State w h} (hrel : stepRel s (some s')) :
+    ∃ pre : List Char, s.input = pre ++ s'.input :=
+  stepRel_input_prefix hrel
+
+example {w h : ℕ} {s s' : State w h} (hrel : stepRel s (some s')) :
+    ∃ suf : String, s'.output = s.output ++ suf :=
+  stepRel_output_prefix hrel
+
+example {w h : ℕ} (n : ℕ) (s s' : State w h) (hrel : runRel n s (some s')) :
+    ∃ pre : List Char, s.input = pre ++ s'.input :=
+  runRel_input_prefix n s s' hrel
+
+example {w h : ℕ} (n : ℕ) (s s' : State w h) (hrel : runRel n s (some s')) :
+    ∃ suf : String, s'.output = s.output ++ suf :=
+  runRel_output_prefix n s s' hrel
+
+example {w h : ℕ} (n : ℕ) (s s' : State w h) (hrel : runRel n s (some s'))
+    (hin : ∀ k < n, ∀ sk, runRel k s (some sk) → sk.stringMode = true) :
+    s'.grid = s.grid ∧ s'.input = s.input ∧ s'.output = s.output :=
+  runRel_string_mode n s s' hrel hin
+
 end LeanFunge.Tests

@@ -9,6 +9,10 @@ import Mathlib.Data.Nat.Notation
 /-!
 # Step Semantics
 
+## Main definitions
+
+* `instrChars`: The characters the instruction table assigns a meaning to.
+
 ## Theorems
 
 * `run_zero`: Running zero steps returns the initial state.
@@ -35,6 +39,8 @@ import Mathlib.Data.Nat.Notation
 * `step_get`: `g` fetches a value from the playfield.
 * `step_printChar`: `,` appends a character to the output.
 * `step_printInt`: `.` appends the decimal form of an integer to the output.
+* `decodeChar_nop_iff`: A character decodes to `nop` exactly when it is
+  outside the instruction table.
 -/
 
 namespace LeanFunge
@@ -234,5 +240,30 @@ theorem step_printInt (s : State w h) (hm : s.stringMode = false)
       pc := stepPos w h s.dir s.pc } := by
   unfold step
   simp only [decodeChar, stepState, Stack.top, Stack.pop, Stack.drop, hm, hcell, hstack]
+
+/-- The characters the instruction table assigns a meaning to. -/
+def instrChars : List Char :=
+  ['0','1','2','3','4','5','6','7','8','9','+','-','*','/','%','!','`',
+   '>','<','^','v','_','|','?','"',':','\\','$','.',',','#','p','g','&','~','@']
+
+/-- A character decodes to `nop` exactly when it is outside the instruction
+    table: every other character is a no-op. -/
+theorem decodeChar_nop_iff (c : Char) : decodeChar c = .nop ↔ c ∉ instrChars := by
+  constructor
+  · intro hnop hmem
+    revert hnop
+    simp only [instrChars, List.mem_cons, List.not_mem_nil, or_false] at hmem
+    rcases hmem with h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h |
+      h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h <;>
+      subst h <;> simp only [decodeChar, reduceCtorEq] <;> exact id
+  · intro hne
+    unfold decodeChar
+    split <;>
+      first
+        | rfl
+        | (exfalso
+           apply hne
+           simp only [instrChars, List.mem_cons]
+           decide)
 
 end LeanFunge

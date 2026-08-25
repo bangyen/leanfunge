@@ -60,7 +60,6 @@ theorem stepRel_fields {s s' : State w h} (hrel : stepRel s (some s')) :
     subst heq
     exact ⟨rfl, rfl, rfl, rfl, rfl, hrand⟩
 
-
 /-- A relational step in string mode leaves the playfield, input, and output
     untouched: string mode is data, not code, for the nondeterministic
     semantics too. Note `?` decodes to `.random` only outside string mode, so
@@ -92,7 +91,6 @@ theorem stepRel_stringMode_xor {s s' : State w h} (hrel : stepRel s (some s')) :
     rw [hq]
     simp only [Bool.xor_false]
 
-
 /-- A relational step consumes a prefix of the input. -/
 theorem stepRel_input_prefix {s s' : State w h} (hrel : stepRel s (some s')) :
     ∃ pre : List Char, s.input = pre ++ s'.input := by
@@ -106,7 +104,6 @@ theorem stepRel_output_prefix {s s' : State w h} (hrel : stepRel s (some s')) :
   rcases stepRel_fields hrel with hd | ⟨_, _, _, _, ho, _⟩
   · exact step_output_prefix s s' hd
   · exact ⟨"", by rw [ho, String.append_empty]⟩
-
 
 /-- A relational run consumes a prefix of the input. -/
 theorem runRel_input_prefix (n : ℕ) (s s' : State w h)
@@ -141,7 +138,6 @@ theorem runRel_output_prefix (n : ℕ) (s s' : State w h)
         obtain ⟨suf₂, hsuf₂⟩ := stepRel_output_prefix hstep
         exact ⟨suf₁ ++ suf₂, by rw [hsuf₂, hsuf₁, String.append_assoc]⟩
       · cases hc
-
 
 /-- A relational run that stays in string mode throughout leaves the
     playfield, input, and output untouched. -/

@@ -465,11 +465,8 @@ theorem decodeChar_stringMode_iff (c : Char) :
 /-- Every step toggles string mode exactly when the executed cell is `"`. -/
 theorem step_stringMode_xor {s s' : State w h} (hstep : step s = some s') :
     s'.stringMode = xor s.stringMode (s.grid.get s.pc.1 s.pc.2 == '"') := by
-  unfold step at hstep
-  dsimp only at hstep
   by_cases hsm : s.stringMode = true
-  · rw [hsm] at hstep
-    change some (stepString s (s.grid.get s.pc.1 s.pc.2)) = some s' at hstep
+  · rw [step_eq_stepString s hsm] at hstep
     injection hstep with hs'
     rw [← hs', hsm]
     unfold stepString
@@ -487,20 +484,16 @@ theorem step_stringMode_xor {s s' : State w h} (hstep : step s = some s') :
         simpa only [beq_eq_false_iff_ne, ne_eq]
       rw [hb, hb2, hsm]
       simp only [Bool.true_xor, Bool.not_false]
-  · have hf : s.stringMode = false := by
-      rcases hb : s.stringMode with _ | _
-      · rfl
-      · exact absurd hb hsm
-    rw [hf] at hstep ⊢
+  · have hf : s.stringMode = false := stringMode_false_of_not hsm
+    rw [step_eq_stepState s hf (decodeChar_ne_halt_of_step hf hstep)] at hstep
+    injection hstep with hs'
+    rw [← hs', hf]
     by_cases hq : (s.grid.get s.pc.1 s.pc.2) = '"'
     · have hd : decodeChar (s.grid.get s.pc.1 s.pc.2) = .stringMode :=
         (decodeChar_stringMode_iff _).mpr hq
-      rw [hd] at hstep
-      change some (stepState s .stringMode) = some s' at hstep
-      injection hstep with hs'
-      rw [← hs', hq]
+      rw [hd, hq]
       simp only [beq_self_eq_true, Bool.false_xor]
-      rfl
+      exact stepState_stringMode_toggle s
     · have hd : decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .stringMode := by
         intro hc
         exact hq ((decodeChar_stringMode_iff _).mp hc)
@@ -508,42 +501,8 @@ theorem step_stringMode_xor {s s' : State w h} (hstep : step s = some s') :
         simpa only [beq_eq_false_iff_ne, ne_eq]
       rw [hb2]
       simp only [Bool.false_xor]
-      cases hins : decodeChar (s.grid.get s.pc.1 s.pc.2) with
-      | stringMode => exact absurd hins hd
-      | halt =>
-          rw [hins] at hstep
-          exact absurd hstep (by simp only [reduceCtorEq, not_false_eq_true])
-      | push n => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | add => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | sub => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | mul => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | div => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | mod => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | not => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | greater => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | right => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | left => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | up => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | down => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | chooseH => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | chooseV => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | random => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | dup => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | swap => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | drop => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | printInt => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | printChar => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | trampoline => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | put => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | get => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | inputInt => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | nop => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
-      | inputChar =>
-          rw [hins] at hstep
-          injection hstep with hs'
-          rw [← hs']
-          unfold stepState
-          cases s.input <;> exact hf
+      rw [stepState_stringMode_of_ne s _ hd]
+      exact hf
 
 /-- The number of steps among the first `n` whose executed cell is `"`. -/
 def quoteSteps (n : ℕ) (s : State w h) : ℕ :=

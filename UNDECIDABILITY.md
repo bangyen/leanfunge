@@ -1,14 +1,28 @@
-# Scoping the Halting-Problem Undecidability Row
+# Undecidability of Befunge-93 Halting
 
-The last open row in the [README](README.md) roadmap is **halting problem
-undecidability**. This document scopes it: what the target statement must look
-like, what is provable today, and what genuinely stays external.
+The last open row in the [README](README.md) roadmap was **halting problem
+undecidability**. It was recorded as blocked on an external result; in fact only
+a small part of it was, and that part is now isolated behind a single named
+hypothesis.
 
-The headline: the row is *mostly* actionable. Roughly 80% of the work has no
-external blocker at all, and the part that does can be isolated behind a single
-named hypothesis. The recommendation is to land the conditional theorem and
-re-label the row from "blocked" to "blocked only on 2CM universality, with the
-reduction machinery done."
+**What is proven** (`Theory.Completeness.Undecidable`, `sorry`-free, standard
+axioms only):
+
+```lean
+theorem befunge_undecidable_of_twoCounter
+    (h2cm : ¬ ComputablePred
+      (fun prog : CMProgram => CMInstr.halts prog (CMInstr.startCM 0 0))) :
+    ¬ ComputablePred (fun p : ℕ × ℕ × List (List Char) =>
+        halts (State.init (Grid.ofRows p.1 p.2.1 p.2.2)))
+```
+
+**What stays external:** `h2cm` itself — the classical undecidability of
+two-counter machine halting. Mathlib has no counter-machine model at all, so
+this is not a citation but a project: a reduction from `Turing.ToPartrec.Code`
+to 2CMs, which is Minsky's theorem (§2.E).
+
+This document records the plan that got there, and why each piece took the shape
+it did.
 
 ## 1. The obstacle that shapes everything: `Grid` is a function
 
@@ -72,8 +86,8 @@ statement form without redoing any of the simulation proof.
 | A′ | `Primcodable Char` | none | **done** |
 | B | `playfieldRowsOf` + the `ofRows` bridge lemma | none | **done** |
 | B′ | Bootstrap from `State.init` to the block-0 entry | none | **done** |
-| C | `Computable` proof for the compiler | none | medium |
-| D | Conditional undecidability theorem | none | small, given A–C, B′ |
+| C | `Computable` proof for the compiler | none | **done** |
+| D | Conditional undecidability theorem | none | **done** |
 | E | 2CM universality | **external** | separate project |
 
 ### A. `Primcodable` instances — small, mechanical
@@ -242,42 +256,63 @@ by `rfl`; and `halts_iff_of_run` (`Theory/Run/Halt.lean`) supplies the
 `run k s = some s' → (halts s ↔ halts s')` transport that turns the boot run into
 the iff.
 
-### C. `Computable` for the compiler — medium, the real proof effort
+### C. `Computable` for the compiler — done
 
-Show `fun prog => playfieldRowsOf prog` is `Computable`. The function is a
-structurally simple fold over `List.range prog.length`, but mathlib's
-`Computable` API for nested folds is not frictionless; expect this to be where
-the time actually goes. `Primrec.list_foldl` and friends are the relevant
-entry points. Everything here is standard formalization work, not research.
+`Theory/Completeness/PrimrecLayout.lean` proves everything at the `Primrec`
+level and converts once at the end with `Primrec.to_comp`; the `Primrec`
+combinator library is far richer than the `Computable` one.
 
-### D. The conditional theorem — small, and it is the deliverable
+The layers, bottom-up:
 
-With A–C in hand:
+- **Instruction accessors.** `blockCellList` matches on the instruction and uses
+  its payload. Splitting the match into `Bool` tests (`isInc`, `isDecz`,
+  `isJump`) and total accessors (`target`, `counter`) lets the proof dispatch
+  with `ite` and hand each branch its payload. Functions *out of* `CMInstr`
+  transport along `CMInstr.equivSum` — that is how the `Primcodable` instance is
+  built — and `Primrec.sumCasesOn` handles the constructors.
+- **Geometry.** Through the `entryColumn_foldl` / `blockRow_foldl` closed forms,
+  since a `Primrec` argument cannot follow the index recursion. `list_foldl` and
+  `list_range` exist; `list_take` and `list_sum` do not, which is why the closed
+  forms are folds rather than sums over prefixes.
+- **Cell lists.** Each branch a literal list of positioned characters; the
+  `decz` branch's nine cells plus its corridor are the tedious spot.
+- **`lastCellAt`.** Already a `foldl` with a positional `ite` on ℕ mod-equalities
+   — a direct fit. No `Char` reasoning in the condition; characters appear only
+  as constants, which A′ covers.
+- **Assembly.** `playfieldCells` (append then flatMap over a range), then
+  `playfieldRowsOf` (nested map over the row and column ranges).
+- **Normalization.** `clampInstr` rebuilds instructions, so the constructors go
+  through the equiv's *inverse* (`Primrec.of_equiv_symm`).
+
+**The one mechanical lesson:** state every fact uncurried over its product, with
+`list_foldl`'s implicit types given explicitly. The curried `Primrec₂` form
+leaves the accumulator type a metavariable and instance resolution gets stuck
+with `Primcodable ?m` — which is the error you get, not a hint about the real
+problem.
+
+### D. The conditional theorem — done
 
 ```lean
-theorem befunge_undecidable_of_twoCounter_undecidable
-    (h2cm : ¬ ComputablePred (fun p : CMProgram × CMState => CMInstr.halts p.1 p.2)) :
-    ¬ ComputablePred (fun p : List (List Char) × List Char => halts ...)
+theorem befunge_undecidable_of_twoCounter
+    (h2cm : ¬ ComputablePred
+      (fun prog : CMProgram => CMInstr.halts prog (CMInstr.startCM 0 0))) :
+    ¬ ComputablePred (fun p : ℕ × ℕ × List (List Char) =>
+        halts (State.init (Grid.ofRows p.1 p.2.1 p.2.2)))
 ```
 
-The proof is a reduction: a decider for Befunge halting composes with the
-(computable, by C) compiler to decide 2CM halting, contradicting `h2cm`. The
-halting side is already an *equivalence*, which is what makes this go through
-in both directions:
+in `Theory/Completeness/Undecidable.lean`. A decider for Befunge halting,
+composed with the compiler, would decide two-counter halting.
 
-```lean
-theorem simulation_halts_iff (prog : CMProgram) (hwellPlaced : wellPlaced prog)
-    (s₀ : CMState) (hs₀ : s₀.pc < prog.length) :
-    halts (playfieldStart prog s₀) ↔ CMInstr.halts prog s₀   -- LayoutSimulation.lean:859
-```
+`compile_halts_iff` carries the content and chains the three bridges:
+`ofRows_playfieldRowsOf` (B) moves from text to the generated playfield,
+`boot_halts_iff` (B′) starts the run from `State.init`, and
+`normalize_halts_iff` drops the well-placedness. Normalizing *inside* the
+compiler makes it total, and since `normalize` always appends a `halt` its
+result is never empty — so `hne` and `wellPlaced` both discharge by
+construction and the hypothesis ranges over **all** programs, with no
+empty-program carve-out.
 
-`universal_simulation` supplies the same `iff` for *arbitrary* programs via
-normalization. Nothing about D is blocked.
-
-**The trap to check before committing:** the hypothetical decider's domain must
-be exactly the domain from §1, and the compiler's output has to land in it
-computably. See §2.B′ — on inspection this is *not* just a paper typecheck,
-it is a missing lemma.
+The whole development is `sorry`-free and uses only the three standard axioms.
 
 ### E. 2CM universality — genuinely external
 
@@ -310,15 +345,20 @@ including `fix`. That is a mathlib-contribution-scale project, plausibly
 thousands of lines. It belongs in the roadmap as its own project, not as a task
 row inside this one.
 
-## 3. Recommendation
+## 3. Where this leaves the row
 
-Land A–D. That converts the roadmap row from "blocked on an external result"
-into "the reduction machinery is proven; the sole remaining input is a named
-hypothesis `h2cm`, which is classical Minsky and external to this development."
+A–D are done. The roadmap row moves from "blocked on an external result" to
+"the reduction is proven; the sole remaining input is `h2cm`, classical Minsky,
+external to this development."
 
-This is worth doing on its own terms, independent of whether E ever lands: it
-is exactly the same shape as how mathlib itself handles results whose last
-ingredient is unformalized, and it makes the boundary of the development precise
-and machine-checked rather than prose in a README. If E ever arrives — here or
-upstream — discharging `h2cm` turns D into the unconditional theorem with no
-further work.
+That boundary is now precise and machine-checked rather than prose in a README —
+the same shape mathlib itself uses for results whose last ingredient is
+unformalized. If E ever arrives, here or upstream, discharging `h2cm` turns the
+conditional theorem into the unconditional one with no further work.
+
+**Two sizing calls in the original plan were wrong**, both recorded above where
+they bit: B′ was called "larger than C" on the assumption that re-basing the
+layout would force the `LayoutCells` tower to re-verify — the tower is
+coordinate-generic and rebuilt untouched, and the real work turned out to be the
+cell layer's row-0 collisions. And `Primcodable Char` was twice called small
+before the `UInt32` framing turned out to be a red herring.

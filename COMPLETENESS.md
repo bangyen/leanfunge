@@ -168,6 +168,11 @@ grid. The construction sidesteps both by design:
 | `LayoutCorridor` | the up-turn, along-drop, down runs and `corridor_run` |
 | `LayoutSimulation` | encoding, `wellFormed`, `wellPlaced`, `playfieldStart`, `sim_step`, `sim_run`, `simulation_map`, `simulation_halts` |
 | `LayoutSimulationNormalize` | normalization and `universal_simulation` |
+| `LayoutRows` | the playfield as text, and the `ofRows` bridge |
+| `LayoutBoot` | the boot prelude, `boot_run`, `boot_halts_iff` |
+| `Encodable` | `Primcodable` instances for the machine and `Char` |
+| `PrimrecLayout` | the compiler is primitive recursive |
+| `Undecidable` | the reduction from two-counter halting |
 
 `Tests/Completeness/LayoutCorridorRoute.lean` and
 `Tests/Completeness/LayoutSimulation.lean` pin the construction down with
@@ -186,16 +191,15 @@ What is *not* claimed:
   *equivalence* is proven (`simulation_halts_iff`) — the playfield halts
   exactly when the machine does — so what remains external is only the
   classical fact, not the correspondence.
-- **Undecidability itself.** The equivalence above says the generated
-  playfield's halting mirrors the machine's. Mathlib supplies the formal
-  notion of decidability and the undecidability of the halting problem
-  (`ComputablePred.halting_problem`); turning the equivalence into a Befunge
-  undecidability statement additionally needs the 2CM bridge above, together
-  with `Primcodable` encodings and a `Computable` proof for the
-  machine-to-playfield compiler. `UNDECIDABILITY.md` scopes this out: the
-  statement has to be phrased over program *text* (`Grid` stores a function, so
-  a state-based domain is not encodable at all), and on that domain everything
-  except the 2CM bridge is provable today.
+- **Undecidability itself**, unconditionally. The equivalence above says the
+  generated playfield's halting mirrors the machine's, and
+  `Theory.Completeness.Undecidable` now turns that into a reduction:
+  `befunge_undecidable_of_twoCounter` proves that if two-counter halting is
+  undecidable then so is Befunge-93 halting. The statement is phrased over
+  program *text*, since `Grid` stores its cells as a function and so no
+  predicate over grids can be the domain of a `ComputablePred` at all. What is
+  still assumed is the same 2CM bridge as above, now as an explicit hypothesis
+  rather than prose. See `UNDECIDABILITY.md`.
 
 Everything the construction claims — the cell lookups, the block executions,
 the corridor routing, the step-for-step simulation, and the universality

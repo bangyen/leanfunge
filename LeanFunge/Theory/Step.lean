@@ -41,6 +41,18 @@ import Mathlib.Data.Nat.Notation
 * `step_printInt`: `.` appends the decimal form of an integer to the output.
 * `decodeChar_nop_iff`: A character decodes to `nop` exactly when it is
   outside the instruction table.
+* `step_eq_stepState`: Outside string mode, a non-halting step is the decoded
+  instruction's state transition.
+* `step_eq_stepString`: In string mode, a step is the string-mode transition.
+* `decodeChar_ne_halt_of_step`: A step with a successor outside string mode
+  did not execute the halt instruction.
+* `stringMode_false_of_not`: Not being in string mode means string mode is
+  off.
+* `stepState_stringMode_of_ne`: Every instruction except the toggle leaves
+  string mode unchanged.
+* `stepState_stringMode_toggle`: The toggle instruction turns string mode on.
+* `stepState_dir_of_ne`: Every instruction that does not turn leaves the
+  direction unchanged.
 -/
 
 namespace LeanFunge
@@ -265,5 +277,81 @@ theorem decodeChar_nop_iff (c : Char) : decodeChar c = .nop ↔ c ∉ instrChars
            apply hne
            simp only [instrChars, List.mem_cons]
            decide)
+
+/-! ### Reducing a step to its instruction
+
+Most single-step proofs begin by unfolding `step` into the decoded
+instruction's `stepState` transition, then reasoning about one field. These
+lemmas do that unfolding once so the individual proofs do not each repeat the
+instruction match. -/
+
+/-- Outside string mode, a non-halting step is exactly the decoded
+    instruction's state transition. -/
+theorem step_eq_stepState (s : State w h) (hm : s.stringMode = false)
+    (hne : decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .halt) :
+    step s = some (stepState s (decodeChar (s.grid.get s.pc.1 s.pc.2))) := by
+  unfold step
+  dsimp only
+  rw [hm]
+  cases hins : decodeChar (s.grid.get s.pc.1 s.pc.2) with
+  | halt => exact absurd hins hne
+  | _ => rfl
+
+/-- In string mode, a step is exactly the string-mode transition. -/
+theorem step_eq_stepString (s : State w h) (hm : s.stringMode = true) :
+    step s = some (stepString s (s.grid.get s.pc.1 s.pc.2)) := by
+  unfold step
+  dsimp only
+  rw [hm]
+
+/-- A step that produces a successor outside string mode did not execute the
+    halt instruction. -/
+theorem decodeChar_ne_halt_of_step {s s' : State w h} (hm : s.stringMode = false)
+    (hstep : step s = some s') :
+    decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .halt := by
+  intro hc
+  unfold step at hstep
+  dsimp only at hstep
+  rw [hm, hc] at hstep
+  exact absurd hstep (by simp only [reduceCtorEq, not_false_eq_true])
+
+/-- Not being in string mode means string mode is off. -/
+theorem stringMode_false_of_not {s : State w h} (hs : ¬ s.stringMode = true) :
+    s.stringMode = false := by
+  cases hb : s.stringMode
+  · rfl
+  · exact absurd hb hs
+
+/-- Every instruction except `"` leaves string mode unchanged. -/
+theorem stepState_stringMode_of_ne (s : State w h) (instr : Instruction)
+    (hne : instr ≠ .stringMode) :
+    (stepState s instr).stringMode = s.stringMode := by
+  cases instr with
+  | stringMode => exact absurd rfl hne
+  | inputChar =>
+      unfold stepState
+      cases h : s.input <;> rfl
+  | _ => rfl
+
+/-- The `"` instruction turns string mode on. -/
+theorem stepState_stringMode_toggle (s : State w h) :
+    (stepState s .stringMode).stringMode = true := rfl
+
+/-- Every instruction that does not turn leaves the direction unchanged. -/
+theorem stepState_dir_of_ne (s : State w h) (instr : Instruction)
+    (hr : instr ≠ .right) (hl : instr ≠ .left) (hu : instr ≠ .up)
+    (hd : instr ≠ .down) (hch : instr ≠ .chooseH) (hcv : instr ≠ .chooseV) :
+    (stepState s instr).dir = s.dir := by
+  cases instr with
+  | right => exact absurd rfl hr
+  | left => exact absurd rfl hl
+  | up => exact absurd rfl hu
+  | down => exact absurd rfl hd
+  | chooseH => exact absurd rfl hch
+  | chooseV => exact absurd rfl hcv
+  | inputChar =>
+      unfold stepState
+      cases h : s.input <;> rfl
+  | _ => rfl
 
 end LeanFunge

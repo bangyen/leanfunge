@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
+import LeanFunge.Theory.Invariance
+import LeanFunge.Theory.Invariance
+import LeanFunge.Theory.Step
+import LeanFunge.Theory.Step
 
 /-!
 # Run-Level Divergence
@@ -106,54 +110,38 @@ theorem step_safe {s : State w h} (hm : s.stringMode = false)
        | .up | .down => (stepPos w h s.dir p).1 % w = p.1 % w) := by
     intro p
     cases hdd : s.dir <;> (unfold stepPos; simp only [Nat.mod_mod])
-  unfold step
-  dsimp only
-  rw [hm]
-  cases hins : decodeChar (s.grid.get s.pc.1 s.pc.2) with
-  | halt => exact absurd hins hhalt
-  | right => exact absurd hins hr
-  | left => exact absurd hins hl
-  | up => exact absurd hins hu
-  | down => exact absurd hins hd
-  | chooseH => exact absurd hins hch
-  | chooseV => exact absurd hins hcv
-  | random => exact absurd hins hrand
-  | stringMode => exact absurd hins hstr
-  | put => exact absurd hins hput
-  | push n => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | add => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | sub => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | mul => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | div => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | mod => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | not => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | greater => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | dup => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | swap => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | drop => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | printInt => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | printChar => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | trampoline =>
-      refine ⟨_, rfl, rfl, rfl, hm, ?_⟩
-      change (match s.dir with
-        | .right | .left =>
-            (stepPos w h s.dir (stepPos w h s.dir s.pc)).2 % h = s.pc.2 % h
-        | .up | .down =>
-            (stepPos w h s.dir (stepPos w h s.dir s.pc)).1 % w = s.pc.1 % w)
-      cases hdd : s.dir <;>
-        (unfold stepPos; simp only [Nat.mod_mod])
-  | get => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | inputInt => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | nop => exact ⟨_, rfl, rfl, rfl, hm, hone s.pc⟩
-  | inputChar =>
-      refine ⟨stepState s .inputChar, rfl, ?_, ?_, ?_, ?_⟩
-      · unfold stepState; cases s.input <;> rfl
-      · unfold stepState; cases s.input <;> rfl
-      · unfold stepState; cases s.input <;> simp only [hm]
-      · have hpc : (stepState s .inputChar).pc = stepPos w h s.dir s.pc := by
-          unfold stepState; cases s.input <;> rfl
+  refine ⟨stepState s (decodeChar (s.grid.get s.pc.1 s.pc.2)),
+    step_eq_stepState s hm hhalt, ?_, ?_, ?_, ?_⟩
+  · exact stepState_dir_of_ne s _ hr hl hu hd hch hcv
+  · exact stepState_grid_of_ne_put s _ hput
+  · rw [stepState_stringMode_of_ne s _ hstr]
+    exact hm
+  · -- the pointer moves once, except the trampoline, which hops twice
+    cases hins : decodeChar (s.grid.get s.pc.1 s.pc.2) with
+    | halt => exact absurd hins hhalt
+    | right => exact absurd hins hr
+    | left => exact absurd hins hl
+    | up => exact absurd hins hu
+    | down => exact absurd hins hd
+    | chooseH => exact absurd hins hch
+    | chooseV => exact absurd hins hcv
+    | random => exact absurd hins hrand
+    | stringMode => exact absurd hins hstr
+    | put => exact absurd hins hput
+    | trampoline =>
+        change (match s.dir with
+          | .right | .left =>
+              (stepPos w h s.dir (stepPos w h s.dir s.pc)).2 % h = s.pc.2 % h
+          | .up | .down =>
+              (stepPos w h s.dir (stepPos w h s.dir s.pc)).1 % w = s.pc.1 % w)
+        cases hdd : s.dir <;> (unfold stepPos; simp only [Nat.mod_mod])
+    | inputChar =>
+        have hpc : (stepState s .inputChar).pc = stepPos w h s.dir s.pc := by
+          unfold stepState
+          cases s.input <;> rfl
         rw [hpc]
         exact hone s.pc
+    | _ => exact hone s.pc
 
 /-- Every cell the pointer can reach while moving in direction `d` from a
     position on the line through `pos` is safe. For horizontal directions the

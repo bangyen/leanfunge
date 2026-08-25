@@ -1,9 +1,8 @@
 # Undecidability of Befunge-93 Halting
 
-The last open row in the [README](README.md) roadmap was **halting problem
-undecidability**. It was recorded as blocked on an external result; in fact only
-a small part of it was, and that part is now isolated behind a single named
-hypothesis.
+Halting problem undecidability was the last open task in this development. It
+was recorded as blocked on an external result; in fact only a small part of it
+was, and that part is now isolated behind a single named hypothesis.
 
 **What is proven** (`Theory.Completeness.Undecidable`, `sorry`-free, standard
 axioms only):
@@ -342,13 +341,13 @@ what is missing.
 Sizing it honestly: simulating a list machine in two counters means a Gödel-style
 exponent encoding of the stack plus a correctness proof for every constructor
 including `fix`. That is a mathlib-contribution-scale project, plausibly
-thousands of lines. It belongs in the roadmap as its own project, not as a task
-row inside this one.
+thousands of lines. It belongs upstream as its own project, not as a task inside
+this one.
 
-## 3. Where this leaves the row
+## 3. Where this leaves the result
 
-A–D are done. The roadmap row moves from "blocked on an external result" to
-"the reduction is proven; the sole remaining input is `h2cm`, classical Minsky,
+A–D are done. The status moves from "blocked on an external result" to "the
+reduction is proven; the sole remaining input is `h2cm`, classical Minsky,
 external to this development."
 
 That boundary is now precise and machine-checked rather than prose in a README —

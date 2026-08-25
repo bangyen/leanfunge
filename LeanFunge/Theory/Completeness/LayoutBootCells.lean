@@ -69,13 +69,13 @@ theorem blockCells_v_at_boot (prog : CMProgram) (c : (ℕ × ℕ) × Char)
   rw [Nat.mod_eq_of_lt h1w] at hmx
   cases hget : prog.getD j .halt with
   | inc cc =>
-      simp only [blockCellList, hget, blockWidth, List.mem_cons, List.not_mem_nil,
+      simp only [blockCellList, hget, List.mem_cons, List.not_mem_nil,
         or_false] at hcj
       exfalso
       rcases hcj with h|h|h|h <;> subst h <;> simp only [] at hmy <;>
         rw [Nat.mod_eq_of_lt hrowlt, Nat.zero_mod] at hmy <;> omega
   | halt =>
-      simp only [blockCellList, hget, blockWidth, List.mem_cons, List.not_mem_nil,
+      simp only [blockCellList, hget, List.mem_cons, List.not_mem_nil,
         or_false] at hcj
       exfalso
       rcases hcj with h|h <;> subst h <;> simp only [] at hmy <;>
@@ -160,8 +160,14 @@ theorem playfield_drop_get (prog : CMProgram) (x y : ℕ) (hy : y < prog.length)
         unfold corridorRowAt at hdrop
         have hz : (0 : ℕ) ≠ entryColumn prog 0 := by have := hep 0; omega
         cases hget : prog.getD 0 .halt with
-        | inc _ => rw [hget] at hdrop; exact absurd hdrop (by simp only [↓Char.isValue, Char.reduceEq, not_false_eq_true])
-        | halt => rw [hget] at hdrop; exact absurd hdrop (by simp only [↓Char.isValue, Char.reduceEq, not_false_eq_true])
+        | inc _ =>
+            rw [hget] at hdrop
+            exact absurd hdrop
+              (by simp only [↓Char.isValue, Char.reduceEq, not_false_eq_true])
+        | halt =>
+            rw [hget] at hdrop
+            exact absurd hdrop
+              (by simp only [↓Char.isValue, Char.reduceEq, not_false_eq_true])
         | jump k =>
             rw [hget] at hdrop
             have h1 := hep k

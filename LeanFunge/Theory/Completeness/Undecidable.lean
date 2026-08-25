@@ -57,9 +57,10 @@ theorem compile_halts_iff (prog : CMProgram) :
       ↔ CMInstr.halts prog (CMInstr.startCM 0 0) := by
   have hne : normalize prog ≠ [] := by
     unfold normalize
-    exact List.append_ne_nil_of_right_ne_nil _ (by simp only [ne_eq, List.cons_ne_self, not_false_eq_true])
+    exact List.append_ne_nil_of_right_ne_nil _
+      (by simp only [ne_eq, List.cons_ne_self, not_false_eq_true])
   have hwp : wellPlaced (normalize prog) := wellPlaced_normalize prog
-  show halts (State.init (Grid.ofRows (playfieldWidth (normalize prog))
+  change halts (State.init (Grid.ofRows (playfieldWidth (normalize prog))
     (playfieldHeight (normalize prog)) (playfieldRowsOf (normalize prog)))) ↔ _
   rw [ofRows_playfieldRowsOf (normalize prog) hne]
   exact (boot_halts_iff (normalize prog) hne hwp).trans

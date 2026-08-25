@@ -161,16 +161,32 @@ ranked by value and feasibility.
 
 ## Scope & Limitations
 
-**Scope.** LeanFunge formalizes Befunge-93 and proves properties about the
-language — stack algebra, toroidal wrapping, the self-modifying playfield,
-string mode, and the single-step semantics of the instruction set — together
-with verified example programs. It deliberately does not develop verified
-program transformations or optimizations (spacing, rotation, dead no-op
-elimination, constant folding); the program-equivalence framework that
-supported them was removed as out of scope. A Befunge-98 fingerprint and
+**Scope.** LeanFunge has two halves.
+
+The first is the language itself: Befunge-93's semantics and properties of
+them — stack algebra, toroidal wrapping, the self-modifying playfield, string
+mode, and the single-step semantics of the instruction set — together with
+verified example programs.
+
+The second is a *construction* rather than a property, and is now the larger
+half by volume: `Theory.Completeness` compiles an arbitrary two-counter
+machine into a Befunge playfield that simulates it step for step
+(`universal_simulation`), and on top of that reduces two-counter halting to
+Befunge halting (`befunge_undecidable_of_twoCounter`). This reaches outside
+Befunge — the counter machines, their encoding, and the computability
+plumbing are not facts about the language — but it is what makes the
+Turing-completeness and undecidability claims machine-checked rather than
+asserted. See [`COMPLETENESS.md`](COMPLETENESS.md) and
+[`UNDECIDABILITY.md`](UNDECIDABILITY.md).
+
+Out of scope: verified program transformations or optimizations (spacing,
+rotation, dead no-op elimination, constant folding); the program-equivalence
+framework that supported them was removed. A Befunge-98 fingerprint and
 self-interpreters (programs that interpret Befunge, verified to match direct
-execution) are also out of scope, as their correctness proofs are
-program-equivalence reasoning rather than properties of the language.
+execution) are also out, as their correctness proofs are program-equivalence
+reasoning rather than properties of the language. The classical universality
+of two-counter machines stays external too — it belongs upstream in mathlib,
+not here.
 
 **Design choices.** Befunge's specification leaves several behaviors
 unspecified; LeanFunge makes the following choices, all documented in

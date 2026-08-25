@@ -68,7 +68,8 @@ example :
         List.length_nil, zero_add, Nat.reduceAdd, Nat.ofNat_pos, getElem?_pos,
         List.getElem_cons_zero, Option.getD_some, reduceCtorEq, Nat.one_lt_ofNat, or_true,
         List.getElem_cons_succ, Nat.reduceLT, Nat.lt_add_one, lt_self_iff_false, or_false]
-  rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with ⟨m, hrun, _hgrow, hb⟩
+  rcases (sim_run layoutProgram hwellPlaced (CMInstr.startCM 1 0) (by decide) 3) with
+    ⟨m, hrun, _hgrow, hb⟩
   refine ⟨m, ?_⟩
   rw [hrun]
   rw [Option.map_map]

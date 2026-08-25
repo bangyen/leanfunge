@@ -273,6 +273,7 @@ no external interpreter is trusted.
 | `Quine` | `01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@` (45×1) | reads each playfield cell with `g` and prints it with `,`; after 2407 steps the output is exactly its own source, halting one step later |
 | `Echo` | `~,@` (3×1) | reads a character with `~` and prints it back with `,`; output `x`, halts after 3 steps |
 | `Wrap` | `88*00p` (6×1) | computes `64`, writes `@` into its own first cell with `p`, then wraps off the right edge to column 0 and executes the `@`, halting after 7 steps |
+| `Random` | `?@@`, `@`, `@` (3×3) | the only nondeterministic example: a `?` at the origin with an `@` at each of its four toroidal neighbours, verified against `stepRel`/`runRel` to halt in two steps whichever direction the `?` chooses |
 
 `SelfMod` showcases Befunge's self-modifying playfield: both programs compute
 a character code, store it into an empty cell with `p`, and then let the

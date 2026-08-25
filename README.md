@@ -97,7 +97,8 @@ The implementation is organized into `Core` (definitions), `Theory`
   theorem — is in [`COMPLETENESS.md`](COMPLETENESS.md).
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
-  `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, and `Wrap`.
+  `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, `Wrap`, and the
+  nondeterministic `Random`.
 
 ## Roadmap
 
@@ -197,11 +198,13 @@ unspecified; LeanFunge makes the following choices, all documented in
   for concrete inputs only — a generic statement would require a
   program-level correctness proof of its loops. The `.` output encoding's
   round-trip (`parseInt_formatInt`) is fully generic.
-- Every verified example is deterministic; the nondeterminism of `?` is
-  captured by the transition relation rather than the executable interpreter.
-  The direction-independent run-level laws are lifted to that relation in
-  `Theory.Run.Nondeterminism`; the write trace and the straight-line
-  divergence are direction- or path-dependent and hold for `run` only.
+- Every verified example *except* `Random` is deterministic; the
+  nondeterminism of `?` is captured by the transition relation rather than the
+  executable interpreter. `Random` is verified against that relation, halting
+  along every direction the `?` may choose. The direction-independent
+  run-level laws are lifted to the relation in `Theory.Run.Nondeterminism`;
+  the write trace and the straight-line divergence are direction- or
+  path-dependent and hold for `run` only.
 - The completeness development (`Theory.Completeness`) is complete for
   Befunge-93's side: `universal_simulation` gives *every* two-counter machine
   a playfield that simulates it. What it does not claim is the classical

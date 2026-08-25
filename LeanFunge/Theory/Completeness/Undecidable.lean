@@ -8,6 +8,7 @@ import LeanFunge.Theory.Completeness.Encodable
 import LeanFunge.Theory.Completeness.LayoutBoot
 import LeanFunge.Theory.Completeness.LayoutRows
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
+import LeanFunge.Theory.Completeness.PrimrecLayout
 
 /-!
 # Undecidability of Befunge-93 Halting
@@ -59,8 +60,10 @@ theorem compile_halts_iff (prog : CMProgram) :
     (normalize_halts_iff prog (CMInstr.startCM 0 0))
 
 /-- The compiler is computable. -/
-theorem computable_compile : Computable compile := by
-  sorry
+theorem computable_compile : Computable compile :=
+  (Primrec.pair (primrec_playfieldWidth.comp primrec_normalize)
+    (Primrec.pair (primrec_playfieldHeight.comp primrec_normalize)
+      (primrec_playfieldRowsOf.comp primrec_normalize))).to_comp
 
 /-- **Befunge-93 halting is undecidable**, given the classical undecidability
     of two-counter machine halting.

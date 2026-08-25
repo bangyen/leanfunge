@@ -121,4 +121,12 @@ example :
 example : run 2 coinState = none :=
   coin_deterministic_halts
 
+example (s' : Option (State 3 3)) (h : stepRel coinState s') :
+    ∃ d : Direction, s' = some (coinAfter d) :=
+  coin_step_only s' h
+
+example (result : Option (State 3 3)) (h : runRel 2 coinState result) :
+    result = none :=
+  coin_halts_only result h
+
 end LeanFunge.Tests

@@ -201,7 +201,8 @@ unspecified; LeanFunge makes the following choices, all documented in
 - Every verified example *except* `Random` is deterministic; the
   nondeterminism of `?` is captured by the transition relation rather than the
   executable interpreter. `Random` is verified against that relation, halting
-  along every direction the `?` may choose. The direction-independent
+  along every direction the `?` may choose and, conversely, along every
+  relational run there is (`coin_halts_only`). The direction-independent
   run-level laws are lifted to the relation in `Theory.Run.Nondeterminism`;
   the write trace and the straight-line divergence are direction- or
   path-dependent and hold for `run` only.

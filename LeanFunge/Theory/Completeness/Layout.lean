@@ -177,6 +177,29 @@ theorem blockRow_mono (prog : CMProgram) {i j : ℕ} (h : i ≤ j) :
     subst i
     rfl
 
+/-- `entryColumn` as a fold over the block indices: the closed form the
+    computability proof works against, since a `Primrec` argument cannot follow
+    the recursion directly. -/
+theorem entryColumn_foldl (prog : CMProgram) (i : ℕ) :
+    entryColumn prog i
+      = (List.range i).foldl (fun acc j => acc + blockWidth (prog.getD j .halt)) 1 := by
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [entryColumn_succ, ih, List.range_succ, List.foldl_append]
+      rfl
+
+/-- `blockRow` as a fold over the block indices. -/
+theorem blockRow_foldl (prog : CMProgram) (i : ℕ) :
+    blockRow prog i
+      = (List.range i).foldl (fun acc j => acc + blockHeight (prog.getD j .halt))
+          prog.length := by
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [blockRow_succ, ih, List.range_succ, List.foldl_append]
+      rfl
+
 /-- The width of the generated playfield: the last entry column. -/
 def playfieldWidth (prog : CMProgram) : ℕ :=
   entryColumn prog prog.length

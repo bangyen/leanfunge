@@ -71,7 +71,7 @@ statement form without redoing any of the simulation proof.
 | A | `Primcodable` for `CMInstr`, `CMProgram`, `CMState` | none | **done** |
 | A′ | `Primcodable Char` | none | **done** |
 | B | `playfieldRowsOf` + the `ofRows` bridge lemma | none | **done** |
-| B′ | Bootstrap from `State.init` to the block-0 entry | none | medium |
+| B′ | Bootstrap from `State.init` to the block-0 entry | none | large (redefines the layout) |
 | C | `Computable` proof for the compiler | none | medium |
 | D | Conditional undecidability theorem | none | small, given A–C, B′ |
 | E | 2CM universality | **external** | separate project |
@@ -173,7 +173,7 @@ of C emits the triple directly. `playfieldRowsOf_length` and
 `playfieldRowsOf_row_length` pin the dimensions for anyone who does want them.
 **C's compiler target and D's statement must name this same domain.**
 
-### B′. The bootstrap: `State.init` is not `playfieldStart` — medium
+### B′. The bootstrap: `State.init` is not `playfieldStart` — the largest remaining piece
 
 The text-form statement of §1 starts the machine with `State.init`, but every
 existing simulation theorem is about `playfieldStart`. These differ in three
@@ -191,23 +191,59 @@ def playfieldStart (prog : CMProgram) (s₀ : CMState) : State ... :=
 
 `State.init` begins at the origin, facing right, with an **empty stack**. Nothing
 currently proven connects the two, so a decider for `halts (State.init ...)` says
-nothing about `halts (playfieldStart ...)`. Closing this needs a verified
-*bootstrap*: extra prelude cells in the compiled playfield whose run carries the
-init configuration to the block-0 entry with the encoded state on the stack.
+nothing about `halts (playfieldStart ...)`.
 
-**Cheap resolution — fix the start state to `startCM 0 0`.** Then
-`encodeState s₀ = 2⁰·3⁰ = 1`, and the prelude collapses to pushing a literal `1`
-and routing down into block 0's entry: a handful of cells plus one small run
-lemma, reusing the existing corridor machinery. The reduction hypothesis becomes
+**A wrapper grid does not work.** The tempting move — define the boot playfield
+as `(playfieldOf prog).put ...` and leave the layout alone — is a dead end.
+`sim_run` and `simulation_halts_iff` are stated against `playfieldStart prog s₀`,
+whose grid is *hard-coded* `playfieldOf prog`, and there is no read-framing lemma
+("runs agree on grids agreeing at visited cells") to transport them. Building one
+is precisely the bisimulation layer B avoided. So B′ means **redefining the
+layout**: the prelude cells become part of `playfieldOf`, and the `LayoutCells`
+tower re-verifies with an extra disjointness argument. This makes B′ plausibly
+the largest remaining piece — larger than C — not "medium" as first sized.
+
+**Fix the start state to `startCM 0 0`.** Then `encodeState s₀ = 2⁰·3⁰ = 1`, and
+the prelude reduces to pushing a literal `1` and routing into block 0. The
+hypothesis becomes
 
 ```lean
 h2cm : ¬ ComputablePred (fun prog : CMProgram => CMInstr.halts prog (startCM 0 0))
 ```
 
-which is also the form a future `ToPartrec.Code → 2CM` reduction would naturally
-discharge, since the input is compiled into the program (e.g. as an `inc`
-prefix) rather than supplied as a separate start state. This drops the
-`(prog, s₀)` pair domain in favour of `CMProgram` alone, simplifying A as well.
+which is the form a future `ToPartrec.Code → 2CM` reduction naturally discharges,
+since the input is compiled into the program rather than supplied separately.
+
+**Candidate design: re-base `entryColumn` so block 0 sits at column 1**, leaving
+column 0 for the boot. Boot cells are `1` at `(0,0)` (push one, move right) and
+`v` at `(1,0)` (turn down). The pointer then descends column 1 — the same shared
+descent every corridor into block 0 already uses — arriving at
+`(1, blockRow prog 0)` facing down with stack `[1]`, which *is*
+`playfieldStart prog (startCM 0 0)`.
+
+**Gate checks — all three pass, so the design is de-risked:**
+
+1. *Does the descent tolerate other edges' drop cells?* Yes. `corridorDown_cell`
+   (`LayoutCorridor.lean:266`) proves the descent column reads `' '` **or**
+   `'v'`, so shared descents are already handled and the boot descent reuses
+   that machinery rather than needing all-spaces.
+2. *What depends on `entryColumn prog 0 = 0`?* It is definitional (the first
+   match arm), but only one proof relies on it by `rfl` —
+   `playfieldWidth_pos` in `LayoutRows`, a one-line fix. The `Tests` uses are
+   generic arithmetic that re-bases fine.
+3. *Does the halts-transport ingredient exist?* It does now:
+   `halts_iff_of_run` (`Theory/Run/Halt.lean`) proves
+   `run k s = some s' → (halts s ↔ halts s')` from `run_append`, which is what
+   converts the boot run into the iff. Landed, with `run_none_add`.
+
+**Fallback if the geometry proves costly: a staging theorem D₀.** State
+undecidability over *configurations* — domain
+`ℕ × ℕ × List (List Char) × (stack, pc, dir)` — with the compiler emitting
+`playfieldStart`'s fields directly. Everything D₀ needs exists after A/A′/B.
+But D₀ is a **weaker, non-canonical** result ("halting of Befunge
+configurations"); the README row claims the standard-start form, so taking this
+route means B′ stays open and the doc must say so rather than silently swapping
+the deliverable.
 
 ### C. `Computable` for the compiler — medium, the real proof effort
 

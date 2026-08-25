@@ -54,110 +54,26 @@ The implementation is organized into `Core` (definitions), `Theory`
   playfield holds no `p` cannot modify itself at any number of steps — proved
   for the quine — and the self-modifying programs' playfields are pinned down
   in full as the initial playfield plus their single write.
-- **Turing completeness** (`Theory.Completeness`): a fully verified
-  construction showing Befunge-93 computes what every two-counter machine
-  computes. The two-counter Minsky machine semantics (`TwoCounter`), the
-  `2^c1 * 3^c2` counter-pair encoding with its stack arithmetic
-  (`PairEncoding`), and a `playfieldOf` generator that lays each instruction
-  as a block at a chained entry column and block row, with one header corridor
-  row per block so every jump edge has a dedicated route, are formalized. The
-  layout is proved well formed (strictly increasing entries and rows), and the
-  generated playfield is verified generically:
-  - **Cell lookup** (`LayoutCells`): any cell in a block's row range reads
-    back the block's body (`playfield_block_get`), the header rows hold only a
-    block's corridor turn and drop, and a block's branch column is pure space
-    above it.
-  - **Block execution** (`LayoutBlock`): an `inc` block multiplies the stack top by its counter
-    digit and exits down its fall-through column; a `decz` block tests the
-    remainder at the branch cell and either divides the value and falls
-    through (counter positive) or sends the pointer up its corridor column
-    (counter zero); a `jump` block sends the pointer up its corridor column;
-    `halt` stops the machine. The block theorems accept any arrival direction,
-    since the entry `>` forces right.
-  - **Routing** (`LayoutRouting`, `LayoutCorridor`): the fall-through drop
-    lands the pointer on the next block's entry, and the jump corridor's
-    up-turn-drop is proved generically (`corridor_run`), with the drop column
-    passing only spaces and exit `v`s.
-  - **Simulation** (`LayoutSimulation`): `sim_run` proves a step-for-step
-    simulation — for a well-placed program (well-formed targets, `halt` last)
-    the playfield run reaches the successor block with the encoding of the
-    successor machine state, or stops when the machine stops.
-  - **Universality** (`LayoutSimulationNormalize`):
-    every two-counter machine is equivalent to a well-placed program (clamp
-    the targets, append a `halt`), so `universal_simulation` provides a
-    simulating playfield for every machine: its run matches the machine's
-    encoded run and it halts exactly when the machine does.
-  The earlier concrete verifications — the transfer program, a looping program
-  with a backward jump, and the branch-free single-row fragment — were the
-  stepping stones for this generic development and are now subsumed by it;
-  the modern `Tests/Completeness/LayoutSimulation.lean` re-verifies a concrete
-  run by computation.
-  A readable walkthrough of the whole construction — the machine, the
-  encoding, the compilation scheme, the five proof layers, and the capstone
-  theorem — is in [`COMPLETENESS.md`](COMPLETENESS.md).
+- **Turing completeness** (`Theory.Completeness`): a verified construction
+  compiling an arbitrary two-counter machine into a Befunge playfield that
+  simulates it step for step. The Minsky machine semantics, the `2^c1 * 3^c2`
+  counter-pair encoding, and a `playfieldOf` generator laying each instruction
+  as a block with its own jump corridor are formalized and proved well formed;
+  `universal_simulation` then gives *every* machine a playfield whose run
+  matches the machine's encoded run and which halts exactly when it does. The
+  construction, its five proof layers, and the capstone theorem are walked
+  through in [`COMPLETENESS.md`](COMPLETENESS.md).
+- **Undecidability** (`Theory.Completeness.Undecidable`): Befunge-93 halting is
+  undecidable, conditional on the classical undecidability of two-counter
+  halting — `befunge_undecidable_of_twoCounter`. The statement is phrased over
+  program *text*, since `Grid` holds a function and so no state-based domain is
+  `Primcodable`, and the reduction runs through a `Computable` compiler. The
+  one external input is 2CM universality itself, which mathlib does not
+  contain; see [`UNDECIDABILITY.md`](UNDECIDABILITY.md).
 - **Verified example programs** (`LeanFunge.Examples`): kernel-checked
   `HelloWorld`, `Arithmetic`, `Trampoline`, `PutGet`, `Countdown`, `Factorial`,
   `Input`, `DecimalOutput`, `SelfMod`, `Quine`, `Echo`, `Wrap`, and the
   nondeterministic `Random`.
-
-## Roadmap
-
-The generic simulation of arbitrary two-counter machines on the generated
-playfield is complete. The construction — the layout, the cell lookups, the
-block executions, the corridor routing, the step-for-step simulation, and the
-universality statement — is verified for every program (via normalization):
-
-| Task | Priority | Status |
-| :--- | :--- | :--- |
-| **Generic `decz` block execution** | Done | Proven: the test cells and both branches (decrement down, jump up) on the playfield. |
-| **Generic routing** | Done | The corridor routing is proven: the up-turn, along-drop, and down segments compose into a single run for arbitrary well-formed jump targets. |
-| **Simulation induction** | Done | The step-for-step simulation of `CMInstr.run` is proven: each machine step is a playfield run to the successor block with the encoded state, for arbitrary well-placed programs. |
-| **Universality statement** | Done | `universal_simulation` provides, for every two-counter machine, a well-placed program whose playfield matches the machine's encoded run and halts *exactly when* the machine does. |
-
-The remaining language tracks are complete: the string-mode block semantics
-(`run_string_block`), the run-level output monotonicity (`run_output_prefix`),
-the nop-run pointer movement (`run_spaces`), the prefix-only input consumption
-(`parseInt_suffix`, `run_input_prefix`), the string-mode output round-trip
-(`run_print`, `run_string_block_print`), the halting characterization
-(`halts_iff_at`), the output determinism (`halt_unique`), the run-level memory
-model (`run_grid_writes`), the string-mode precedence (`step_string_mode`), the
-straight-line divergence (`not_halts_safe_line`), the quote balance
-(`run_stringMode_parity`), and the I/O separation
-(`step_input_prefix`/`step_output_prefix`,
-`run_input_prefix`/`run_output_prefix`) are all proven.
-
-### Undecidability
-
-The language-property program is complete — every row in the table that
-follows this one is proven, as is the halting equivalence that closes the
-completeness capstone and the lift of the run-level laws to the
-nondeterministic semantics. Undecidability is now proven too, conditional on
-the one classical fact mathlib does not contain — see
-[`UNDECIDABILITY.md`](UNDECIDABILITY.md).
-
-| Task | Priority | Status |
-| :--- | :--- | :--- |
-| **Halting problem undecidability** | Done | Proven, conditional on one external fact: `befunge_undecidable_of_twoCounter` shows that if two-counter halting is undecidable then so is Befunge-93 halting. The statement is phrased over program *text* — `Grid` holds a function `ℕ → ℕ → Char`, so a state-based domain is not `Primcodable` at all — and the reduction composes a rows-based playfield, a boot prelude carrying `State.init` to the simulation's start state, and a `Computable` compiler. What remains external is 2CM universality itself: mathlib has no counter-machine model, so that gap is a reduction `Turing.ToPartrec.Code → 2CM` (Minsky's theorem), a separate mathlib-scale project. See [`UNDECIDABILITY.md`](UNDECIDABILITY.md). |
-
-### Completed language properties
-
-Properties of the language proven since the completeness construction landed,
-ranked by value and feasibility.
-
-| Task | Priority | Status |
-| :--- | :--- | :--- |
-| **Relational lifts of the run-level laws** | Medium | Done, for the laws that lift. `Theory.Run.Nondeterminism` carries string-mode precedence, quote parity, and the I/O prefixes to `runRel` off `stepRel_fields` (a `?` redirect changes only the direction and the pointer). Two laws do *not* lift and the module says why: the write trace of `run_grid_writes` is path-dependent, and `not_halts_safe_line` is a statement about travel in a fixed direction, which a `?` on the line breaks. |
-| **`decodeChar` nop characterization** | Low | Done. `decodeChar_nop_iff` shows a character decodes to `nop` exactly when it is outside `instrChars`, the 37-character instruction table. |
-| **Pointer-in-range invariant** | Low | Done. Every pointer update goes through `stepPos`, which reduces modulo the playfield size (`stepPos_lt`), so no step leaves the pointer out of range (`step_pc_lt`, `run_pc_lt`). An out-of-range pointer would be harmless anyway, since `Grid.get` wraps its coordinates (`get_eq_get_mod`). |
-| **Halting converse for the simulation** | High | Done. `simulation_halts_converse` proves the generated playfield halts only if the machine does, so `simulation_halts_iff` makes the pair an equivalence and `universal_simulation` now states it. The converse needed `sim_step` to expose that each simulated step takes at least one playfield step, and `sim_run` to carry the resulting growth bound; the positivity was already implicit in the block step counts. |
-| **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
-| **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
-| **`#` trampoline wrapping in all four directions** | Medium | Done. `step_trampoline_left_from_first`, `step_trampoline_down_from_last`, and `step_trampoline_up_from_first` join `step_trampoline_right_from_last`, covering the skip across the wrap at all four edges. |
-| **Straight-line divergence without `@`** | Medium | Done. `not_halts_safe_line` proves any run along a line of safe cells diverges, in all four directions, generalizing `run_space_some` off all-space playfields. A safe cell also excludes `p` (a write could place an `@` further along the line) and `"` (it would leave the instruction set behind). |
-| **Stack underflow semantics** | Low | Done. `pop_nil`, `top_nil`, `drop_nil`, `dup_nil`, `swap_nil`, `swap_singleton`, `applyBinary_nil`, and `applyBinary_singleton` pin down every accessor on an empty or one-element stack. On a singleton the missing operand is the *second-popped* one, so `-` on `[5]` computes `0 - 5 = -5`. |
-| **Division and modulo by zero** | Low | Done, and the conventions are *not* symmetric: `step_div_zero` shows `/` by zero pushes `0`, but `step_mod_zero` shows `%` by zero pushes the dividend unchanged (Lean's `Int` has `b % 0 = b`). Befunge-93 leaves both undefined. |
-| **String-mode precedence** | Medium | Done. `step_string_mode` shows a string-mode step never halts, writes the grid, consumes input, produces output, or turns; `run_string_mode` lifts it to any run that stays in string mode. The "string mode is data, not code" property. |
-| **Quote balance** | Medium | Done. `run_stringMode_parity` shows string mode after a run is the initial mode toggled once per executed `"`, and `run_stringMode_even` gives the even-count form. The count is over cells the pointer *executes*, not cells it crosses: `#` skips a cell without executing it, so a quote skipped that way is correctly never counted. |
 
 ## Scope & Limitations
 

@@ -5,6 +5,7 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Theory.Completeness.Layout
 import LeanFunge.Theory.Completeness.Routing
+import LeanFunge.Theory.Grid
 import LeanFunge.Theory.Run.Relational
 import LeanFunge.Theory.Step
 import Mathlib.Tactic
@@ -169,13 +170,16 @@ def lastCellAt (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ) × Char)) (
     (fun acc cell => if cell.1.1 % w = x % w ∧ cell.1.2 % h = y % h then cell.2 else acc)
     init
 
-/-- A put reads back its cell and leaves other cells unchanged. -/
-theorem Grid.put_get (g : Grid w h) (px py x y : ℕ) (c : Char) :
+/-- A put reads back its cell and leaves other cells unchanged.
+
+    The `if`-form the fold lemmas below rewrite with; the two branches are
+    `Grid.put_get_wrapped` and `Grid.get_put_other` from the playfield algebra. -/
+theorem put_get (g : Grid w h) (px py x y : ℕ) (c : Char) :
     (Grid.put g px py c).get x y = if px % w = x % w ∧ py % h = y % h then c else g.get x y := by
-  unfold Grid.put Grid.get
   by_cases h : px % w = x % w ∧ py % h = y % h
-  · simp only [h]
-  · simp only [h, eq_comm, if_false]
+  · rw [if_pos h, get_eq_get_mod, ← h.1, ← h.2, Grid.put_get_wrapped]
+  · rw [if_neg h]
+    exact Grid.get_put_other g x y px py c (by tauto)
 
 /-- Folding the blocks one at a time, over the boot prelude, equals folding the
     flattened cells. -/
@@ -208,7 +212,7 @@ theorem foldl_put_get (g : Grid w h) (cells : List ((ℕ × ℕ) × Char)) (x y 
       unfold lastCellAt
       rw [List.foldl_cons]
       congr
-      rw [Grid.put_get]
+      rw [put_get]
 
 /-- No block cell is ever placed in column zero: every block cell's column is
     at or beyond its entry column, and those start at one. -/

@@ -99,34 +99,15 @@ theorem mod_step_up (b k n : ℕ) (hk : k ≤ b) (hb : b - k < n) :
 /-- Iterated up steps inside the playfield land at the reduced row. -/
 lemma runPos_up_pos (w h : ℕ) (x y k : ℕ) (hx : x < w) (hk : k ≤ y) (hy : y < h) :
     runPos w h k Direction.up (x % w, y % h) = (x, y - k) := by
-  have hmod : ∀ r : ℕ, 1 ≤ r → r ≤ h → (r + h - 1) % h = r - 1 := by
-    intro r hr1 hrh
-    by_cases hrlt : r < h
-    · have hz : r + h - 1 = (r - 1) + h := by omega
-      rw [hz, Nat.add_mod_right, Nat.mod_eq_of_lt (by omega : r - 1 < h)]
-    · have hr : r = h := by omega
-      subst r
-      have hz : h + h - 1 = (h - 1) + h := by omega
-      rw [hz, Nat.add_mod_right, Nat.mod_eq_of_lt (by omega : h - 1 < h)]
-  induction k with
-  | zero =>
-      simp only [runPos]
-      congr
-      · exact Nat.mod_eq_of_lt hx
-      · exact Nat.mod_eq_of_lt hy
-  | succ k ih =>
-      have hih : runPos w h k Direction.up (x % w, y % h) = (x, y - k) := ih (by omega)
-      have hstep : stepPos w h Direction.up (x, y - k) = (x, y - k - 1) := by
-        unfold stepPos
-        rw [Nat.mod_eq_of_lt hx]
-        rw [hmod (y - k) (by omega) (by omega)]
-      calc
-        runPos w h (k + 1) Direction.up (x % w, y % h)
-            = stepPos w h Direction.up (runPos w h k Direction.up (x % w, y % h)) := by
-              simp only [runPos]
-        _ = stepPos w h Direction.up (x, y - k) := by rw [hih]
-        _ = (x, y - k - 1) := hstep
-        _ = (x, y - (k + 1)) := by simp only [Nat.sub_sub]
+  haveI : NeZero h := ⟨by omega⟩
+  rw [runPos_up]
+  have hmul : k * h = k * (h - 1) + k := by
+    conv_lhs => rw [show h = (h - 1) + 1 by omega]
+    rw [Nat.mul_succ]
+  have hy' : y + k * (h - 1) = (y - k) + k * h := by omega
+  congr
+  · exact Nat.mod_eq_of_lt hx
+  · rw [hy', Nat.add_mul_mod_self_right, Nat.mod_eq_of_lt (by omega : y - k < h)]
 
 /-- Iterated right steps inside the playfield land at the offset column. -/
 lemma runPos_right_pos (w h : ℕ) (x y k : ℕ) (hx : x + k < w) (hy : y < h) :
@@ -139,34 +120,15 @@ lemma runPos_right_pos (w h : ℕ) (x y k : ℕ) (hx : x + k < w) (hy : y < h) :
 /-- Iterated left steps inside the playfield land at the reduced column. -/
 lemma runPos_left_pos (w h : ℕ) (x y k : ℕ) (hy : y < h) (hk : k ≤ x) (hx : x < w) :
     runPos w h k Direction.left (x % w, y % h) = (x - k, y) := by
-  have hmod : ∀ r : ℕ, 1 ≤ r → r ≤ w → (r + w - 1) % w = r - 1 := by
-    intro r hr1 hrw
-    by_cases hrlt : r < w
-    · have hz : r + w - 1 = (r - 1) + w := by omega
-      rw [hz, Nat.add_mod_right, Nat.mod_eq_of_lt (by omega : r - 1 < w)]
-    · have hr : r = w := by omega
-      subst r
-      have hz : w + w - 1 = (w - 1) + w := by omega
-      rw [hz, Nat.add_mod_right, Nat.mod_eq_of_lt (by omega : w - 1 < w)]
-  induction k with
-  | zero =>
-      simp only [runPos]
-      congr
-      · exact Nat.mod_eq_of_lt hx
-      · exact Nat.mod_eq_of_lt hy
-  | succ k ih =>
-      have hih : runPos w h k Direction.left (x % w, y % h) = (x - k, y) := ih (by omega)
-      have hstep : stepPos w h Direction.left (x - k, y) = (x - k - 1, y) := by
-        unfold stepPos
-        rw [Nat.mod_eq_of_lt hy]
-        rw [hmod (x - k) (by omega) (by omega)]
-      calc
-        runPos w h (k + 1) Direction.left (x % w, y % h)
-            = stepPos w h Direction.left (runPos w h k Direction.left (x % w, y % h)) := by
-              simp only [runPos]
-        _ = stepPos w h Direction.left (x - k, y) := by rw [hih]
-        _ = (x - k - 1, y) := hstep
-        _ = (x - (k + 1), y) := by simp only [Nat.sub_sub]
+  haveI : NeZero w := ⟨by omega⟩
+  rw [runPos_left]
+  have hmul : k * w = k * (w - 1) + k := by
+    conv_lhs => rw [show w = (w - 1) + 1 by omega]
+    rw [Nat.mul_succ]
+  have hx' : x + k * (w - 1) = (x - k) + k * w := by omega
+  congr
+  · rw [hx', Nat.add_mul_mod_self_right, Nat.mod_eq_of_lt (by omega : x - k < w)]
+  · exact Nat.mod_eq_of_lt hy
 
 /-- Iterated down steps inside the playfield land at the offset row. -/
 lemma runPos_down_pos (w h : ℕ) (x y k : ℕ) (hx : x < w) (hb : y + k < h) :

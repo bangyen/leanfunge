@@ -129,14 +129,12 @@ straight-line divergence (`not_halts_safe_line`), the quote balance
 
 The language-property program is complete — every row in the table that
 follows this one is proven, as is the halting equivalence that closes the
-completeness capstone. What remains is the lift of the run-level laws to the
-nondeterministic semantics, and one external blocker.
+completeness capstone and the lift of the run-level laws to the
+nondeterministic semantics. What remains is one external blocker.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
 | **Halting problem undecidability** | High | Blocked on an external computability library: mathlib has neither the classical 2CM universality result nor a formal notion of decidability. The correspondence itself is no longer the gap — `simulation_halts_iff` proves the playfield halts *exactly when* the machine does — so what remains external is the classical fact alone. |
-| **Relational lifts of the run-level laws** | Medium | Every run-level law — the memory model, quote parity, string-mode precedence, straight-line divergence, and the I/O prefixes — is proven for the deterministic `run` only. Since `?` only chooses a direction, the direction-independent ones should hold along every `runRel` trace; `Theory.Run.Relational` and `Theory.Random` supply the machinery. |
-| **`decodeChar` nop characterization** | Low | `decodeChar_halt_iff` and `decodeChar_stringMode_iff` pin down `@` and `"`; the `| _ => .nop` catch-all is uncharacterized. State that a character outside the instruction table decodes to `nop`. |
 
 ### Completed language properties
 
@@ -145,6 +143,8 @@ ranked by value and feasibility.
 
 | Task | Priority | Status |
 | :--- | :--- | :--- |
+| **Relational lifts of the run-level laws** | Medium | Done, for the laws that lift. `Theory.Run.Nondeterminism` carries string-mode precedence, quote parity, and the I/O prefixes to `runRel` off `stepRel_fields` (a `?` redirect changes only the direction and the pointer). Two laws do *not* lift and the module says why: the write trace of `run_grid_writes` is path-dependent, and `not_halts_safe_line` is a statement about travel in a fixed direction, which a `?` on the line breaks. |
+| **`decodeChar` nop characterization** | Low | Done. `decodeChar_nop_iff` shows a character decodes to `nop` exactly when it is outside `instrChars`, the 37-character instruction table. |
 | **Halting converse for the simulation** | High | Done. `simulation_halts_converse` proves the generated playfield halts only if the machine does, so `simulation_halts_iff` makes the pair an equivalence and `universal_simulation` now states it. The converse needed `sim_step` to expose that each simulated step takes at least one playfield step, and `sim_run` to carry the resulting growth bound; the positivity was already implicit in the block step counts. |
 | **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
 | **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
@@ -197,8 +197,9 @@ unspecified; LeanFunge makes the following choices, all documented in
   round-trip (`parseInt_formatInt`) is fully generic.
 - Every verified example is deterministic; the nondeterminism of `?` is
   captured by the transition relation rather than the executable interpreter.
-  The run-level laws are likewise proven for the deterministic `run` only —
-  lifting them to `runRel` is open work.
+  The direction-independent run-level laws are lifted to that relation in
+  `Theory.Run.Nondeterminism`; the write trace and the straight-line
+  divergence are direction- or path-dependent and hold for `run` only.
 - The completeness development (`Theory.Completeness`) is complete for
   Befunge-93's side: `universal_simulation` gives *every* two-counter machine
   a playfield that simulates it. What it does not claim is the classical

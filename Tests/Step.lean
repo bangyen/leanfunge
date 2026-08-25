@@ -82,4 +82,7 @@ example {w h : ℕ} (s : State w h) (hm : s.stringMode = false)
       pc := stepPos w h s.dir s.pc } :=
   step_printChar s hm hcell v rest hstack
 
+example (c : Char) : decodeChar c = .nop ↔ c ∉ instrChars :=
+  decodeChar_nop_iff c
+
 end LeanFunge.Tests

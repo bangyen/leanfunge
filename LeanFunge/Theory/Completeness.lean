@@ -6,6 +6,7 @@ Authors: Bangyen Pham
 import LeanFunge.Theory.Completeness.Encodable
 import LeanFunge.Theory.Completeness.Layout
 import LeanFunge.Theory.Completeness.LayoutBlock
+import LeanFunge.Theory.Completeness.LayoutBoot
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCorridor
 import LeanFunge.Theory.Completeness.LayoutRouting

@@ -120,6 +120,16 @@ theorem blockRow_succ (prog : CMProgram) (i : ℕ) :
     blockRow prog (i + 1) = blockRow prog i + blockHeight (prog.getD i .halt) := by
   rfl
 
+/-- A block is at least two columns wide. -/
+theorem blockWidth_two (instr : CMInstr) : 2 ≤ blockWidth instr := by
+  cases instr <;> simp [blockWidth]
+
+/-- Every entry column is at least one: column zero is the boot column. -/
+theorem entryColumn_pos (prog : CMProgram) (i : ℕ) : 1 ≤ entryColumn prog i := by
+  induction i with
+  | zero => exact Nat.le_refl 1
+  | succ j ih => rw [entryColumn_succ]; omega
+
 /-- The entry columns are strictly increasing. -/
 theorem entryColumn_strict_mono (prog : CMProgram) {i j : ℕ} (h : i < j) :
     entryColumn prog i < entryColumn prog j := by
@@ -197,13 +207,19 @@ def blockCellList (prog : CMProgram) (i : ℕ) : List ((ℕ × ℕ) × Char) :=
   | .jump k => [((D, y), '>'), ((D + 1, y), '^')] ++ corridorCells prog i k
   | .halt => [((D, y), '>'), ((D + 1, y), '@')]
 
+/-- The boot prelude: push `1` (the encoding of the all-zero counters) and
+    turn down into block 0's entry column. -/
+def bootCells (prog : CMProgram) : List ((ℕ × ℕ) × Char) :=
+  [((0, 0), '1'), ((entryColumn prog 0, 0), 'v')]
+
 /-- Generate the playfield of a program: place every block's cells over the
     all-space grid. -/
 def playfieldOf (prog : CMProgram) : Grid (playfieldWidth prog) (playfieldHeight prog) :=
   ((List.range prog.length).foldl
     (fun g i => (blockCellList prog i).foldl
       (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g))
-    (Grid.space (playfieldWidth prog) (playfieldHeight prog))
+    ((bootCells prog).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2)
+      (Grid.space (playfieldWidth prog) (playfieldHeight prog)))
 
 /-- A concrete program for the placement check. -/
 def layoutProgram : CMProgram :=

@@ -241,6 +241,10 @@ theorem playfield_halt_get (prog : CMProgram) (i : ℕ) (hi : i < prog.length)
   have hH : blockRow prog i + dy < ph := by omega
   rw [playfieldOf_get_eq_lastCellAt]
   unfold playfieldCells
+  rw [lastCellAt_skip_boot prog _ _ _ hH (by
+    have hge : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
+    have hlen : 0 < prog.length := by omega
+    omega)]
   have hmain : ∀ k : ℕ, i < k → k ≤ prog.length →
       lastCellAt pw ph ' ' (List.flatMap (fun j => blockCellList prog j) (List.range k))
         (entryColumn prog i + dx) (blockRow prog i + dy)

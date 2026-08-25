@@ -145,6 +145,7 @@ ranked by value and feasibility.
 | :--- | :--- | :--- |
 | **Relational lifts of the run-level laws** | Medium | Done, for the laws that lift. `Theory.Run.Nondeterminism` carries string-mode precedence, quote parity, and the I/O prefixes to `runRel` off `stepRel_fields` (a `?` redirect changes only the direction and the pointer). Two laws do *not* lift and the module says why: the write trace of `run_grid_writes` is path-dependent, and `not_halts_safe_line` is a statement about travel in a fixed direction, which a `?` on the line breaks. |
 | **`decodeChar` nop characterization** | Low | Done. `decodeChar_nop_iff` shows a character decodes to `nop` exactly when it is outside `instrChars`, the 37-character instruction table. |
+| **Pointer-in-range invariant** | Low | Done. Every pointer update goes through `stepPos`, which reduces modulo the playfield size (`stepPos_lt`), so no step leaves the pointer out of range (`step_pc_lt`, `run_pc_lt`). An out-of-range pointer would be harmless anyway, since `Grid.get` wraps its coordinates (`get_eq_get_mod`). |
 | **Halting converse for the simulation** | High | Done. `simulation_halts_converse` proves the generated playfield halts only if the machine does, so `simulation_halts_iff` makes the pair an equivalence and `universal_simulation` now states it. The converse needed `sim_step` to expose that each simulated step takes at least one playfield step, and `sim_run` to carry the resulting growth bound; the positivity was already implicit in the block step counts. |
 | **Run-level `p`/`g` memory model** | High | Done. `run_grid_writes` shows the playfield at any step is the initial playfield with the run's accumulated `p` writes applied in order, and `run_cell_invariant` shows a cell never written keeps its value. `Theory.Memory` lifts the examples: `quine_grid_invariant` proves the quine never modifies itself at *any* number of steps, and `selfmod_grid`/`exec_grid` pin the whole playfield of the self-modifying programs. |
 | **Output determinism** | Medium | Done. `halt_unique` shows a run reaches at most one halting configuration, at one step count; `halts_unique_final` packages it as a unique final state and `halt_output_unique` as a unique output, so for a fixed program and input the output is determined. |
@@ -173,7 +174,8 @@ unspecified; LeanFunge makes the following choices, all documented in
 `ARCHITECTURE.md`:
 
 - **Toroidal playfield**: coordinates are reduced modulo the playfield size on
-  every access, so the playfield is a torus.
+  every access, so the playfield is a torus. The pointer is likewise reduced on
+  every move, so it never leaves the grid.
 - **Stack underflow**: popping an empty stack yields `0`, and a binary
   operation on a short stack fills its missing operands with `0`.
 - **Division by zero**: `/` by zero pushes `0`, while `%` by zero pushes the

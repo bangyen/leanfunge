@@ -17,6 +17,7 @@ import Mathlib.Data.Nat.Notation
 * `stepPos_up_from_zero`: Moving up from row 0 wraps to the last row.
 * `runPos_right`: Iterating rightward steps lands at the modular column.
 * `runPos_down`: Iterating downward steps lands at the modular row.
+* `stepPos_lt`: Moving the pointer always lands inside the playfield.
 * `runPos_up`: Iterating upward steps lands at the modular row.
 * `runPos_left`: Iterating leftward steps lands at the modular column.
 -/
@@ -138,5 +139,12 @@ theorem runPos_left {w h : ℕ} [NeZero w] (k x y : ℕ) :
       have hsub : (x + k * (w - 1)) % w + w - 1 = (x + k * (w - 1)) % w + (w - 1) := by
         rw [Nat.add_sub_assoc (show 1 ≤ w by omega)]
       rw [hsub, hy, hx]
+
+/-- Moving the pointer always lands inside the playfield: every direction
+    reduces the coordinate modulo the playfield size. -/
+theorem stepPos_lt (hw : 0 < w) (hh : 0 < h) (d : Direction) (p : ℕ × ℕ) :
+    (stepPos w h d p).1 < w ∧ (stepPos w h d p).2 < h := by
+  cases d <;>
+    exact ⟨Nat.mod_lt _ hw, Nat.mod_lt _ hh⟩
 
 end LeanFunge

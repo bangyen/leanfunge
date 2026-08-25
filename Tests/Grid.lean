@@ -44,4 +44,7 @@ example (g : Grid w h) (x y : ℕ) (c : Char) :
     Grid.get (Grid.put g x y c) (x % w) (y % h) = c :=
   Grid.put_get_wrapped g x y c
 
+example {w h : ℕ} (g : Grid w h) (x y : ℕ) : g.get x y = g.get (x % w) (y % h) :=
+  get_eq_get_mod g x y
+
 end LeanFunge.Tests

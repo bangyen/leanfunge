@@ -41,4 +41,8 @@ example : runPos 80 25 30 Direction.up (3, 0) = (3, 20) := by
 example : runPos 80 25 30 Direction.left (3, 0) = (53, 0) := by
   decide
 
+example {w h : ℕ} (hw : 0 < w) (hh : 0 < h) (d : Direction) (p : ℕ × ℕ) :
+    (stepPos w h d p).1 < w ∧ (stepPos w h d p).2 < h :=
+  stepPos_lt hw hh d p
+
 end LeanFunge.Tests

@@ -139,7 +139,7 @@ Further properties of the language, ranked by value and feasibility.
 | **Stack underflow semantics** | Low | Done. `pop_nil`, `top_nil`, `drop_nil`, `dup_nil`, `swap_nil`, `swap_singleton`, `applyBinary_nil`, and `applyBinary_singleton` pin down every accessor on an empty or one-element stack. On a singleton the missing operand is the *second-popped* one, so `-` on `[5]` computes `0 - 5 = -5`. |
 | **Division and modulo by zero** | Low | Done, and the conventions are *not* symmetric: `step_div_zero` shows `/` by zero pushes `0`, but `step_mod_zero` shows `%` by zero pushes the dividend unchanged (Lean's `Int` has `b % 0 = b`). Befunge-93 leaves both undefined. |
 | **String-mode precedence** | Medium | Done. `step_string_mode` shows a string-mode step never halts, writes the grid, consumes input, produces output, or turns; `run_string_mode` lifts it to any run that stays in string mode. The "string mode is data, not code" property. |
-| **Quote balance** | Medium | Along any path, string mode is off exactly when an even number of `"` cells were crossed; a compositional statement over string runs. |
+| **Quote balance** | Medium | Done. `run_stringMode_parity` shows string mode after a run is the initial mode toggled once per executed `"`, and `run_stringMode_even` gives the even-count form. The count is over cells the pointer *executes*, not cells it crosses: `#` skips a cell without executing it, so a quote skipped that way is correctly never counted. |
 
 ## Scope & Limitations
 

@@ -139,7 +139,14 @@ theorem blockCellList_eq (prog : CMProgram) (i : ℕ) :
 
 /-- The flattened list of all placed cells, in fold order. -/
 def playfieldCells (prog : CMProgram) : List ((ℕ × ℕ) × Char) :=
-  List.flatMap (fun i => blockCellList prog i) (List.range prog.length)
+  bootCells prog ++ List.flatMap (fun i => blockCellList prog i) (List.range prog.length)
+
+/-- The boot prelude occupies only row 0 of the header. -/
+theorem bootCells_row (prog : CMProgram) (c : (ℕ × ℕ) × Char)
+    (hc : c ∈ bootCells prog) : c.1.2 = 0 := by
+  unfold bootCells at hc
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hc
+  rcases hc with h | h <;> rw [h]
 
 /-- The value of the last placed cell at a position, or the initial value. -/
 def lastCellAt (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ) × Char)) (x y : ℕ) : Char :=
@@ -155,21 +162,24 @@ theorem Grid.put_get (g : Grid w h) (px py x y : ℕ) (c : Char) :
   · simp only [h]
   · simp only [h, eq_comm, if_false]
 
-/-- Folding the blocks one at a time equals folding the flattened cells. -/
+/-- Folding the blocks one at a time, over the boot prelude, equals folding the
+    flattened cells. -/
 theorem foldl_bind_put (prog : CMProgram)
     (g0 : Grid (playfieldWidth prog) (playfieldHeight prog)) :
     (List.range prog.length).foldl
         (fun g i =>
           (blockCellList prog i).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g)
-        g0
+        ((bootCells prog).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g0)
       = (playfieldCells prog).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g0 := by
   unfold playfieldCells
-  induction List.range prog.length generalizing g0 with
+  rw [List.foldl_append]
+  generalize (bootCells prog).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g0 = gb
+  induction List.range prog.length generalizing gb with
   | nil => rfl
   | cons x xs ih =>
       rw [List.foldl_cons]
       rw [List.flatMap_cons, List.foldl_append]
-      exact ih ((blockCellList prog x).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) g0)
+      exact ih ((blockCellList prog x).foldl (fun g cell => Grid.put g cell.1.1 cell.1.2 cell.2) gb)
 
 /-- A run of puts reads back the last placed cell. -/
 theorem foldl_put_get (g : Grid w h) (cells : List ((ℕ × ℕ) × Char)) (x y : ℕ) :
@@ -184,6 +194,30 @@ theorem foldl_put_get (g : Grid w h) (cells : List ((ℕ × ℕ) × Char)) (x y 
       rw [List.foldl_cons]
       congr
       rw [Grid.put_get]
+
+/-- No block cell is ever placed in column zero: every block cell's column is
+    at or beyond its entry column, and those start at one. -/
+theorem blockCell_ne_zero (prog : CMProgram) (j : ℕ) (c : (ℕ × ℕ) × Char)
+    (hc : c ∈ blockCellList prog j) : c.1.1 ≠ 0 := by
+  unfold blockCellList at hc
+  have hep := entryColumn_pos prog j
+  cases hget : prog.getD j .halt with
+  | inc cc =>
+      rw [hget] at hc; simp at hc
+      rcases hc with h | h | h | h <;> rw [h] <;> simp <;> omega
+  | halt =>
+      rw [hget] at hc; simp at hc
+      rcases hc with h | h <;> rw [h] <;> simp <;> omega
+  | jump k =>
+      rw [hget] at hc; simp [corridorCells] at hc
+      have hek := entryColumn_pos prog k
+      have hbw := blockWidth_two (prog[j]?.getD CMInstr.halt)
+      rcases hc with h | h | h | h <;> rw [h] <;> simp <;> omega
+  | decz cc k =>
+      rw [hget] at hc; simp [corridorCells] at hc
+      have hek := entryColumn_pos prog k
+      have hbw := blockWidth_two (prog[j]?.getD CMInstr.halt)
+      rcases hc with h | h | h | h | h | h | h | h | h | h | h <;> rw [h] <;> simp <;> omega
 
 /-- The playfield readback equals the last-cell lookup over the flattened
     cells. -/
@@ -224,6 +258,79 @@ theorem lastCellAt_skip_row (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ
 theorem lastCellAt_append (w h : ℕ) (init : Char) (l1 l2 : List ((ℕ × ℕ) × Char)) (x y : ℕ) :
     lastCellAt w h init (l1 ++ l2) x y = lastCellAt w h (lastCellAt w h init l1 x y) l2 x y := by
   simp only [lastCellAt, List.foldl_append]
+
+/-- A cell whose column misses the lookup column does not change the lookup. -/
+theorem lastCellAt_skip_col (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ) × Char))
+    (x y : ℕ) (hx : x < w)
+    (hcol : ∀ c : (ℕ × ℕ) × Char, c ∈ cells → c.1.1 < w)
+    (hdiff : ∀ c : (ℕ × ℕ) × Char, c ∈ cells → c.1.1 ≠ x) :
+    lastCellAt w h init cells x y = init := by
+  induction cells generalizing init with
+  | nil => rfl
+  | cons cell cells ih =>
+      unfold lastCellAt
+      rw [List.foldl_cons]
+      have hnot : ¬(cell.1.1 % w = x % w ∧ cell.1.2 % h = y % h) := by
+        intro hm
+        have hx' : cell.1.1 % w = x % w := hm.1
+        have hcolc : cell.1.1 < w := hcol cell (by exact List.mem_cons_self)
+        rw [Nat.mod_eq_of_lt hcolc, Nat.mod_eq_of_lt hx] at hx'
+        exact hdiff cell (by exact List.mem_cons_self) hx'
+      rw [if_neg hnot]
+      exact ih init (fun c hc => hcol c (List.mem_cons_of_mem _ hc))
+        (fun c hc => hdiff c (List.mem_cons_of_mem _ hc))
+
+/-- A lookup at column zero skips every cell whose column is nonzero modulo the
+    width. -/
+theorem lastCellAt_skip_col_mod (w h : ℕ) (init : Char) (cells : List ((ℕ × ℕ) × Char))
+    (y : ℕ)
+    (hdiff : ∀ c : (ℕ × ℕ) × Char, c ∈ cells → c.1.1 % w ≠ 0 % w) :
+    lastCellAt w h init cells 0 y = init := by
+  induction cells generalizing init with
+  | nil => rfl
+  | cons cell cells ih =>
+      unfold lastCellAt
+      rw [List.foldl_cons]
+      have hc := hdiff cell (by exact List.mem_cons_self)
+      rw [if_neg (by rintro ⟨h1, -⟩; exact hc h1)]
+      exact ih init (fun c hcm => hdiff c (List.mem_cons_of_mem _ hcm))
+
+/-- The boot prelude occupies only columns 0 and 1, so a lookup at column two
+    or beyond skips it — including on row 0, where the prelude lives. -/
+theorem lastCellAt_skip_boot_col (prog : CMProgram) (cells : List ((ℕ × ℕ) × Char))
+    (x y : ℕ) (hy : y < playfieldHeight prog) (hxw : x < playfieldWidth prog)
+    (hb : y = 0 → 2 ≤ x) :
+    lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' '
+        (bootCells prog ++ cells) x y
+      = lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' ' cells x y := by
+  rw [lastCellAt_append]
+  congr 1
+  by_cases hy0 : y = 0
+  · -- on row 0 the prelude is present, but only at columns 0 and 1
+    subst hy0
+    have hx2 := hb rfl
+    have he0 : entryColumn prog 0 = 1 := rfl
+    refine lastCellAt_skip_col _ _ ' ' (bootCells prog) x 0 hxw ?_ ?_ <;>
+      intro c hc <;>
+      unfold bootCells at hc <;>
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hc <;>
+      rcases hc with h | h <;> rw [h] <;> simp only [he0] <;> omega
+  · exact lastCellAt_skip_row _ _ ' ' (bootCells prog) x y hy
+      (fun c hc => by rw [bootCells_row prog c hc]; omega)
+      (fun c hc => by rw [bootCells_row prog c hc]; exact fun h => hy0 h.symm)
+
+/-- Below the header, the boot prelude never wins the lookup: it sits on row 0,
+    and every block row is at or below `prog.length`. -/
+theorem lastCellAt_skip_boot (prog : CMProgram) (cells : List ((ℕ × ℕ) × Char))
+    (x y : ℕ) (hy : y < playfieldHeight prog) (hy0 : y ≠ 0) :
+    lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' '
+        (bootCells prog ++ cells) x y
+      = lastCellAt (playfieldWidth prog) (playfieldHeight prog) ' ' cells x y := by
+  rw [lastCellAt_append]
+  congr 1
+  exact lastCellAt_skip_row _ _ ' ' (bootCells prog) x y hy
+    (fun c hc => by rw [bootCells_row prog c hc]; omega)
+    (fun c hc => by rw [bootCells_row prog c hc]; exact fun h => hy0 h.symm)
 
 /-- `flatMap` over a successor range splits off the last block. -/
 theorem flatMap_range_succ {β : Type} (f : ℕ → List β) (k : ℕ) :
@@ -516,6 +623,11 @@ theorem playfield_block_get (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.len
     omega
   rw [playfieldOf_get_eq_lastCellAt]
   unfold playfieldCells
+  -- the boot prelude sits on row 0, below every block row, so it never wins
+  rw [lastCellAt_skip_boot prog _ _ _ hH (by
+    have hge : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
+    have hlen : 0 < prog.length := by omega
+    omega)]
   have hmain : ∀ k : ℕ, i < k → k ≤ prog.length →
       lastCellAt pw ph ' ' (List.flatMap (fun j => blockCellList prog j) (List.range k))
         (entryColumn prog i + dx) (blockRow prog i + dy)
@@ -536,6 +648,26 @@ theorem playfield_block_get (prog : CMProgram) (i : ℕ) (hi1 : i + 1 < prog.len
           exact lastCellAt_block_i prog k (by omega) dx dy hdx hdy hW hH0 hH
   have hres := hmain prog.length (by omega) (by rfl)
   rw [hres]
+
+/-- A lookup whose every matching cell carries `ch`, over an initial value of
+    `ch`, yields `ch`. Used where two writes coincide at one position: the boot
+    prelude's turn and a corridor drop into block zero are both `v`, so which
+    one wins does not matter. -/
+theorem lastCellAt_const (w h : ℕ) (ch : Char) (cells : List ((ℕ × ℕ) × Char))
+    (x y : ℕ)
+    (hall : ∀ c : (ℕ × ℕ) × Char, c ∈ cells →
+      (c.1.1 % w = x % w ∧ c.1.2 % h = y % h) → c.2 = ch) :
+    lastCellAt w h ch cells x y = ch := by
+  induction cells generalizing ch with
+  | nil => rfl
+  | cons cell cells ih =>
+      unfold lastCellAt
+      rw [List.foldl_cons]
+      by_cases hm : cell.1.1 % w = x % w ∧ cell.1.2 % h = y % h
+      · rw [if_pos hm, hall cell (by exact List.mem_cons_self) hm]
+        exact ih ch (fun c hc => hall c (List.mem_cons_of_mem _ hc))
+      · rw [if_neg hm]
+        exact ih ch (fun c hc => hall c (List.mem_cons_of_mem _ hc))
 
 end Completeness
 

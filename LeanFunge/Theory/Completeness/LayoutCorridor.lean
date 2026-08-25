@@ -237,9 +237,9 @@ theorem corridorAlong_cell (prog : CMProgram) (i k : ℕ) (c : Fin 2) (x : ℕ)
     (hi : i < prog.length) (hwell : wellFormed prog)
     (hget : prog.getD i .halt = .decz c k ∨ prog.getD i .halt = .jump k)
     (hxC : x ≠ branchColumn prog i) (hxK : x ≠ entryColumn prog k)
-    (hx : x < playfieldWidth prog) :
+    (hx : x < playfieldWidth prog) (hb : i = 0 → 2 ≤ x) :
     (playfieldOf prog).get x i = ' ' := by
-  have hcell := playfield_header_get prog x i hi (fun c' k' hk => hwell i hi c' k' hk) hx
+  have hcell := playfield_header_get prog x i hi (fun c' k' hk => hwell i hi c' k' hk) hx hb
   rw [hcell]
   rcases hget with hget | hget
   · have hC' : branchColumn prog i = entryColumn prog i + 4 := by
@@ -271,9 +271,24 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
   have hDK : entryColumn prog k < playfieldWidth prog := by
     rw [playfieldWidth]
     exact entryColumn_strict_mono prog hk
+  by_cases hboot : r = 0 ∧ k = 0
+  · -- the boot turn sits at block zero's entry column on row zero
+    obtain ⟨hr0, hk0⟩ := hboot
+    subst hr0; subst hk0
+    exact Or.inr (playfield_boot_turn prog (by
+      intro hnil
+      rw [hnil] at hk
+      exact absurd hk (by simp)))
   by_cases hhead : r < prog.length
   · have hcell := playfield_header_get prog (entryColumn prog k) r (by omega)
-      (fun c k' hk' => hwell r (by omega) c k' hk') hDK
+      (fun c k' hk' => hwell r (by omega) c k' hk') hDK (by
+        intro hr0
+        have hk0 : k ≠ 0 := by
+          intro h; exact hboot ⟨hr0, h⟩
+        have hkpos : 0 < k := Nat.pos_of_ne_zero hk0
+        have := entryColumn_strict_mono prog hkpos
+        have he0 : entryColumn prog 0 = 1 := rfl
+        omega)
     rw [hcell]
     cases hget : prog.getD r .halt with
     | decz c k' =>
@@ -475,16 +490,21 @@ theorem corridorRunRight (prog : CMProgram)
     omega
   have hturnCell : (playfieldOf prog).get C i = Direction.char Direction.right := by
     have hcell := playfield_header_get prog C i hi (fun c' k' hk' => hwell i hi c' k' hk')
-      (by exact hCW)
+      (by exact hCW) (fun _ => by
+        have hep := entryColumn_pos prog i
+        have hbw := blockWidth_two (prog.getD i .halt)
+        omega)
     rw [hcell]
     change corridorRowAt prog (branchColumn prog i) i = Direction.char Direction.right
     rw [corridor_turn prog i k c hget]
     have hge' : entryColumn prog k ≥ branchColumn prog i := hge
     simp only [Direction.char, hge', ↓reduceIte, ↓Char.isValue]
   have hdropCell : (playfieldOf prog).get Dk i = 'v' := by
-    have hcell := playfield_header_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
-      (by exact hDK)
-    rw [hcell]
+    refine playfield_drop_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
+      (by exact hDK) ?_ (by
+        intro hnil
+        rw [hnil] at hi
+        exact absurd hi (by simp))
     change corridorRowAt prog (entryColumn prog k) i = 'v'
     rw [corridor_drop prog i k c hget hCneK]
   have hspacesUp : SpacesRun s.grid Direction.up C (blockRow prog i - 1) nUp := by
@@ -536,7 +556,13 @@ theorem corridorRunRight (prog : CMProgram)
       rw [runPos_right_pos (x := C + 1) (y := i) (k := k') (hx := by omega) (hy := by omega)]
     rw [hpos]
     rw [hgrid]
-    exact corridorAlong_cell prog i k c (C + 1 + k') hi hwell hget (by omega) (by omega) (by omega)
+    exact corridorAlong_cell prog i k c (C + 1 + k') hi hwell hget (by omega) (by omega)
+      (by omega) (by
+        have hC2 : 2 ≤ C := by
+          have hep := entryColumn_pos prog i
+          have hbw := blockWidth_two (prog.getD i .halt)
+          omega
+        omega)
   have hturnAl : s.grid.get (runPos w h nAlong Direction.right ((C + 1) % w, i % h)).1
       (runPos w h nAlong Direction.right ((C + 1) % w, i % h)).2 = 'v' := by
     have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
@@ -700,16 +726,21 @@ theorem corridorRunLeft (prog : CMProgram)
     omega
   have hturnCell : (playfieldOf prog).get C i = Direction.char Direction.left := by
     have hcell := playfield_header_get prog C i hi (fun c' k' hk' => hwell i hi c' k' hk')
-      (by exact hCW)
+      (by exact hCW) (fun _ => by
+        have hep := entryColumn_pos prog i
+        have hbw := blockWidth_two (prog.getD i .halt)
+        omega)
     rw [hcell]
     change corridorRowAt prog (branchColumn prog i) i = Direction.char Direction.left
     rw [corridor_turn prog i k c hget]
     have hge' : ¬(entryColumn prog k ≥ branchColumn prog i) := hge
     simp only [Direction.char, hge', ↓reduceIte, ↓Char.isValue]
   have hdropCell : (playfieldOf prog).get Dk i = 'v' := by
-    have hcell := playfield_header_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
-      (by exact hDK)
-    rw [hcell]
+    refine playfield_drop_get prog Dk i hi (fun c' k' hk' => hwell i hi c' k' hk')
+      (by exact hDK) ?_ (by
+        intro hnil
+        rw [hnil] at hi
+        exact absurd hi (by simp))
     change corridorRowAt prog (entryColumn prog k) i = 'v'
     rw [corridor_drop prog i k c hget hCneK]
   have hspacesUp : SpacesRun s.grid Direction.up C (blockRow prog i - 1) nUp := by
@@ -762,7 +793,10 @@ theorem corridorRunLeft (prog : CMProgram)
         (hy := by omega) (hk := by omega) (hx := by omega)]
     rw [hpos]
     rw [hgrid]
-    exact corridorAlong_cell prog i k c (C - 1 - k') hi hwell hget (by omega) (by omega) (by omega)
+    exact corridorAlong_cell prog i k c (C - 1 - k') hi hwell hget (by omega) (by omega)
+      (by omega) (by
+        have hek := entryColumn_pos prog k
+        omega)
   have hAlRun := run_spaces_turn (w := w) (h := h) (C - 1) i nAlong
     { s with pc := (C - 1, i), dir := .left }
     Direction.left Direction.down

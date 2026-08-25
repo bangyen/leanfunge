@@ -174,7 +174,10 @@ project convention that `Core` files contain only definitions.
   also takes precedence over the instruction set: `step_string_mode` and
   `run_string_mode` prove that while it is on, the interpreter never halts,
   writes the playfield, consumes input, produces output, or turns — the cells
-  are data, not code.
+  are data, not code. String mode is exactly a parity: `run_stringMode_parity`
+  shows the mode after a run is the initial mode toggled once per executed
+  `"`, counting cells the pointer executes rather than cells it crosses, so a
+  quote skipped by `#` is correctly never counted.
 - `Theory/Run/Divergence.lean`: divergence. A run on an all-space playfield
   never halts (`run_space_some`), and every successor state keeps the all-space
   playfield and stays out of string mode (`run_space_step`). This generalizes

@@ -30,6 +30,13 @@ and `run_string_mode` show that while string mode is on, the interpreter never
 halts, writes the playfield, consumes input, produces output, or turns — the
 cells are data, not code.
 
+Finally, string mode is exactly a parity: `run_stringMode_parity` shows the
+mode after a run is the initial mode toggled once per executed `"`. The count
+is over cells the pointer *executes*, not cells it passes over — `#` skips a
+cell without executing it, and a cell skipped that way is never counted. The
+count is also taken against each step's own playfield, so a `"` written by `p`
+partway through a run is counted correctly once the pointer reaches it.
+
 ## Main definitions
 
 * `StringRun`: All cells on a straight path of `n` steps are not the string
@@ -38,6 +45,8 @@ cells are data, not code.
   order.
 * `PrintRun`: All cells on a straight path of `n` steps to the right are the
   print-char `,`.
+* `quoteSteps`: The number of steps of a run whose executed cell is a double
+  quote.
 
 ## Theorems
 
@@ -61,6 +70,14 @@ cells are data, not code.
   consumes input, produces output, or turns.
 * `run_string_mode`: A run that stays in string mode throughout leaves the
   playfield, input, output, and direction untouched.
+* `decodeChar_stringMode_iff`: A character decodes to the string-mode toggle
+  exactly when it is a double quote.
+* `step_stringMode_xor`: Every step toggles string mode exactly when the
+  executed cell is a double quote.
+* `run_stringMode_parity`: String mode after a run is the initial mode toggled
+  by the parity of the executed quote count.
+* `run_stringMode_even`: Starting outside string mode, string mode is off
+  exactly when an even number of quotes were executed.
 -/
 
 namespace LeanFunge
@@ -432,5 +449,159 @@ theorem run_string_mode (n : ℕ) (s : State w h)
       · rw [hi', hi]
       · rw [ho', ho]
       · rw [hd', hd]
+
+/-- A character decodes to the string-mode toggle exactly when it is `"`. -/
+theorem decodeChar_stringMode_iff (c : Char) :
+    decodeChar c = .stringMode ↔ c = '"' := by
+  constructor
+  · intro h
+    unfold decodeChar at h
+    split at h <;> simp only [reduceCtorEq] at h
+    rfl
+  · intro h
+    rw [h]
+    rfl
+
+/-- Every step toggles string mode exactly when the executed cell is `"`. -/
+theorem step_stringMode_xor {s s' : State w h} (hstep : step s = some s') :
+    s'.stringMode = xor s.stringMode (s.grid.get s.pc.1 s.pc.2 == '"') := by
+  unfold step at hstep
+  dsimp only at hstep
+  by_cases hsm : s.stringMode = true
+  · rw [hsm] at hstep
+    change some (stepString s (s.grid.get s.pc.1 s.pc.2)) = some s' at hstep
+    injection hstep with hs'
+    rw [← hs', hsm]
+    unfold stepString
+    by_cases hq : (s.grid.get s.pc.1 s.pc.2) = '"'
+    · rw [hq]
+      simp only [beq_self_eq_true, Bool.true_xor, Bool.not_true]
+    · have hb : ((s.grid.get s.pc.1 s.pc.2).toNat == '"'.toNat) = false := by
+        by_cases hc : (s.grid.get s.pc.1 s.pc.2).toNat = '"'.toNat
+        · exfalso
+          apply hq
+          unfold Char.toNat at hc
+          exact Char.ext (UInt32.toNat_inj.mp hc)
+        · simpa only [beq_eq_false_iff_ne, ne_eq]
+      have hb2 : ((s.grid.get s.pc.1 s.pc.2) == '"') = false := by
+        simpa only [beq_eq_false_iff_ne, ne_eq]
+      rw [hb, hb2, hsm]
+      simp only [Bool.true_xor, Bool.not_false]
+  · have hf : s.stringMode = false := by
+      rcases hb : s.stringMode with _ | _
+      · rfl
+      · exact absurd hb hsm
+    rw [hf] at hstep ⊢
+    by_cases hq : (s.grid.get s.pc.1 s.pc.2) = '"'
+    · have hd : decodeChar (s.grid.get s.pc.1 s.pc.2) = .stringMode :=
+        (decodeChar_stringMode_iff _).mpr hq
+      rw [hd] at hstep
+      change some (stepState s .stringMode) = some s' at hstep
+      injection hstep with hs'
+      rw [← hs', hq]
+      simp only [beq_self_eq_true, Bool.false_xor]
+      rfl
+    · have hd : decodeChar (s.grid.get s.pc.1 s.pc.2) ≠ .stringMode := by
+        intro hc
+        exact hq ((decodeChar_stringMode_iff _).mp hc)
+      have hb2 : ((s.grid.get s.pc.1 s.pc.2) == '"') = false := by
+        simpa only [beq_eq_false_iff_ne, ne_eq]
+      rw [hb2]
+      simp only [Bool.false_xor]
+      cases hins : decodeChar (s.grid.get s.pc.1 s.pc.2) with
+      | stringMode => exact absurd hins hd
+      | halt =>
+          rw [hins] at hstep
+          exact absurd hstep (by simp only [reduceCtorEq, not_false_eq_true])
+      | push n => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | add => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | sub => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | mul => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | div => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | mod => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | not => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | greater => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | right => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | left => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | up => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | down => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | chooseH => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | chooseV => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | random => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | dup => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | swap => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | drop => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | printInt => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | printChar => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | trampoline => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | put => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | get => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | inputInt => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | nop => rw [hins] at hstep; injection hstep with hs'; rw [← hs']; exact hf
+      | inputChar =>
+          rw [hins] at hstep
+          injection hstep with hs'
+          rw [← hs']
+          unfold stepState
+          cases s.input <;> exact hf
+
+/-- The number of steps among the first `n` whose executed cell is `"`. -/
+def quoteSteps (n : ℕ) (s : State w h) : ℕ :=
+  match n with
+  | 0 => 0
+  | n + 1 =>
+      match run n s with
+      | none => quoteSteps n s
+      | some sn =>
+          if sn.grid.get sn.pc.1 sn.pc.2 = '"' then quoteSteps n s + 1
+          else quoteSteps n s
+
+/-- String mode after `n` steps is the initial mode toggled by the parity of
+    the number of executed `"` cells. -/
+theorem run_stringMode_parity (n : ℕ) (s : State w h) (s' : State w h)
+    (hrun : run n s = some s') :
+    s'.stringMode = xor s.stringMode (decide (quoteSteps n s % 2 = 1)) := by
+  induction n generalizing s' with
+  | zero =>
+      rw [run] at hrun
+      injection hrun with hs'
+      rw [← hs']
+      simp only [quoteSteps, Nat.zero_mod, Nat.zero_ne_one, decide_false,
+        Bool.bne_false]
+  | succ n ih =>
+      rcases hn : run n s with _ | sn
+      · rw [run, hn] at hrun; cases hrun
+      · rw [run, hn] at hrun
+        have hstep : step sn = some s' := by simpa only using hrun
+        have hprev := ih sn hn
+        have hq := step_stringMode_xor hstep
+        have hcount : quoteSteps (n + 1) s =
+            if sn.grid.get sn.pc.1 sn.pc.2 = '"' then quoteSteps n s + 1
+            else quoteSteps n s := by
+          rw [quoteSteps, hn]
+        rw [hq, hprev, hcount]
+        by_cases hc : sn.grid.get sn.pc.1 sn.pc.2 = '"'
+        · rw [if_pos hc, hc]
+          have hmod : decide ((quoteSteps n s + 1) % 2 = 1)
+              = !decide (quoteSteps n s % 2 = 1) := by
+            by_cases hp : quoteSteps n s % 2 = 1
+            · simp only [hp, decide_true, Bool.not_true]
+              exact decide_eq_false (by omega)
+            · simp only [hp, decide_false, Bool.not_false]
+              exact decide_eq_true (by omega)
+          simp only [beq_self_eq_true, hmod, Bool.xor_not, Bool.xor_true]
+        · have hb : (sn.grid.get sn.pc.1 sn.pc.2 == '"') = false := by
+            simpa only [beq_eq_false_iff_ne, ne_eq]
+          rw [if_neg hc, hb]
+          simp only [Bool.xor_false]
+
+/-- Starting outside string mode, string mode is off after `n` steps exactly
+    when an even number of `"` cells were executed. -/
+theorem run_stringMode_even (n : ℕ) (s : State w h) (s' : State w h)
+    (hsm : s.stringMode = false) (hrun : run n s = some s') :
+    s'.stringMode = false ↔ quoteSteps n s % 2 = 0 := by
+  rw [run_stringMode_parity n s s' hrun, hsm]
+  simp only [Bool.false_xor, decide_eq_false_iff_not]
+  omega
 
 end LeanFunge

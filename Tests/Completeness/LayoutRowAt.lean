@@ -15,7 +15,7 @@ open LeanFunge
 open LeanFunge.Completeness
 
 /-- A cell beyond the first block's body is a space. -/
-example : (playfieldOf layoutProgram).get 6 4 = ' ' :=
+example : (playfieldOf layoutProgram).get 7 4 = ' ' :=
   playfield_row_at layoutProgram 0 (by decide) 6 0 (by decide) (by decide)
 
 end LeanFunge.Tests

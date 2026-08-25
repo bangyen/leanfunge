@@ -18,11 +18,11 @@ open LeanFunge.Completeness
     stack top by 3 and exits down its fall-through column. -/
 example :
     ((run 4 { State.init (playfieldOf layoutProgram) with
-        stack := [Int.ofNat 5], pc := (0, 4) }).map (fun s => (s.stack, s.pc)))
-      = some ([Int.ofNat 15], (3, 5)) := by
+        stack := [Int.ofNat 5], pc := (1, 4) }).map (fun s => (s.stack, s.pc)))
+      = some ([Int.ofNat 15], (4, 5)) := by
   let S : State (playfieldWidth layoutProgram) (playfieldHeight layoutProgram) :=
-    { State.init (playfieldOf layoutProgram) with stack := [Int.ofNat 5], pc := (0, 4) }
-  change ((run 4 S).map (fun s => (s.stack, s.pc))) = some ([Int.ofNat 15], (3, 5))
+    { State.init (playfieldOf layoutProgram) with stack := [Int.ofNat 5], pc := (1, 4) }
+  change ((run 4 S).map (fun s => (s.stack, s.pc))) = some ([Int.ofNat 15], (4, 5))
   have h := incBlock_run layoutProgram 0 (by decide)
       (show layoutProgram.getD 0 .halt = .inc 1 by decide) S rfl rfl rfl rfl
   simp only [h, counterVal, Option.map]

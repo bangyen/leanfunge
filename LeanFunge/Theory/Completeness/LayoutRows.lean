@@ -92,13 +92,16 @@ theorem playfieldRowsOf_getD_out_width (prog : CMProgram) (x y : ℕ)
   · rfl
   · exact le_trans (playfieldRowsOf_getD_length prog y) (Nat.not_lt.1 hx)
 
-/-- A nonempty program has positive width. -/
-theorem playfieldWidth_pos (prog : CMProgram) (hne : prog ≠ []) :
-    0 < playfieldWidth prog := by
-  have hlen : 0 < prog.length := List.length_pos_of_ne_nil hne
+/-- Every playfield has positive width: column 0 is the boot column, so the
+    entry columns start at one. -/
+theorem playfieldWidth_pos (prog : CMProgram) : 0 < playfieldWidth prog := by
   unfold playfieldWidth
-  calc 0 = entryColumn prog 0 := rfl
-    _ < entryColumn prog prog.length := entryColumn_strict_mono prog hlen
+  cases hlen : prog.length with
+  | zero => exact Nat.zero_lt_one
+  | succ n =>
+      have h0 : 0 < entryColumn prog 0 := Nat.zero_lt_one
+      exact lt_of_lt_of_le h0
+        (le_of_lt (entryColumn_strict_mono prog (Nat.succ_pos n)))
 
 /-- A nonempty program has positive height. -/
 theorem playfieldHeight_pos (prog : CMProgram) (hne : prog ≠ []) :
@@ -171,7 +174,7 @@ theorem playfieldOf_cells_out (prog : CMProgram) (x y : ℕ)
           (Grid.space (playfieldWidth prog) (playfieldHeight prog)) by
         unfold playfieldOf
         exact foldl_bind_put prog (Grid.space (playfieldWidth prog) (playfieldHeight prog))]
-  rw [foldl_put_cells_out _ _ _ _ hout (playfieldWidth_pos prog hne)
+  rw [foldl_put_cells_out _ _ _ _ hout (playfieldWidth_pos prog)
     (playfieldHeight_pos prog hne)]
   rfl
 

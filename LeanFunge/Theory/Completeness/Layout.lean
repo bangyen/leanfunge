@@ -87,7 +87,7 @@ def blockHeight : CMInstr → ℕ
 /-- The entry column of block `i`: the sum of the widths of the preceding
     blocks. -/
 def entryColumn (prog : CMProgram) : ℕ → ℕ
-  | 0 => 0
+  | 0 => 1
   | i + 1 => entryColumn prog i + blockWidth (prog.getD i .halt)
 
 /-- The top row of block `i`: the header (one corridor row per block) plus
@@ -210,19 +210,19 @@ def layoutProgram : CMProgram :=
   [.inc 1, .decz 0 3, .inc 0, .halt]
 
 /-- The generated playfield places the first entry. -/
-theorem layout_entry : (playfieldOf layoutProgram).get 0 4 = '>' := by
+theorem layout_entry : (playfieldOf layoutProgram).get 1 4 = '>' := by
   decide
 
 /-- The generated playfield places the branch cell. -/
-theorem layout_decz_branch : (playfieldOf layoutProgram).get 7 6 = '|' := by
+theorem layout_decz_branch : (playfieldOf layoutProgram).get 8 6 = '|' := by
   decide
 
 /-- The generated playfield places the decrement jog. -/
-theorem layout_jog : (playfieldOf layoutProgram).get 8 9 = 'v' := by
+theorem layout_jog : (playfieldOf layoutProgram).get 9 9 = 'v' := by
   decide
 
 /-- The generated playfield places the halt. -/
-theorem layout_halt : (playfieldOf layoutProgram).get 12 13 = '@' := by
+theorem layout_halt : (playfieldOf layoutProgram).get 13 13 = '@' := by
   decide
 
 end Completeness

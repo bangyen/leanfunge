@@ -15,7 +15,7 @@ open LeanFunge
 open LeanFunge.Completeness
 
 /-- The transfer program's decz block places a `>` turn on its header row. -/
-example : (playfieldOf layoutProgram).get 7 1 = '>' := by
+example : (playfieldOf layoutProgram).get 8 1 = '>' := by
   have ht : ∀ c : Fin 2, ∀ k : ℕ,
       (layoutProgram.getD 1 .halt = .decz c k ∨ layoutProgram.getD 1 .halt = .jump k) →
         k < layoutProgram.length := by
@@ -38,7 +38,7 @@ example : (playfieldOf layoutProgram).get 7 1 = '>' := by
         exact h01 h0
       · change (CMInstr.decz 0 3) = (CMInstr.jump k) at hk
         cases hk
-  have h := playfield_header_get layoutProgram 7 1 (by decide) ht (by decide)
-  simpa only [h, corridorRowAt] using (by decide : corridorRowAt layoutProgram 7 1 = '>')
+  have h := playfield_header_get layoutProgram 8 1 (by decide) ht (by decide)
+  simpa only [h, corridorRowAt] using (by decide : corridorRowAt layoutProgram 8 1 = '>')
 
 end LeanFunge.Tests

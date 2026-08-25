@@ -3,33 +3,13 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
+import LeanFunge.Theory.Completeness.Encodable
 import LeanFunge.Theory.Completeness.Layout
 import LeanFunge.Theory.Completeness.LayoutBlock
-import LeanFunge.Theory.Completeness.LayoutBlock
-import LeanFunge.Theory.Completeness.LayoutBlock
-import LeanFunge.Theory.Completeness.LayoutBlock
-import LeanFunge.Theory.Completeness.LayoutCells
-import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCells
 import LeanFunge.Theory.Completeness.LayoutCorridor
-import LeanFunge.Theory.Completeness.LayoutCorridor
-import LeanFunge.Theory.Completeness.LayoutCorridor
-import LeanFunge.Theory.Completeness.LayoutCorridor
-import LeanFunge.Theory.Completeness.LayoutCorridor
-import LeanFunge.Theory.Completeness.LayoutRouting
-import LeanFunge.Theory.Completeness.LayoutRouting
-import LeanFunge.Theory.Completeness.LayoutRouting
-import LeanFunge.Theory.Completeness.LayoutRouting
-import LeanFunge.Theory.Completeness.LayoutRouting
 import LeanFunge.Theory.Completeness.LayoutRouting
 import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulation
-import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
-import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.LayoutSimulationNormalize
 import LeanFunge.Theory.Completeness.PairEncoding
 import LeanFunge.Theory.Completeness.Routing

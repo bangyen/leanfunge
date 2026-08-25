@@ -145,7 +145,7 @@ theorem halts_of_at_cell (s : State w h) (m : ℕ) (sₘ : State w h)
 theorem run_none_add (s : State w h) {n : ℕ} (hn : run n s = none) (m : ℕ) :
     run (n + m) s = none := by
   induction m with
-  | zero => simpa using hn
+  | zero => simpa only [Nat.add_zero] using hn
   | succ j ih => rw [← Nat.add_assoc] at *; rw [run, ih]; rfl
 
 /-- Halting transports across a finite prefix of a run: a state halts exactly

@@ -30,6 +30,7 @@ holds only when the last instruction is a `halt` — which is exactly what
 * `playfield_boot_push`: Column zero of row zero holds the boot push.
 * `boot_run`: The prelude carries `State.init` to `playfieldStart`.
 * `boot_halts_iff`: The compiled playfield halts exactly when the machine does.
+* `step_push_one`: Pushing the digit one.
 -/
 
 namespace LeanFunge
@@ -129,7 +130,7 @@ theorem playfield_boot_push (prog : CMProgram) (hne : prog ≠ [])
     rintro ⟨h1, -⟩
     rw [Nat.mod_eq_of_lt (by omega : 1 < playfieldWidth prog)] at h1
     omega)]
-  simp
+  simp only [and_self, ↓reduceIte, ↓Char.isValue]
 
 /-- Pushing the digit one. -/
 theorem step_push_one {gw gh : ℕ} (s : State gw gh)
@@ -234,7 +235,8 @@ theorem boot_run (prog : CMProgram) (hne : prog ≠ []) (hwp : wellPlaced prog) 
   rw [htotal]
   unfold playfieldStart blockEntry
   have henc : encodeState { pc := 0, c1 := 0, c2 := 0 } = 1 := by
-    simp [encodeState, encode]
+    simp only [encodeState, encode, pow_zero, mul_one,
+      Int.ofNat_eq_natCast, Nat.cast_one]
   simp only [CMInstr.startCM, hbr0, henc, he0]
 
 /-- The compiled playfield, started the ordinary way, halts exactly when the
@@ -246,7 +248,7 @@ theorem boot_halts_iff (prog : CMProgram) (hne : prog ≠ []) (hwp : wellPlaced 
   exact simulation_halts_iff prog hwp (CMInstr.startCM 0 0)
     (by
       have := List.length_pos_of_ne_nil hne
-      simpa [CMInstr.startCM] using this)
+      simpa only [CMInstr.startCM, gt_iff_lt] using this)
 
 end Completeness
 

@@ -5,8 +5,6 @@ Authors: Bangyen Pham
 -/
 import LeanFunge.Core.Semantics
 import LeanFunge.Theory.Invariance
-import LeanFunge.Theory.Invariance
-import LeanFunge.Theory.Step
 import LeanFunge.Theory.Step
 
 /-!

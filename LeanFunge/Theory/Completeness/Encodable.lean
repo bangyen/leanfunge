@@ -3,8 +3,8 @@ Copyright (c) 2026 Bangyen Pham. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bangyen Pham
 -/
-import Mathlib.Computability.Primrec.List
 import LeanFunge.Theory.Completeness.TwoCounter
+import Mathlib.Computability.Primrec.List
 
 /-!
 # Encodings for Two-Counter Machines
@@ -24,6 +24,10 @@ type, since there is no `deriving` handler for `Primcodable`. `CMProgram` is a
 * `CMInstr.equivSum`: `CMInstr` as a sum of its four constructors' payloads.
 * `CMState.equivProd`: `CMState` as a triple of naturals.
 * `charEquivSubtype`: `Char` as the valid code points.
+
+## Theorems
+
+* `primrec_isValidChar`: Validity of a code point is primitive recursive.
 
 ## Instances
 

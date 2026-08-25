@@ -81,7 +81,22 @@ blocks, and the header corridors all miss the position.
 * `lastCellAt_block_i`: The block reads back its body cell at an offset.
 
 * `playfield_block_get`: A cell within a block's row range is the block's body cell.
-
+* `blockCell_ne_zero`: No block cell is ever placed in column zero: every
+  block cell's column is at or beyond its entry column, and those start at
+  one.
+* `bootCells_row`: The boot prelude occupies only row 0 of the header.
+* `lastCellAt_const`: A lookup whose every matching cell carries the same
+  character, over that same initial value, yields it.
+* `lastCellAt_skip_boot`: Below the header, the boot prelude never wins the
+  lookup: it sits on row 0, and every block row is at or below
+  `prog.length`.
+* `lastCellAt_skip_boot_col`: The boot prelude occupies only columns 0 and
+  1, so a lookup at column two or beyond skips it — including on row 0,
+  where the prelude lives.
+* `lastCellAt_skip_col`: A cell whose column misses the lookup column does
+  not change the lookup.
+* `lastCellAt_skip_col_mod`: A lookup at column zero skips every cell whose
+  column is nonzero modulo the width.
 -/
 namespace LeanFunge
 
@@ -199,25 +214,24 @@ theorem foldl_put_get (g : Grid w h) (cells : List ((ℕ × ℕ) × Char)) (x y 
     at or beyond its entry column, and those start at one. -/
 theorem blockCell_ne_zero (prog : CMProgram) (j : ℕ) (c : (ℕ × ℕ) × Char)
     (hc : c ∈ blockCellList prog j) : c.1.1 ≠ 0 := by
-  unfold blockCellList at hc
   have hep := entryColumn_pos prog j
   cases hget : prog.getD j .halt with
   | inc cc =>
-      rw [hget] at hc; simp at hc
-      rcases hc with h | h | h | h <;> rw [h] <;> simp <;> omega
+      simp only [blockCellList, hget, List.mem_cons, List.not_mem_nil, or_false] at hc
+      rcases hc with h | h | h | h <;> subst h <;> simp only [ne_eq] <;> omega
   | halt =>
-      rw [hget] at hc; simp at hc
-      rcases hc with h | h <;> rw [h] <;> simp <;> omega
+      simp only [blockCellList, hget, List.mem_cons, List.not_mem_nil, or_false] at hc
+      rcases hc with h | h <;> subst h <;> simp only [ne_eq] <;> omega
   | jump k =>
-      rw [hget] at hc; simp [corridorCells] at hc
+      simp only [blockCellList, hget, corridorCells, blockWidth, List.cons_append,
+        List.nil_append, List.mem_cons, List.not_mem_nil, or_false] at hc
       have hek := entryColumn_pos prog k
-      have hbw := blockWidth_two (prog[j]?.getD CMInstr.halt)
-      rcases hc with h | h | h | h <;> rw [h] <;> simp <;> omega
+      rcases hc with h | h | h | h <;> subst h <;> simp only [ne_eq] <;> omega
   | decz cc k =>
-      rw [hget] at hc; simp [corridorCells] at hc
+      simp only [blockCellList, hget, corridorCells, blockWidth, List.cons_append,
+        List.nil_append, List.mem_cons, List.not_mem_nil, or_false] at hc
       have hek := entryColumn_pos prog k
-      have hbw := blockWidth_two (prog[j]?.getD CMInstr.halt)
-      rcases hc with h | h | h | h | h | h | h | h | h | h | h <;> rw [h] <;> simp <;> omega
+      rcases hc with h|h|h|h|h|h|h|h|h|h|h <;> subst h <;> simp only [ne_eq] <;> omega
 
 /-- The playfield readback equals the last-cell lookup over the flattened
     cells. -/

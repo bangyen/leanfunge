@@ -142,7 +142,8 @@ theorem run_spaces_turn (x y n : ℕ) (s : State w h) (d d' : Direction)
 
 /-- A run of spaces followed by a `v` turn leaves the pointer moving down at
     the cell below the `v`: the corridor pattern that drops the pointer into a
-    target row. -/
+    target row. This is `run_spaces_turn` at `right` and `down`, kept for the
+    readability of that common case -- `Direction.char .down` is `'v'`. -/
 theorem run_spaces_v (x y n : ℕ) (s : State w h)
     (hpc : s.pc = (x % w, y % h))
     (hsm : s.stringMode = false)
@@ -154,18 +155,6 @@ theorem run_spaces_v (x y n : ℕ) (s : State w h)
       some { s with
         dir := Direction.down,
         pc := stepPos w h Direction.down (runPos w h n Direction.right (x % w, y % h)) } := by
-  rw [show run (n + 1) s = (run n s).bind step by rfl]
-  rw [run_spaces x y n s hpc hsm (by simpa only [← hdir] using hspaces)]
-  rw [hdir]
-  rw [show (some { s with
-        pc := runPos w h n Direction.right (x % w, y % h),
-        dir := Direction.right }).bind step
-      = step { s with
-        pc := runPos w h n Direction.right (x % w, y % h),
-        dir := Direction.right } by rfl]
-  rw [step_dir_down]
-  · change s.stringMode = false
-    exact hsm
-  · exact hv
+  exact run_spaces_turn x y n s Direction.right Direction.down hpc hsm hdir hspaces hv
 
 end LeanFunge

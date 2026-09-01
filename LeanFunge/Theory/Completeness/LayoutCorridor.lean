@@ -55,6 +55,14 @@ beyond the branch column, `corridorRunLeft` one before it.
 
 * `stepPos_left_pos`: A left step inside the playfield does not wrap.
 
+* `branchColumn_lt_width`: A block's branch column lies inside the playfield.
+
+* `branchColumn_ne_entryColumn`: A branch column never coincides with an entry column.
+
+* `blockRow_pred_lt_height`: The corridor row above a block lies inside the playfield.
+
+* `succ_lt_height`: The row below a block's index lies inside the playfield.
+
 * `corridor_turn`: The turn cell of a jump edge points toward the target.
 
 * `corridor_drop`: The drop cell of a jump edge is a `v`.
@@ -374,6 +382,58 @@ theorem corridorDown_cell (prog : CMProgram) (k : ℕ)
         rw [hv] at hcell
         exact hcell
 
+/-- The branch column of a block lies inside the playfield. -/
+lemma branchColumn_lt_width (prog : CMProgram) (i : ℕ) (hi : i < prog.length) :
+    branchColumn prog i < playfieldWidth prog := by
+  have hmono : entryColumn prog (i + 1) ≤ playfieldWidth prog := by
+    rw [playfieldWidth]
+    exact entryColumn_mono prog (i + 1) prog.length (by omega)
+  rw [entryColumn_succ] at hmono
+  have hC : branchColumn prog i = entryColumn prog i + blockWidth (prog.getD i .halt) - 1 := rfl
+  rw [hC]
+  have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
+  omega
+
+/-- A block's entry column differs from any block's branch column: the branch
+    sits at the far edge of its own block, one short of the next entry. -/
+lemma branchColumn_ne_entryColumn (prog : CMProgram) (i k : ℕ) :
+    branchColumn prog i ≠ entryColumn prog k := by
+  have hC : branchColumn prog i = entryColumn prog i + blockWidth (prog.getD i .halt) - 1 := rfl
+  have hwi2i : 2 ≤ blockWidth (prog.getD i .halt) := by
+    cases prog.getD i .halt <;> norm_num [blockWidth]
+  by_cases hik : i < k
+  · have hmono : entryColumn prog (i + 1) ≤ entryColumn prog k :=
+      entryColumn_mono prog (i + 1) k (by omega)
+    rw [entryColumn_succ] at hmono
+    rw [hC]
+    omega
+  · have hki : k ≤ i := by omega
+    have hmono : entryColumn prog k ≤ entryColumn prog i := entryColumn_mono prog k i hki
+    rw [hC]
+    omega
+
+/-- The corridor row above a block lies inside the playfield. -/
+lemma blockRow_pred_lt_height (prog : CMProgram) (i : ℕ) (hi : i < prog.length) :
+    blockRow prog i - 1 < playfieldHeight prog := by
+  have hbr : blockRow prog i ≤ playfieldHeight prog := by
+    rw [playfieldHeight]
+    exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
+  have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
+  omega
+
+/-- The row below a block's index lies inside the playfield. -/
+lemma succ_lt_height (prog : CMProgram) (i : ℕ) (hi : i < prog.length) :
+    i + 1 < playfieldHeight prog := by
+  have h1 : blockRow prog (i + 1) ≤ playfieldHeight prog := by
+    rw [playfieldHeight]
+    exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
+  have h3 : blockRow prog i < blockRow prog (i + 1) := by
+    rw [blockRow_succ]
+    have hh : 1 ≤ blockHeight (prog.getD i .halt) := blockHeight_pos _
+    omega
+  have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
+  omega
+
 theorem corridorRunRight (prog : CMProgram)
     (i k : ℕ) (c : Fin 2) (hi : i < prog.length) (hk : k < prog.length) (hwell : wellFormed prog)
     (hget : prog.getD i .halt = .decz c k ∨ prog.getD i .halt = .jump k)
@@ -389,15 +449,7 @@ theorem corridorRunRight (prog : CMProgram)
   let C := branchColumn prog i
   let Dk := entryColumn prog k
   have hC : C = entryColumn prog i + blockWidth (prog.getD i .halt) - 1 := rfl
-  have hCW : C < w := by
-    have hmono : entryColumn prog (i + 1) ≤ playfieldWidth prog := by
-      rw [playfieldWidth]
-      exact entryColumn_mono prog (i + 1) prog.length (by omega)
-    rw [entryColumn_succ] at hmono
-    dsimp only [w]
-    rw [hC]
-    have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
-    omega
+  have hCW : C < w := branchColumn_lt_width prog i hi
   have hDK : Dk < w := by
     dsimp only [w, Dk]
     rw [playfieldWidth]
@@ -405,33 +457,9 @@ theorem corridorRunRight (prog : CMProgram)
   have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
   have hwi2i : 2 ≤ blockWidth (prog.getD i .halt) := by
     cases prog.getD i .halt <;> norm_num [blockWidth]
-  have hCneK : C ≠ Dk := by
-    by_cases hik : i < k
-    · have hmono : entryColumn prog (i + 1) ≤ entryColumn prog k :=
-        entryColumn_mono prog (i + 1) k (by omega)
-      rw [entryColumn_succ] at hmono
-      rw [hC]
-      omega
-    · have hki : k ≤ i := by omega
-      have hmono : entryColumn prog k ≤ entryColumn prog i := entryColumn_mono prog k i hki
-      rw [hC]
-      omega
-  have hblock : blockRow prog i - 1 < h := by
-    have hbr : blockRow prog i ≤ h := by
-      dsimp only [h]
-      rw [playfieldHeight]
-      exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
-    omega
-  have hiH : i + 1 < h := by
-    have h1 : blockRow prog (i + 1) ≤ h := by
-      dsimp only [h]
-      rw [playfieldHeight]
-      exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
-    have h3 : blockRow prog i < blockRow prog (i + 1) := by
-      rw [blockRow_succ]
-      have hh : 1 ≤ blockHeight (prog.getD i .halt) := blockHeight_pos _
-      omega
-    omega
+  have hCneK : C ≠ Dk := branchColumn_ne_entryColumn prog i k
+  have hblock : blockRow prog i - 1 < h := blockRow_pred_lt_height prog i hi
+  have hiH : i + 1 < h := succ_lt_height prog i hi
   have hkHlt : blockRow prog k < h := by
     dsimp only [h]
     rw [playfieldHeight]
@@ -521,25 +549,25 @@ theorem corridorRunRight (prog : CMProgram)
       (by omega) (by
         have hC2 : 2 ≤ C := branchColumn_two prog i
         omega)
-  have hturnAl : s.grid.get (runPos w h nAlong Direction.right ((C + 1) % w, i % h)).1
-      (runPos w h nAlong Direction.right ((C + 1) % w, i % h)).2 = 'v' := by
-    have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
-      rw [runPos_right_pos (x := C + 1) (y := i) (k := nAlong) (hx := by omega) (hy := by omega)]
-      apply Prod.ext
-      · dsimp only [nAlong]
-        omega
-      · rfl
-    rw [hpos]
-    rw [hgrid]
-    exact hdropCell
-  have hAlRun := run_spaces_v (w := w) (h := h) (C + 1) i nAlong
+  have hAlRun := run_spaces_turn (w := w) (h := h) (C + 1) i nAlong
     { s with pc := (C + 1, i), dir := .right }
+    Direction.right Direction.down
     (by
       change (C + 1, i) = ((C + 1) % w, i % h)
       congr
       · exact (Nat.mod_eq_of_lt (by omega : C + 1 < w)).symm
       · exact (Nat.mod_eq_of_lt (by omega : i < h)).symm)
-    (by exact hsm) (by rfl) (by simpa only [] using hspacesAl) hturnAl
+    (by exact hsm) (by rfl) (by simpa only [] using hspacesAl)
+    (by
+      have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
+        rw [runPos_right_pos (x := C + 1) (y := i) (k := nAlong) (hx := by omega) (hy := by omega)]
+        apply Prod.ext
+        · dsimp only [nAlong]
+          omega
+        · rfl
+      rw [hpos]
+      rw [hgrid]
+      exact hdropCell)
   have hAlPos : stepPos w h Direction.down
     (runPos w h nAlong Direction.right ((C + 1) % w, i % h)) = (Dk, i + 1) := by
     have hpos : runPos w h nAlong Direction.right ((C + 1) % w, i % h) = (Dk, i) := by
@@ -620,15 +648,7 @@ theorem corridorRunLeft (prog : CMProgram)
   let C := branchColumn prog i
   let Dk := entryColumn prog k
   have hC : C = entryColumn prog i + blockWidth (prog.getD i .halt) - 1 := rfl
-  have hCW : C < w := by
-    have hmono : entryColumn prog (i + 1) ≤ playfieldWidth prog := by
-      rw [playfieldWidth]
-      exact entryColumn_mono prog (i + 1) prog.length (by omega)
-    rw [entryColumn_succ] at hmono
-    dsimp only [w]
-    rw [hC]
-    have hwi : 1 ≤ blockWidth (prog.getD i .halt) := blockWidth_pos _
-    omega
+  have hCW : C < w := branchColumn_lt_width prog i hi
   have hDK : Dk < w := by
     dsimp only [w, Dk]
     rw [playfieldWidth]
@@ -636,33 +656,9 @@ theorem corridorRunLeft (prog : CMProgram)
   have hBRi : prog.length ≤ blockRow prog i := blockRow_ge_length prog i
   have hwi2i : 2 ≤ blockWidth (prog.getD i .halt) := by
     cases prog.getD i .halt <;> norm_num [blockWidth]
-  have hCneK : C ≠ Dk := by
-    by_cases hik : i < k
-    · have hmono : entryColumn prog (i + 1) ≤ entryColumn prog k :=
-        entryColumn_mono prog (i + 1) k (by omega)
-      rw [entryColumn_succ] at hmono
-      rw [hC]
-      omega
-    · have hki : k ≤ i := by omega
-      have hmono : entryColumn prog k ≤ entryColumn prog i := entryColumn_mono prog k i hki
-      rw [hC]
-      omega
-  have hblock : blockRow prog i - 1 < h := by
-    have hbr : blockRow prog i ≤ h := by
-      dsimp only [h]
-      rw [playfieldHeight]
-      exact blockRow_mono prog (i := i) (j := prog.length) (by omega)
-    omega
-  have hiH : i + 1 < h := by
-    have h1 : blockRow prog (i + 1) ≤ h := by
-      dsimp only [h]
-      rw [playfieldHeight]
-      exact blockRow_mono prog (i := i + 1) (j := prog.length) (by omega)
-    have h3 : blockRow prog i < blockRow prog (i + 1) := by
-      rw [blockRow_succ]
-      have hh : 1 ≤ blockHeight (prog.getD i .halt) := blockHeight_pos _
-      omega
-    omega
+  have hCneK : C ≠ Dk := branchColumn_ne_entryColumn prog i k
+  have hblock : blockRow prog i - 1 < h := blockRow_pred_lt_height prog i hi
+  have hiH : i + 1 < h := succ_lt_height prog i hi
   have hkHlt : blockRow prog k < h := by
     dsimp only [h]
     rw [playfieldHeight]

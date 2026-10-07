@@ -17,6 +17,36 @@ LeanFunge pins down one precise, total, deterministic formalization — every
 transition of the interpreter is a pure Lean function — and then proves
 theorems about it.
 
+## Try a tiny verified program
+
+The Befunge row `23+.@` pushes 2 and 3, adds them, prints `5`, and halts.
+After [installation](#installation--building), run this from the repository root:
+
+```bash
+lake build LeanFunge.Examples.Arithmetic
+cat > /tmp/leanfunge-arithmetic.lean <<'LEAN'
+import LeanFunge.Examples.Arithmetic
+open LeanFunge LeanFunge.Examples
+#eval (run 4 arithmeticState).map (fun s => s.output)
+#eval (run 5 arithmeticState).isNone
+LEAN
+lake env lean /tmp/leanfunge-arithmetic.lean
+```
+
+Output:
+
+```text
+some "5"
+true
+```
+
+The kernel-checked [`arithmetic_output`](LeanFunge/Examples/Arithmetic.lean)
+proves `(run 4 arithmeticState).map (fun s => s.output) = some "5"`;
+`arithmetic_halts` proves `run 5 arithmeticState = none`. These statements
+apply to this concrete five-cell playfield and initial state under LeanFunge's
+semantics. `run` returns `none` on halting, so the output is inspected after
+four steps, before `@` executes.
+
 ## Architecture
 
 For a detailed overview of the project's design and the full list of verified
